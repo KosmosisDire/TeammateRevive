@@ -33,6 +33,7 @@ namespace TeammateRevive
 
         void Start() 
         {
+            InitConfig();
             player = PlayerCharacterMasterController.instances[0];
         }
 
