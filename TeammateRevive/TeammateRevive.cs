@@ -5,6 +5,7 @@ using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
+using static RoR2.Chat;
 
 namespace TeammateRevive
 {
@@ -31,10 +32,14 @@ namespace TeammateRevive
         public static ConfigEntry<float> helpDistance { get; set; }
         public static ConfigEntry<float> helpTime { get; set; }
 
+        
         void Start() 
         {
+            Log.Init(Logger);
             InitConfig();
             player = PlayerCharacterMasterController.instances[0];
+            On.RoR2.UnitySystemConsoleRedirector.Redirect += orig => { };
+            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += GlobalEventManager_OnPlayerCharacterDeath;
         }
 
         public void RespawnChar(PlayerCharacterMasterController player)
@@ -50,13 +55,15 @@ namespace TeammateRevive
             {
                 player.master.RespawnExtraLife();
                 deadPlayers.Remove(player);
+                Logger.LogInfo("character revived");
             }
-                
+            
             return;
         }
 
         private void GlobalEventManager_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, GlobalEventManager self, DamageReport damageReport, NetworkUser victimNetworkUser)
         {
+            Logger.LogInfo(damageReport.victim.name + " has died");
             deadPlayers.Add(victimNetworkUser.masterController);
         }
 
@@ -69,10 +76,12 @@ namespace TeammateRevive
             if (deadPlayers.Count == 0) return;
             if (helping != null)
             {
+                Logger.LogInfo(timer);
                 player.bodyInputs = new InputBankTest();
                 timer += Time.deltaTime;
                 if (timer >= helpTime.Value)
                 {
+                    Logger.LogInfo("Reviving character");
                     RespawnChar(helping);
                     helping = null;
                     timer = 0;
@@ -84,6 +93,7 @@ namespace TeammateRevive
             {
                 if (Vector3.Distance(player.transform.position, dead.transform.position) < helpDistance.Value)
                 {
+                    Logger.LogInfo("In range");
                     helping = dead;
                 }
             }
