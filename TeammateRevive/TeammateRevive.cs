@@ -22,7 +22,7 @@ namespace TeammateRevive
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "1.0.3";
+        public const string PluginVersion = "1.0.4";
 
 
         public PlayerCharacterMasterController player;

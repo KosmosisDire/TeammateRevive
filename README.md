@@ -6,6 +6,9 @@
 
 ##Change Notes:
 
+* 1.0.4
+    * Got mod actualy running - still not tested at all and likely doesn't work
+
 * 1.0.3
     * fixed versioning
 
