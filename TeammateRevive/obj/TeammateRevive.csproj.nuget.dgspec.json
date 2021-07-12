@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\ExamplePlugin\\TeammateRevive.csproj": {}
+    "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\TeammateRevive\\TeammateRevive.csproj": {}
   },
   "projects": {
-    "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\ExamplePlugin\\TeammateRevive.csproj": {
+    "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\TeammateRevive\\TeammateRevive.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\ExamplePlugin\\TeammateRevive.csproj",
+        "projectUniqueName": "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\TeammateRevive\\TeammateRevive.csproj",
         "projectName": "TeammateRevive",
-        "projectPath": "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\ExamplePlugin\\TeammateRevive.csproj",
+        "projectPath": "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\TeammateRevive\\TeammateRevive.csproj",
         "packagesPath": "C:\\Users\\NathanGeorge\\.nuget\\packages\\",
-        "outputPath": "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\ExamplePlugin\\obj\\",
+        "outputPath": "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\TeammateRevive\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",

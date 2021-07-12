@@ -100,7 +100,7 @@ namespace TeammateRevive
                 section: "Help Time",
                 key: "time",
                 description: "Reviving a teammate will take this long. (seconds)",
-                defaultValue: 5ff);
+                defaultValue: 5f);
         }
     }
 }
