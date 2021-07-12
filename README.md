@@ -6,12 +6,15 @@
 
 ##Change Notes:
 
-* 0.0.2
-    *Fixed a few problems (still not functional yet)
+* 1.0.3
+    * fixed versioning
 
-* 0.0.1:
+* 1.0.2
+    * Fixed a few problems (still not functional yet)
+
+* 1.0.1:
     * Fixed typos
     * updated artwork
 
-* 0.0.0:
-    * Initial "release"
+* 1.0.0:
+    * Initial "release" (not really a release but, eh)
