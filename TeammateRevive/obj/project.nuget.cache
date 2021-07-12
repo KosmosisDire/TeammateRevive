@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "fM8QTkKlQkCL3JFMukiBQaFBeTwZOcaUJCkEsN7AlwSKTmGaU/cmfxOv8toSNm63cF267NBAYI5kYGBpX1cE7A==",
+  "success": true,
+  "projectFilePath": "C:\\NathanGeorge\\Main Documents\\Projects\\Modding\\Risk of Rain 2\\TeammateRevive\\ExamplePlugin\\TeammateRevive.csproj",
+  "expectedPackageFiles": [
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
