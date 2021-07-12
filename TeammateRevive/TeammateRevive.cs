@@ -33,13 +33,25 @@ namespace TeammateRevive
         public static ConfigEntry<float> helpTime { get; set; }
 
         
-        void Start() 
+        public void Awake() 
         {
             Log.Init(Logger);
             InitConfig();
-            player = PlayerCharacterMasterController.instances[0];
+            SetupHooks();
+            Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
+        }
+
+        void SetupHooks() 
+        {
             On.RoR2.UnitySystemConsoleRedirector.Redirect += orig => { };
             On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += GlobalEventManager_OnPlayerCharacterDeath;
+            On.RoR2.Run.Start += RunStart;
+        }
+
+        public void RunStart(On.RoR2.Run.orig_Start orig, Run self)
+        {
+            orig(self);
+            player = PlayerCharacterMasterController.instances[0];
         }
 
         public void RespawnChar(PlayerCharacterMasterController player)
@@ -63,6 +75,7 @@ namespace TeammateRevive
 
         private void GlobalEventManager_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, GlobalEventManager self, DamageReport damageReport, NetworkUser victimNetworkUser)
         {
+            orig(self, damageReport, victimNetworkUser);
             Logger.LogInfo(damageReport.victim.name + " has died");
             deadPlayers.Add(victimNetworkUser.masterController);
         }
@@ -73,6 +86,7 @@ namespace TeammateRevive
         //The Update() method is run on every frame of the game.
         private void Update()
         {
+            
             if (deadPlayers.Count == 0) return;
             if (helping != null)
             {

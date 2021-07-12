@@ -1,0 +1,9 @@
+C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\TeammateRevive\obj\Debug\TeammateRevive.csproj.AssemblyReference.cache
+C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\TeammateRevive\obj\Debug\TeammateRevive.AssemblyInfoInputs.cache
+C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\TeammateRevive\obj\Debug\TeammateRevive.AssemblyInfo.cs
+C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\TeammateRevive\obj\Debug\TeammateRevive.csproj.CoreCompileInputs.cache
+C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\TeammateRevive\obj\Debug\TeammateRevive.dll
+C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\TeammateRevive\obj\Debug\TeammateRevive.pdb
+C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\TeammateRevive.deps.json
+C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\TeammateRevive.dll
+C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\TeammateRevive.pdb
