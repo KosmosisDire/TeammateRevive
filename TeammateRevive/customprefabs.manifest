@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1786686319
+CRC: 1595818600
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 56f79cdf7c89d9d1744f5af7d98e2559
+    Hash: 0f3dde7383a6c274fb18332ac5f4622e
   TypeTreeHash:
     serializedVersion: 2
     Hash: 28b1d447cb4938d8fa6c684238801318
@@ -35,13 +35,13 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
-- Assets/DeathMarker/Deathmark_Low.asset
-- Assets/DeathMarker/Drip.mat
-- Assets/DeathMarker/texChevronDead.png
-- Assets/DeathMarker/Front.mat
-- Assets/DeathMarker/PlayerDeathPoint.prefab
-- Assets/DeathMarker/matDeathMark.mat
-- Assets/DeathMarker/texDeathMarkDiffuse.png
-- Assets/DeathMarker/texThermiteDroplet2Mask.png
-- Assets/DeathMarker/FrontRenderedSprite.shader
+- Assets/Deathmark_Low.asset
+- Assets/Drip.mat
+- Assets/texChevronDead.png
+- Assets/Front.mat
+- Assets/PlayerDeathPoint.prefab
+- Assets/matDeathMark.mat
+- Assets/texDeathMarkDiffuse.png
+- Assets/texThermiteDroplet2Mask.png
+- Assets/FrontRenderedSprite.shader
 Dependencies: []

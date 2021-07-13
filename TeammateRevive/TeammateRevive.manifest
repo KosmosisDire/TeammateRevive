@@ -1,7 +1,7 @@
 ManifestFileVersion: 0
-CRC: 2193766459
+CRC: 420852110
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
-      Name: deathmarker
+      Name: customprefabs
       Dependencies: {}
