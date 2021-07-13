@@ -27,9 +27,8 @@ They will then revive. Range can be changed in config.
 
 * 1.0.4
     * Got mod actually working
-    *Bugs:
-        *Players can revive themselves after they die :|
-        *not ready to play yet
+    * Bugs:
+        * Players can revive themselves after they die :|
 
 * 1.0.3
     * fixed versioning
