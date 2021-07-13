@@ -6,6 +6,7 @@ using RoR2;
 using RoR2.Projectile;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace TeammateRevive
@@ -21,7 +22,6 @@ namespace TeammateRevive
         public float rechargedHealth = 0;
         public Vector3 lastPosition = Vector3.zero;
         public GameObject deathMark = null;
-        public GameObject deathSkull = null;
     }
 
     [BepInDependency("com.bepis.r2api")]
@@ -41,6 +41,7 @@ namespace TeammateRevive
         //config entries
         public static ConfigEntry<float> helpDistance { get; set; }
 
+        private GameObject deathMarker;
         
         public void Awake()
         {
@@ -48,6 +49,13 @@ namespace TeammateRevive
             InitConfig();
             SetupHooks();
             Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
+
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.deathmarker"))
+            {
+                var bundle = AssetBundle.LoadFromStream(stream);
+
+                deathMarker = bundle.LoadAsset<GameObject>("Assets/DeathMarker/PlayerDeathPoint");
+            }
         }
 
         void SetupHooks()
@@ -57,19 +65,16 @@ namespace TeammateRevive
             On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
             On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
         }
-
         void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user) 
         {
             orig(self, user);
             SetupPlayers();
         }
-
         private void Run_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
         {
             orig(self, user);
             SetupPlayers();
         }
-
         void hook_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, RoR2.SurvivorPodController self, GameObject passenger) 
         {
             orig(self, passenger);
@@ -128,11 +133,11 @@ namespace TeammateRevive
             //find average max health
             int smallestMax = int.MaxValue;
             smallestMax = 50;
-            //for (int i = 0; i < alivePlayers.Count; i++)
-            //{
-            //    if(alivePlayers[i].body.healthComponent.health < smallestMax)
-            //        smallestMax = (int)alivePlayers[i].body.maxHealth;
-            //}
+            for (int i = 0; i < alivePlayers.Count; i++)
+            {
+                if(alivePlayers[i].body.healthComponent.health < smallestMax)
+                    smallestMax = (int)alivePlayers[i].body.maxHealth;
+            }
 
 
             //do all interactions between players and figure out whether they are dead
@@ -153,8 +158,7 @@ namespace TeammateRevive
                     deadPlayers.Add(player);
                     alivePlayers.Remove(player);
                     Logger.LogInfo(" ---------------- player died!! ---------------- ");
-                    player.deathSkull = Instantiate(Resources.Load<GameObject>("prefabs/pickupmodels/PickupDeathMark"), player.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
-                    player.deathSkull.transform.localScale *= 0.2f;
+                    player.deathMark = Instantiate(deathMarker, player.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
 
                     continue;
                 }
@@ -175,24 +179,23 @@ namespace TeammateRevive
 
                     if ((playerPos - deadPos).magnitude < helpDistance.Value)
                     {
-                        Destroy(dead.deathMark);
-                        if (energyBubble == null)
-                        {
-                            energyBubble = Instantiate(Resources.Load<GameObject>("prefabs/projectiles/EngiBubbleShield"), dead.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
-                            Destroy(energyBubble.GetComponent<ProjectileStickOnImpact>());
-                            Destroy(energyBubble.GetComponent<Rigidbody>());
-                        }
-                        else
-                        {
-                            energyBubble.transform.localScale = Vector3.one * (helpDistance.Value / 2) * (dead.rechargedHealth / smallestMax);
-                            energyBubble.transform.position = dead.lastPosition + Vector3.up * 0.7f;
-                            energyBubble.transform.rotation = Quaternion.identity;
-                        }
+                        //if (energyBubble == null)
+                        //{
+                        //    energyBubble = Instantiate(Resources.Load<GameObject>("prefabs/projectiles/EngiBubbleShield"), dead.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
+                        //    Destroy(energyBubble.GetComponent<ProjectileStickOnImpact>());
+                        //    Destroy(energyBubble.GetComponent<Rigidbody>());
+                        //}
+                        //else
+                        //{
+                        //    energyBubble.transform.localScale = Vector3.one * (helpDistance.Value / 2) * (dead.rechargedHealth / smallestMax);
+                        //    energyBubble.transform.position = dead.lastPosition + Vector3.up * 0.7f;
+                        //    energyBubble.transform.rotation = Quaternion.identity;
+                        //}
 
 
                         if (player.body.healthComponent.health > player.body.maxHealth * 0.1f)
                         {
-                            float amount = player.body.level * Time.deltaTime * 6;
+                            float amount = player.body.level * Time.deltaTime * 3;
 
                             //add health to dead player
                             dead.rechargedHealth += amount;
@@ -211,24 +214,11 @@ namespace TeammateRevive
                             player.body.healthComponent.TakeDamage(DI);
                         }
                     }
-                    else
-                    {
-                        if (dead.deathMark = null) 
-                        {
-                            EffectData ed = new EffectData();
-                            ed.color = Color.red;
-                            ed.start = dead.lastPosition + Vector3.up * 0.7f;
-                            ed.rotation = Quaternion.identity;
-                            ed.scale = 1;
-                            EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/temporaryvisualeffects/RegenBoostEffect"), ed, true);
-                            dead.deathMark = Instantiate(Resources.Load<GameObject>("prefabs/projectiles/ElectricOrbProjectile"), dead.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
-                        }
-                    }
 
                     if (dead.rechargedHealth >= smallestMax)
                     {
                         Destroy(energyBubble);
-                        Destroy(dead.deathSkull);
+                        Destroy(dead.deathMark);
 
                         RespawnChar(dead);
                         dead.body.healthComponent.Networkhealth = Mathf.Clamp(smallestMax, 0, dead.body.maxHealth);

@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 2193766459
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: deathmarker
+      Dependencies: {}
