@@ -50,11 +50,11 @@ namespace TeammateRevive
             SetupHooks();
             Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
 
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.deathmarker"))
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
                 var bundle = AssetBundle.LoadFromStream(stream);
 
-                deathMarker = bundle.LoadAsset<GameObject>("Assets/DeathMarker/PlayerDeathPoint");
+                deathMarker = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint");
             }
         }
 
