@@ -4,7 +4,8 @@
 
 
 ## Current Function:
-    * Teammates can walk in range of a dead player to start a countdown. When the countdown is up the player will revive.
+    * Teammates can walk in range of a dead player to start a countdown. 
+       When the countdown is up the player will revive.
     * Revival range and time customizable in the config.
 
 ## To Do:
