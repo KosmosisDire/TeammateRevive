@@ -4,7 +4,7 @@
 
 (Keywords: revival - revive - respawn - heal)
 
-##Change Notes:
+## Change Notes:
 
 * 1.0.5
     * Hopefully fixed players being able to revive themselves
