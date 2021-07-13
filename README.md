@@ -1,4 +1,4 @@
-# Teammate Revival - DOES NOT WORK CURRENTLY! - WIP
+# Teammate Revival - WARNING HEAVY WIP
 
 ### Allows survivors to revive their fallen colleagues. But be careful, you can't fight and revive at the same time. 
 
@@ -7,10 +7,10 @@
 ##Change Notes:
 
 * 1.0.5
-    *Hopefully fixed players being able to revive themselves
+    * Hopefully fixed players being able to revive themselves
 
 * 1.0.4
-    * Got mod actually running
+    * Got mod actually working
     *Bugs:
         *Players can revive themselves after they die :|
         *not ready to play yet
