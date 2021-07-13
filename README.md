@@ -1,25 +1,29 @@
-# Teammate Revival - WARNING HEAVY WIP
+# Teammate Revival - HEAVY WIP
 
-### Allows survivors to revive their fallen colleagues. But be careful, you can't fight and revive at the same time. 
+### Allows survivors to revive their fallen colleagues. But it comes at the price of your own health. 
+When you walk into range of a dead survivor's skull, your health will transfer to the dead survivor (with a speed based on level, and stopping at 10%) until the survivor has taken 50 health from you. 
+They will then revive. Range can be changed in config.
 
 
-## Current Function:
-* Teammates can walk in range of a dead player to start a countdown. When the countdown is up the player will revive.
-* Revival range and time customizable in the config.
 
 ## To Do:
-* Stop players from being able to attack while reviving a teammate
-* Require an interaction to start reviving a player (rather than starting when in range)
-* Add a health drain feature (drain most of your health to revive your friend)
+* Allow an interaction to start reviving a player (rather than automatically starting when in range)
 * Add option to disable reviving during boss battle / while in combat
-* Must add MAJOR visual polish and queues
-    * Possibly an animation for the reviver as well if possible
+* Must add MAJOR polish and visual queues
+    * Possibly an animation for the reviver as well, if possible
 
 
 ## Change Notes:
 
+* 1.0.6
+    * Made it so it actually works this time (WOW!)
+    * Added a skull that hovers over a player's location on death (this is used as the revival point)
+    * Made health drain from the reviving player and add onto the dead player (speed depends on player level)
+    * Still lots of bugs and polish and visual changes that need to be added!
+
 * 1.0.5
     * Hopefully fixed players being able to revive themselves
+    * (I didn't fix it it broke the entire thing... yay)
 
 * 1.0.4
     * Got mod actually working
@@ -41,4 +45,4 @@
     * Initial "release" (not really a release but, eh)
 
 
-(Keywords: revival - revive - respawn - heal)
+(Keywords: revival - revive - respawn - heal - bleed - steal - give)

@@ -3,37 +3,46 @@ using BepInEx.Configuration;
 using R2API;
 using R2API.Utils;
 using RoR2;
+using RoR2.Projectile;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static RoR2.Chat;
 
 namespace TeammateRevive
 {
+    public class Player
+    {
+        public NetworkUser networkUser;
+        public CharacterMaster master;
+        public PlayerCharacterMasterController playerCharacterMaster;
+        public CharacterBody body;
+        public GameObject bodyObject;
+        public bool isDead = false;
+        public float rechargedHealth = 0;
+        public Vector3 lastPosition = Vector3.zero;
+        public GameObject deathMark = null;
+        public GameObject deathSkull = null;
+    }
+
     [BepInDependency("com.bepis.r2api")]
-	
-	//This attribute is required, and lists metadata for your plugin.
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-	
-	//We will be using 3 modules from R2API: ItemAPI to add our item, ItemDropAPI to have our item drop ingame, and LanguageAPI to add our language tokens.
-    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(ItemDropAPI), nameof(LanguageAPI))]
-	
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     public class TeammateRevive : BaseUnityPlugin
 	{
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "1.0.5";
+        public const string PluginVersion = "1.0.6";
 
 
-        public PlayerCharacterMasterController player;
-        private static List<PlayerCharacterMasterController> deadPlayers = new List<PlayerCharacterMasterController>();
+        public List<Player> alivePlayers = new List<Player>();
+        public List<Player> deadPlayers = new List<Player>();
 
         //config entries
         public static ConfigEntry<float> helpDistance { get; set; }
-        public static ConfigEntry<float> helpTime { get; set; }
 
         
-        public void Awake() 
+        public void Awake()
         {
             Log.Init(Logger);
             InitConfig();
@@ -41,80 +50,190 @@ namespace TeammateRevive
             Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
         }
 
-        void SetupHooks() 
+        void SetupHooks()
         {
             On.RoR2.UnitySystemConsoleRedirector.Redirect += orig => { };
-            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += GlobalEventManager_OnPlayerCharacterDeath;
-            On.RoR2.Run.Start += RunStart;
+            On.RoR2.SurvivorPodController.OnPassengerExit += hook_OnPassengerExit;
+            On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
+            On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
         }
 
-        public void RunStart(On.RoR2.Run.orig_Start orig, Run self)
+        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user) 
         {
-            orig(self);
-            player = PlayerCharacterMasterController.instances[0];
+            orig(self, user);
+            SetupPlayers();
         }
 
-        public void RespawnChar(PlayerCharacterMasterController player)
+        private void Run_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
+        {
+            orig(self, user);
+            SetupPlayers();
+        }
+
+        void hook_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, RoR2.SurvivorPodController self, GameObject passenger) 
+        {
+            orig(self, passenger);
+            SetupPlayers();
+        }
+
+        public void SetupPlayers() 
+        {
+            alivePlayers.Clear();
+            deadPlayers.Clear();
+
+            var instances = PlayerCharacterMasterController.instances;
+            foreach (PlayerCharacterMasterController playerCharacterMaster in instances)
+            {
+                Player newPlayer = new Player();
+                if (playerCharacterMaster.networkUser) newPlayer.networkUser = playerCharacterMaster.networkUser;
+                if (playerCharacterMaster.master) newPlayer.master = playerCharacterMaster.master;
+                if (playerCharacterMaster.master) newPlayer.playerCharacterMaster = playerCharacterMaster;
+                if (playerCharacterMaster.master.GetBody()) newPlayer.body = playerCharacterMaster.master.GetBody();
+                if (playerCharacterMaster.master.bodyPrefab) newPlayer.bodyObject = playerCharacterMaster.master.bodyPrefab;
+                newPlayer.isDead = false;
+                newPlayer.rechargedHealth = 0;
+
+                alivePlayers.Add(newPlayer);
+            }
+            Logger.LogInfo(" ---------------- Setup Players ---------------- ");
+        }
+
+        public void RespawnChar(Player player)
         {
             if (!deadPlayers.Contains(player)) return;
 
 
-            bool playerConnected = player.isConnected;
-            bool isDead = !player.master.GetBody()
-                        || player.master.IsDeadAndOutOfLivesServer()
-                        || !player.master.GetBody().healthComponent.alive;
-            if (playerConnected && isDead)
+            bool playerConnected = player.playerCharacterMaster.isConnected;
+            
+            if (playerConnected && player.isDead)
             {
                 player.master.RespawnExtraLife();
+                player.body = player.master.GetBody();
+                Logger.LogInfo("player body null?  :  " + player.body == null + "-------------------------------");
+                player.bodyObject = player.master.bodyPrefab;
+                player.isDead = false;
+                alivePlayers.Add(player);
                 deadPlayers.Remove(player);
-                Logger.LogInfo("character revived");
+                Logger.LogInfo(" ---------------- Revived ---------------- ");
             }
-            
+
             return;
         }
 
-        private void GlobalEventManager_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, GlobalEventManager self, DamageReport damageReport, NetworkUser victimNetworkUser)
-        {
-            orig(self, damageReport, victimNetworkUser);
-            Logger.LogInfo(damageReport.victim.name + " has died");
-            deadPlayers.Add(victimNetworkUser.masterController);
-        }
+        GameObject energyBubble = null;
 
-        PlayerCharacterMasterController helping = null;
-        float timer = 0;
 
-        //The Update() method is run on every frame of the game.
         private void Update()
         {
-            if (deadPlayers.Contains(player)) return;
-            if (deadPlayers.Count == 0) return;
-            if (helping != null)
-            {
-                Logger.LogInfo(timer);
-                player.bodyInputs = new InputBankTest();
-                timer += Time.deltaTime;
-                if (timer >= helpTime.Value)
-                {
-                    Logger.LogInfo("Reviving character");
-                    RespawnChar(helping);
-                    helping = null;
-                    timer = 0;
-                }
-                return;
-            }
+            //find average max health
+            int smallestMax = int.MaxValue;
+            smallestMax = 50;
+            //for (int i = 0; i < alivePlayers.Count; i++)
+            //{
+            //    if(alivePlayers[i].body.healthComponent.health < smallestMax)
+            //        smallestMax = (int)alivePlayers[i].body.maxHealth;
+            //}
 
-            foreach (var dead in deadPlayers)
+
+            //do all interactions between players and figure out whether they are dead
+            for (int i = 0; i < alivePlayers.Count; i++)
             {
-                if (Vector3.Distance(player.transform.position, dead.transform.position) < helpDistance.Value)
+                Player player = alivePlayers[i];
+
+
+                if (player.master == null || player.body == null || player.networkUser == null || player.playerCharacterMaster == null)
                 {
-                    Logger.LogInfo("In range");
-                    helping = dead;
+                    Logger.LogError("Player has a null reference!");
                 }
-                else 
+
+                if (!player.master.GetBody())
                 {
-                    Logger.LogInfo("Out of Range");
-                    helping = null;
-                    timer = 0;
+                    //set player to dead and add them to the list
+                    player.isDead = true;
+                    deadPlayers.Add(player);
+                    alivePlayers.Remove(player);
+                    Logger.LogInfo(" ---------------- player died!! ---------------- ");
+                    player.deathSkull = Instantiate(Resources.Load<GameObject>("prefabs/pickupmodels/PickupDeathMark"), player.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
+                    player.deathSkull.transform.localScale *= 0.2f;
+
+                    continue;
+                }
+
+                //set position for use after death
+                player.lastPosition = player.master.GetBodyObject().transform.position;
+                
+                //if the player is alive, see if they are reviving someone
+                for (int j = 0; j < deadPlayers.Count; j++)
+                {
+                    Player dead = deadPlayers[j];
+
+                    Vector3 playerPos = player.lastPosition;
+                    Vector3 deadPos = dead.lastPosition;
+
+                    Logger.LogInfo((playerPos - deadPos).magnitude);
+
+
+                    if ((playerPos - deadPos).magnitude < helpDistance.Value)
+                    {
+                        Destroy(dead.deathMark);
+                        if (energyBubble == null)
+                        {
+                            energyBubble = Instantiate(Resources.Load<GameObject>("prefabs/projectiles/EngiBubbleShield"), dead.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
+                            Destroy(energyBubble.GetComponent<ProjectileStickOnImpact>());
+                            Destroy(energyBubble.GetComponent<Rigidbody>());
+                        }
+                        else
+                        {
+                            energyBubble.transform.localScale = Vector3.one * (helpDistance.Value / 2) * (dead.rechargedHealth / smallestMax);
+                            energyBubble.transform.position = dead.lastPosition + Vector3.up * 0.7f;
+                            energyBubble.transform.rotation = Quaternion.identity;
+                        }
+
+
+                        if (player.body.healthComponent.health > player.body.maxHealth * 0.1f)
+                        {
+                            float amount = player.body.level * Time.deltaTime * 6;
+
+                            //add health to dead player
+                            dead.rechargedHealth += amount;
+                            Logger.LogInfo(" ---------------- Recharging: " + dead.rechargedHealth + " ---------------- ");
+
+
+
+                            DamageInfo DI = new DamageInfo();
+                            DI.attacker = dead.master.gameObject;
+                            DI.damage = amount;
+                            DI.damageColorIndex = DamageColorIndex.Bleed;
+                            DI.damageType = DamageType.BypassArmor;
+                            DI.force = Vector3.zero;
+
+                            //take health away from player
+                            player.body.healthComponent.TakeDamage(DI);
+                        }
+                    }
+                    else
+                    {
+                        if (dead.deathMark = null) 
+                        {
+                            EffectData ed = new EffectData();
+                            ed.color = Color.red;
+                            ed.start = dead.lastPosition + Vector3.up * 0.7f;
+                            ed.rotation = Quaternion.identity;
+                            ed.scale = 1;
+                            EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/temporaryvisualeffects/RegenBoostEffect"), ed, true);
+                            dead.deathMark = Instantiate(Resources.Load<GameObject>("prefabs/projectiles/ElectricOrbProjectile"), dead.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
+                        }
+                    }
+
+                    if (dead.rechargedHealth >= smallestMax)
+                    {
+                        Destroy(energyBubble);
+                        Destroy(dead.deathSkull);
+
+                        RespawnChar(dead);
+                        dead.body.healthComponent.Networkhealth = Mathf.Clamp(smallestMax, 0, dead.body.maxHealth);
+                        dead.rechargedHealth = 0;
+                    }
                 }
             }
         }
@@ -125,13 +244,7 @@ namespace TeammateRevive
                 section: "Help distance",
                 key: "distance",
                 description: "Must be this close to a player to revive them. (meters)",
-                defaultValue: 1.2f);
-
-            helpTime = Config.Bind(
-                section: "Help Time",
-                key: "time",
-                description: "Reviving a teammate will take this long. (seconds)",
-                defaultValue: 5f);
+                defaultValue: 2f);
         }
     }
 }
