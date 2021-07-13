@@ -6,8 +6,14 @@
 
 ##Change Notes:
 
+* 1.0.5
+    *Hopefully fixed players being able to revive themselves
+
 * 1.0.4
-    * Got mod actualy running - still not tested at all and likely doesn't work
+    * Got mod actually running
+    *Bugs:
+        *Players can revive themselves after they die :|
+        *not ready to play yet
 
 * 1.0.3
     * fixed versioning

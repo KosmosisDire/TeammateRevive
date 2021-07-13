@@ -22,7 +22,7 @@ namespace TeammateRevive
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "1.0.4";
+        public const string PluginVersion = "1.0.5";
 
 
         public PlayerCharacterMasterController player;
@@ -86,7 +86,7 @@ namespace TeammateRevive
         //The Update() method is run on every frame of the game.
         private void Update()
         {
-            
+            if (deadPlayers.Contains(player)) return;
             if (deadPlayers.Count == 0) return;
             if (helping != null)
             {
@@ -109,6 +109,12 @@ namespace TeammateRevive
                 {
                     Logger.LogInfo("In range");
                     helping = dead;
+                }
+                else 
+                {
+                    Logger.LogInfo("Out of Range");
+                    helping = null;
+                    timer = 0;
                 }
             }
         }
