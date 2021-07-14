@@ -48,14 +48,18 @@ namespace TeammateRevive
             Log.Init(Logger);
             InitConfig();
             SetupHooks();
-            Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
+                Logger.LogInfo("DEBUG! 1");
                 var bundle = AssetBundle.LoadFromStream(stream);
+                Logger.LogInfo("DEBUG! 2");
+                deathMarker = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
 
-                deathMarker = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint");
+                bundle.Unload(false);
             }
+            
+            Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
         }
 
         void SetupHooks()
@@ -162,7 +166,7 @@ namespace TeammateRevive
 
                     continue;
                 }
-
+                
                 //set position for use after death
                 player.lastPosition = player.master.GetBodyObject().transform.position;
                 
@@ -173,7 +177,7 @@ namespace TeammateRevive
 
                     Vector3 playerPos = player.lastPosition;
                     Vector3 deadPos = dead.lastPosition;
-
+                    
                     Logger.LogInfo((playerPos - deadPos).magnitude);
 
 
