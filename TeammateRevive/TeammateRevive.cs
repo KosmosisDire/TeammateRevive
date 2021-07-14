@@ -3,8 +3,6 @@ using BepInEx.Configuration;
 using R2API;
 using R2API.Utils;
 using RoR2;
-using RoR2.Projectile;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -22,19 +20,20 @@ namespace TeammateRevive
         public float rechargedHealth = 0;
         public Vector3 lastPosition = Vector3.zero;
         public GameObject deathMark = null;
+        public GameObject nearby = null;
     }
 
     [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod)]
     public class TeammateRevive : BaseUnityPlugin
 	{
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "1.0.6";
+        public const string PluginVersion = "2.0.0";
 
-
+        public bool playersSetup = false;
         public List<Player> alivePlayers = new List<Player>();
         public List<Player> deadPlayers = new List<Player>();
 
@@ -42,6 +41,7 @@ namespace TeammateRevive
         public static ConfigEntry<float> helpDistance { get; set; }
 
         private GameObject deathMarker;
+        private GameObject nearbyMarker;
         
         public void Awake()
         {
@@ -51,10 +51,11 @@ namespace TeammateRevive
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
-                Logger.LogInfo("DEBUG! 1");
                 var bundle = AssetBundle.LoadFromStream(stream);
-                Logger.LogInfo("DEBUG! 2");
                 deathMarker = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
+                nearbyMarker = Resources.Load<GameObject>("prefabs/networkedobjects/NearbyDamageBonusIndicator");
+                Destroy(nearbyMarker.GetComponents<Component>()[2]);
+                Destroy(nearbyMarker.GetComponents<Component>()[1]);
 
                 bundle.Unload(false);
             }
@@ -69,20 +70,27 @@ namespace TeammateRevive
             On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
             On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
         }
+
         void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user) 
         {
             orig(self, user);
-            SetupPlayers();
+            if(playersSetup)
+                SetupPlayers();
         }
+
         private void Run_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
         {
             orig(self, user);
             SetupPlayers();
         }
+
         void hook_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, RoR2.SurvivorPodController self, GameObject passenger) 
         {
             orig(self, passenger);
-            SetupPlayers();
+            if(!playersSetup)
+                SetupPlayers();
+
+            playersSetup = true;
         }
 
         public void SetupPlayers() 
@@ -118,7 +126,6 @@ namespace TeammateRevive
             {
                 player.master.RespawnExtraLife();
                 player.body = player.master.GetBody();
-                Logger.LogInfo("player body null?  :  " + player.body == null + "-------------------------------");
                 player.bodyObject = player.master.bodyPrefab;
                 player.isDead = false;
                 alivePlayers.Add(player);
@@ -134,14 +141,20 @@ namespace TeammateRevive
 
         private void Update()
         {
+
+            if (Input.GetKeyDown(KeyCode.F2)) 
+            {
+                PlayerCharacterMasterController.instances[0].master.ToggleGod();
+            }
+
             //find average max health
             int smallestMax = int.MaxValue;
-            smallestMax = 50;
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 if(alivePlayers[i].body.healthComponent.health < smallestMax)
                     smallestMax = (int)alivePlayers[i].body.maxHealth;
             }
+            float threshold = (smallestMax * 0.9f);
 
 
             //do all interactions between players and figure out whether they are dead
@@ -149,24 +162,25 @@ namespace TeammateRevive
             {
                 Player player = alivePlayers[i];
 
-
-                if (player.master == null || player.body == null || player.networkUser == null || player.playerCharacterMaster == null)
-                {
-                    Logger.LogError("Player has a null reference!");
-                }
-
                 if (!player.master.GetBody())
                 {
                     //set player to dead and add them to the list
                     player.isDead = true;
                     deadPlayers.Add(player);
                     alivePlayers.Remove(player);
-                    Logger.LogInfo(" ---------------- player died!! ---------------- ");
-                    player.deathMark = Instantiate(deathMarker, player.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
 
+                    deathMarker.transform.position = player.lastPosition + Vector3.up * 2;
+                    deathMarker.transform.rotation = Quaternion.identity;
+
+                    player.deathMark = Instantiate(deathMarker);
                     continue;
                 }
-                
+
+                if (player.master == null || player.body == null || player.networkUser == null || player.playerCharacterMaster == null)
+                {
+                    Logger.LogError("Player has a null reference!");
+                }
+
                 //set position for use after death
                 player.lastPosition = player.master.GetBodyObject().transform.position;
                 
@@ -177,25 +191,18 @@ namespace TeammateRevive
 
                     Vector3 playerPos = player.lastPosition;
                     Vector3 deadPos = dead.lastPosition;
-                    
-                    Logger.LogInfo((playerPos - deadPos).magnitude);
 
-
-                    if ((playerPos - deadPos).magnitude < helpDistance.Value)
+                    if (dead.nearby == null)
                     {
-                        //if (energyBubble == null)
-                        //{
-                        //    energyBubble = Instantiate(Resources.Load<GameObject>("prefabs/projectiles/EngiBubbleShield"), dead.lastPosition + Vector3.up * 0.7f, Quaternion.identity);
-                        //    Destroy(energyBubble.GetComponent<ProjectileStickOnImpact>());
-                        //    Destroy(energyBubble.GetComponent<Rigidbody>());
-                        //}
-                        //else
-                        //{
-                        //    energyBubble.transform.localScale = Vector3.one * (helpDistance.Value / 2) * (dead.rechargedHealth / smallestMax);
-                        //    energyBubble.transform.position = dead.lastPosition + Vector3.up * 0.7f;
-                        //    energyBubble.transform.rotation = Quaternion.identity;
-                        //}
+                        nearbyMarker.transform.localScale = (Vector3.one / 26) * 8;
+                        nearbyMarker.transform.position = dead.lastPosition;
+                        nearbyMarker.transform.rotation = Quaternion.identity;
 
+                        dead.nearby = Instantiate(nearbyMarker);
+                    }
+
+                    if ((playerPos - deadPos).magnitude < 4)
+                    {
 
                         if (player.body.healthComponent.health > player.body.maxHealth * 0.1f)
                         {
@@ -203,9 +210,14 @@ namespace TeammateRevive
 
                             //add health to dead player
                             dead.rechargedHealth += amount;
+
+                            float ratio = (dead.rechargedHealth / threshold);
+                            dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).color = new Color(1 - ratio, ratio, 0.6f * ratio);
+                            dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).intensity = 4 + 15 * ratio;
+
+
+
                             Logger.LogInfo(" ---------------- Recharging: " + dead.rechargedHealth + " ---------------- ");
-
-
 
                             DamageInfo DI = new DamageInfo();
                             DI.attacker = dead.master.gameObject;
@@ -219,13 +231,13 @@ namespace TeammateRevive
                         }
                     }
 
-                    if (dead.rechargedHealth >= smallestMax)
+                    if (dead.rechargedHealth >= threshold)
                     {
-                        Destroy(energyBubble);
+                        Destroy(dead.nearby);
                         Destroy(dead.deathMark);
 
                         RespawnChar(dead);
-                        dead.body.healthComponent.Networkhealth = Mathf.Clamp(smallestMax, 0, dead.body.maxHealth);
+                        dead.body.healthComponent.Networkhealth = Mathf.Clamp(threshold, 0, dead.body.maxHealth);
                         dead.rechargedHealth = 0;
                     }
                 }
@@ -238,7 +250,7 @@ namespace TeammateRevive
                 section: "Help distance",
                 key: "distance",
                 description: "Must be this close to a player to revive them. (meters)",
-                defaultValue: 2f);
+                defaultValue: 4f);
         }
     }
 }

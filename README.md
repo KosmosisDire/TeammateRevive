@@ -1,19 +1,30 @@
-# Teammate Revival - HEAVY WIP
+# Teammate Revival
 
-### Allows survivors to revive their fallen colleagues. But it comes at the price of your own health. 
-When you walk into range of a dead survivor's skull, your health will transfer to the dead survivor (with a speed based on level, and stopping at 10%) until the survivor has taken 50 health from you. 
-They will then revive. Range can be changed in config.
-
-
+## Description:
+Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull marks where the player died. Stand within the circle to begin, but stay at your own risk ;)
 
 ## To Do:
-* Allow an interaction to start reviving a player (rather than automatically starting when in range)
-* Add option to disable reviving during boss battle / while in combat
-* Must add MAJOR polish and visual queues
-    * Possibly an animation for the reviver as well, if possible
+* Allow an interaction to start reviving a player (rather than automatically starting when inside the circle.
+* Add customizability / config
+* Make circle more visible
+* Test it on the real network rather than only on splitscreen
 
 
 ## Change Notes:
+
+* 2.0.0
+    * Major visual update
+        * A red-lit skull marks the place of death
+        * An 'X' marker visible through any terrain now shows above the skull.
+        * Dynamic lighting queues how close the player is to revival.
+        * A circle on the ground shows the range you must stay in to continue reviving your teammate.
+    * Fixed Bugs:
+        * Fixed a bug that caused hundreds of Null Reference Exceptions
+        * Made it so the player list is only populated once, unless new players join the game.
+        * Mod must now be downloaded by each player.
+    * Removed many unnecissary logs.
+    * Miscelaneous changes to the system.
+        
 
 * 1.0.6
     * Made it so it actually works this time (WOW!)
