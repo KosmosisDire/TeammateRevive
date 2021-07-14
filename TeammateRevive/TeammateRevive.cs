@@ -136,16 +136,14 @@ namespace TeammateRevive
             return;
         }
 
-        GameObject energyBubble = null;
-
 
         private void Update()
         {
 
-            if (Input.GetKeyDown(KeyCode.F2)) 
-            {
-                PlayerCharacterMasterController.instances[0].master.ToggleGod();
-            }
+            //if (Input.GetKeyDown(KeyCode.F2)) 
+            //{
+            //    PlayerCharacterMasterController.instances[0].master.ToggleGod();
+            //}
 
             //find average max health
             int smallestMax = int.MaxValue;
