@@ -149,7 +149,7 @@ namespace TeammateRevive
                 if (!_player.playerCharacterMaster) Logger.LogInfo("No playerCharacterMaster!");
                 if (!_player.master.GetBody()) Logger.LogInfo("No body component!");
                 if (!_player.master.bodyPrefab) Logger.LogInfo("No body Prefab!");
-                playerCharacterMaster.master.godMode = true;
+                //playerCharacterMaster.master.godMode = true;
             }
             Logger.LogInfo(" ---------------- Setup Players ---------------- ");
         }
@@ -215,7 +215,7 @@ namespace TeammateRevive
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
-                SpawnDeathVisuals(alivePlayers[0]);
+                //SpawnDeathVisuals(alivePlayers[0]);
                 
             }
 
