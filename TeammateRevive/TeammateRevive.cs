@@ -20,29 +20,26 @@ namespace TeammateRevive
         public float rechargedHealth = 0;
         public Vector3 lastPosition = Vector3.zero;
         public GameObject deathMark = null;
-        public GameObject nearby = null;
+        public GameObject nearbyRadiusIndicator = null;
     }
-
-    [BepInDependency("com.bepis.r2api")]
+    
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod)]
     public class TeammateRevive : BaseUnityPlugin
 	{
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "2.0.0";
+        public const string PluginVersion = "2.1.0";
 
         public bool playersSetup = false;
         public List<Player> alivePlayers = new List<Player>();
         public List<Player> deadPlayers = new List<Player>();
 
-        //config entries
-        public static ConfigEntry<float> helpDistance { get; set; }
-
         private GameObject deathMarker;
         private GameObject nearbyMarker;
-        
+
+        #region Setup
+
         public void Awake()
         {
             Log.Init(Logger);
@@ -56,6 +53,8 @@ namespace TeammateRevive
                 nearbyMarker = Resources.Load<GameObject>("prefabs/networkedobjects/NearbyDamageBonusIndicator");
                 Destroy(nearbyMarker.GetComponents<Component>()[2]);
                 Destroy(nearbyMarker.GetComponents<Component>()[1]);
+                deathMarker.AddComponent<Highlight>().isOn = true;
+                
 
                 bundle.Unload(false);
             }
@@ -115,13 +114,13 @@ namespace TeammateRevive
             Logger.LogInfo(" ---------------- Setup Players ---------------- ");
         }
 
-        public void RespawnChar(Player player)
+        #endregion
+
+        public void RespawnPlayer(Player player)
         {
             if (!deadPlayers.Contains(player)) return;
 
-
             bool playerConnected = player.playerCharacterMaster.isConnected;
-            
             if (playerConnected && player.isDead)
             {
                 player.master.RespawnExtraLife();
@@ -130,112 +129,107 @@ namespace TeammateRevive
                 player.isDead = false;
                 alivePlayers.Add(player);
                 deadPlayers.Remove(player);
-                Logger.LogInfo(" ---------------- Revived ---------------- ");
             }
-
-            return;
         }
 
-
-        private void Update()
+        public void Update()
         {
-
-            //if (Input.GetKeyDown(KeyCode.F2)) 
+            //god mode for testing ;)
+            //if (Input.GetKeyDown(KeyCode.F2))
             //{
             //    PlayerCharacterMasterController.instances[0].master.ToggleGod();
             //}
 
-            //find average max health
+            //find smallest max health out of all the players
             int smallestMax = int.MaxValue;
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 if(alivePlayers[i].body.healthComponent.health < smallestMax)
                     smallestMax = (int)alivePlayers[i].body.maxHealth;
             }
+
+            //the player must give this much health to revive the other player
             float threshold = (smallestMax * 0.9f);
 
 
-            //do all interactions between players and figure out whether they are dead
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 Player player = alivePlayers[i];
 
+                //is player dead?
                 if (!player.master.GetBody())
                 {
-                    //set player to dead and add them to the list
                     player.isDead = true;
                     deadPlayers.Add(player);
                     alivePlayers.Remove(player);
 
+                    //set the transforms of the prefabs before spawning them in
                     deathMarker.transform.position = player.lastPosition + Vector3.up * 2;
                     deathMarker.transform.rotation = Quaternion.identity;
+                    nearbyMarker.transform.localScale = (Vector3.one / 26) * 8;
+                    nearbyMarker.transform.position = player.lastPosition;
+                    nearbyMarker.transform.rotation = Quaternion.identity;
 
                     player.deathMark = Instantiate(deathMarker);
+                    player.nearbyRadiusIndicator = Instantiate(nearbyMarker);
+
+                    //spawn another nearby circle to make it more visible
+                    var secondMarker = Instantiate(nearbyMarker);
+                    secondMarker.transform.SetParent(player.nearbyRadiusIndicator.transform);
+                    secondMarker.transform.localScale = Vector3.one;
+
                     continue;
                 }
+                //else, then player must be alive
 
-                if (player.master == null || player.body == null || player.networkUser == null || player.playerCharacterMaster == null)
-                {
-                    Logger.LogError("Player has a null reference!");
-                }
-
-                //set position for use after death
                 player.lastPosition = player.master.GetBodyObject().transform.position;
                 
-                //if the player is alive, see if they are reviving someone
+
                 for (int j = 0; j < deadPlayers.Count; j++)
                 {
                     Player dead = deadPlayers[j];
 
-                    Vector3 playerPos = player.lastPosition;
-                    Vector3 deadPos = dead.lastPosition;
-
-                    if (dead.nearby == null)
+                    //if alive player is within the range of the circle
+                    if ((player.lastPosition - dead.lastPosition).magnitude < 4)
                     {
-                        nearbyMarker.transform.localScale = (Vector3.one / 26) * 8;
-                        nearbyMarker.transform.position = dead.lastPosition;
-                        nearbyMarker.transform.rotation = Quaternion.identity;
+                        //add health to dead player
+                        float amount = player.body.level * Time.deltaTime * 5;
+                        dead.rechargedHealth += amount;
 
-                        dead.nearby = Instantiate(nearbyMarker);
+                        //take health away from alive player
+                        DamageInfo DI = new DamageInfo();
+                        DI.attacker = dead.master.gameObject;
+                        DI.damage = Mathf.Clamp(amount, 0f, player.body.healthComponent.health - 1f);
+                        DI.damageColorIndex = DamageColorIndex.Default;
+                        DI.damageType = DamageType.BypassArmor | DamageType.NonLethal;
+                        DI.force = Vector3.zero;
+                        
+                        player.body.healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.body.healthComponent.health - 1f);
+
+                        if(Random.Range(0f, 100f) < 10f)
+                            DamageNumberManager.instance.SpawnDamageNumber(amount * 10 + Random.Range(-1,2), player.lastPosition + Vector3.up * 0.75f, false, TeamIndex.Player, DamageColorIndex.Bleed);
+                        if (Random.Range(0f, 100f) < 10f)
+                            DamageNumberManager.instance.SpawnDamageNumber(amount * 10 + Random.Range(-1, 2), dead.lastPosition + Vector3.up * 2, false, TeamIndex.Player, DamageColorIndex.Heal);
+
+                        //set light color and intensity based on ratio
+                        float ratio = (dead.rechargedHealth / threshold);
+                        dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).color = new Color(1 - ratio, ratio, 0.6f * ratio);
+                        dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).intensity = 4 + 15 * ratio;
                     }
-
-                    if ((playerPos - deadPos).magnitude < 4)
+                    else
                     {
-
-                        if (player.body.healthComponent.health > player.body.maxHealth * 0.1f)
-                        {
-                            float amount = player.body.level * Time.deltaTime * 3;
-
-                            //add health to dead player
-                            dead.rechargedHealth += amount;
-
-                            float ratio = (dead.rechargedHealth / threshold);
-                            dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).color = new Color(1 - ratio, ratio, 0.6f * ratio);
-                            dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).intensity = 4 + 15 * ratio;
-
-
-
-                            Logger.LogInfo(" ---------------- Recharging: " + dead.rechargedHealth + " ---------------- ");
-
-                            DamageInfo DI = new DamageInfo();
-                            DI.attacker = dead.master.gameObject;
-                            DI.damage = amount;
-                            DI.damageColorIndex = DamageColorIndex.Bleed;
-                            DI.damageType = DamageType.BypassArmor;
-                            DI.force = Vector3.zero;
-
-                            //take health away from player
-                            player.body.healthComponent.TakeDamage(DI);
-                        }
+                        dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).color = new Color(1, 0, 0);
                     }
-
+                    
+                    //if dead player has recharged enough health, respawn
                     if (dead.rechargedHealth >= threshold)
                     {
-                        Destroy(dead.nearby);
+                        Destroy(dead.nearbyRadiusIndicator);
                         Destroy(dead.deathMark);
 
-                        RespawnChar(dead);
-                        dead.body.healthComponent.Networkhealth = Mathf.Clamp(threshold, 0, dead.body.maxHealth);
+                        RespawnPlayer(dead);
+                        
+                        dead.body.healthComponent.Networkhealth = threshold;
                         dead.rechargedHealth = 0;
                     }
                 }
@@ -244,11 +238,10 @@ namespace TeammateRevive
 
         private void InitConfig()
         {
-            helpDistance = Config.Bind(
-                section: "Help distance",
-                key: "distance",
-                description: "Must be this close to a player to revive them. (meters)",
-                defaultValue: 4f);
+            //config not here yet
+            Config.Clear();
+
+
         }
     }
 }

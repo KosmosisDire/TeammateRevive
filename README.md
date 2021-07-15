@@ -1,16 +1,23 @@
-# Teammate Revival
-
 ## Description:
-Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull marks where the player died. Stand within the circle to begin, but stay at your own risk ;)
+Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull marks where the player died. Stand within the circle to begin, but stay at your own risk :)
 
 ## To Do:
 * Allow an interaction to start reviving a player (rather than automatically starting when inside the circle.
 * Add customizability / config
-* Make circle more visible
 * Test it on the real network rather than only on splitscreen
-
+* Add better indicator for how close the player is to revival
 
 ## Change Notes:
+
+* 2.1.0
+    * Visual Changes
+        * Made range circle more visible
+        * Made damage effect less visible (only shows damage numbers)
+        * Shows healing numbers on the player skull
+        * light now goes back to red if you leave the revival radius
+    * Revival should now be quicker
+    * Config items DO NOT WORK, but I can't figure out how to get rid of them without the user deleting the file
+    * Players can now use up all their health down to 1HP while reviving someone.
 
 * 2.0.0
     * Major visual update
@@ -53,6 +60,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 * 1.0.0:
     * Initial "release" (not really a release but, eh)
+    * was put on here for testing multiplayer, but accidentally started at 1.0.0 unstead of 0.0.1 :|
 
 
-(Keywords: revival - revive - respawn - heal - bleed - steal - give)
+(Keywords: respawn - heal - bleed - steal - give - multiplayer)
