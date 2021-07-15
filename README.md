@@ -8,6 +8,9 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 * Add better indicator for how close the player is to revival
 
 ## Change Notes:
+* 2.2.1
+    * Fixed some more networking bugs hopefully
+
 * 2.2.0
     * Hopefully fixed networking for the most part! It was broken this whole time and I didn't realize
 

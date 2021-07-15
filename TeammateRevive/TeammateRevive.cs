@@ -22,7 +22,7 @@ namespace TeammateRevive
         public GameObject deathMark = null;
         public GameObject nearbyRadiusIndicator = null;
 
-        public Player(PlayerCharacterMasterController _player) 
+        public Player(PlayerCharacterMasterController _player)
         {
             if (_player.networkUser) networkUser = _player.networkUser;
             if (_player.master) master = _player.master;
@@ -41,7 +41,7 @@ namespace TeammateRevive
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "2.1.1";
+        public const string PluginVersion = "2.2.1";
 
         public bool playersSetup = false;
         public List<Player> alivePlayers = new List<Player>();
@@ -215,14 +215,23 @@ namespace TeammateRevive
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
-                //SpawnDeathVisuals(alivePlayers[0]);
-                
+                SpawnDeathVisuals(alivePlayers[0]);
             }
 
             bool solo = RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active;
             if (solo)
             {
                 return;
+            }
+
+
+            if(alivePlayers.Count == 0) 
+            {
+                smallestMax = float.PositiveInfinity;
+                threshold = 0;
+                playersSetup = false;
+                List<Player> alivePlayers = new List<Player>();
+                List<Player> deadPlayers = new List<Player>();
             }
             
             
@@ -259,7 +268,6 @@ namespace TeammateRevive
                     //if alive player is within the range of the circle
                     if ((player.lastPosition - dead.lastPosition).magnitude < 4)
                     {
-                        Logger.LogInfo("In Range");
                         //add health to dead player
                         float amount = player.body.level * Time.deltaTime * 5;
                         dead.rechargedHealth += amount;
