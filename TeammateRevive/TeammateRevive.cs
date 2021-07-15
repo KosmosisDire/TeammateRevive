@@ -41,7 +41,7 @@ namespace TeammateRevive
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "2.1.0";
+        public const string PluginVersion = "2.1.1";
 
         public bool playersSetup = false;
         public List<Player> alivePlayers = new List<Player>();
@@ -66,8 +66,6 @@ namespace TeammateRevive
 
                 deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
                 nearbyMarker = PrefabAPI.InstantiateClone(nm, "Nearby Marker");
-                deathMarker.AddComponent<NetworkIdentity>();
-                nearbyMarker.AddComponent<NetworkIdentity>();
 
                 Destroy(nearbyMarker.GetComponent<NetworkedBodyAttachment>());
 
@@ -151,6 +149,7 @@ namespace TeammateRevive
                 if (!_player.playerCharacterMaster) Logger.LogInfo("No playerCharacterMaster!");
                 if (!_player.master.GetBody()) Logger.LogInfo("No body component!");
                 if (!_player.master.bodyPrefab) Logger.LogInfo("No body Prefab!");
+                playerCharacterMaster.master.godMode = true;
             }
             Logger.LogInfo(" ---------------- Setup Players ---------------- ");
         }
@@ -217,7 +216,7 @@ namespace TeammateRevive
             {
                 //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
                 SpawnDeathVisuals(alivePlayers[0]);
-                //PlayerCharacterMasterController.instances[0].master.ToggleGod();
+                
             }
 
             bool solo = RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active;
