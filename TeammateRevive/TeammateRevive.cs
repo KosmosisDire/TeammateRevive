@@ -1,11 +1,13 @@
 using BepInEx;
 using BepInEx.Configuration;
 using R2API;
+using R2API.Networking;
 using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace TeammateRevive
 {
@@ -15,17 +17,27 @@ namespace TeammateRevive
         public CharacterMaster master;
         public PlayerCharacterMasterController playerCharacterMaster;
         public CharacterBody body;
-        public GameObject bodyObject;
-        public bool isDead = false;
         public float rechargedHealth = 0;
         public Vector3 lastPosition = Vector3.zero;
         public GameObject deathMark = null;
         public GameObject nearbyRadiusIndicator = null;
+
+        public Player(PlayerCharacterMasterController _player) 
+        {
+            if (_player.networkUser) networkUser = _player.networkUser;
+            if (_player.master) master = _player.master;
+            if (_player.master) playerCharacterMaster = _player;
+            if (_player.master.GetBody()) body = _player.master.GetBody();
+            rechargedHealth = 0;
+        }
     }
-    
+
+
+    [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI))]
     public class TeammateRevive : BaseUnityPlugin
-	{
+    {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
@@ -49,50 +61,82 @@ namespace TeammateRevive
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
                 var bundle = AssetBundle.LoadFromStream(stream);
-                deathMarker = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
-                nearbyMarker = Resources.Load<GameObject>("prefabs/networkedobjects/NearbyDamageBonusIndicator");
-                Destroy(nearbyMarker.GetComponents<Component>()[2]);
-                Destroy(nearbyMarker.GetComponents<Component>()[1]);
-                deathMarker.AddComponent<Highlight>().isOn = true;
-                
+                var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
+                var nm = Resources.Load<GameObject>("prefabs/networkedobjects/NearbyDamageBonusIndicator");
+
+                deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
+                nearbyMarker = PrefabAPI.InstantiateClone(nm, "Nearby Marker");
+                deathMarker.AddComponent<NetworkIdentity>();
+                nearbyMarker.AddComponent<NetworkIdentity>();
+
+                Destroy(nearbyMarker.GetComponent<NetworkedBodyAttachment>());
 
                 bundle.Unload(false);
             }
-            
+
             Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
         }
 
         void SetupHooks()
         {
-            On.RoR2.UnitySystemConsoleRedirector.Redirect += orig => { };
             On.RoR2.SurvivorPodController.OnPassengerExit += hook_OnPassengerExit;
             On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
             On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
+            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += PlayerDied;
         }
 
-        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user) 
+        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user)
         {
             orig(self, user);
-            if(playersSetup)
-                SetupPlayers();
+
+            if (playersSetup)
+            {
+                alivePlayers.Add(new Player(user.masterController));
+                Logger.LogInfo(" ---------------- Player Added ---------------- ");
+            }
         }
 
         private void Run_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
         {
+            for (int i = 0; i < deadPlayers.Count; i++)
+            {
+                Player player = deadPlayers[i];
+                if (player.networkUser.userName == user.userName)
+                {
+                    Destroy(player.nearbyRadiusIndicator);
+                    Destroy(player.deathMark);
+                    
+                    deadPlayers.RemoveAt(i);
+                    Logger.LogInfo(" ---------------- Dead Player Removed ---------------- ");
+                    return;
+                }
+            }
+
+            for (int i = 0; i < alivePlayers.Count; i++)
+            {
+                Player player = alivePlayers[i];
+                if (player.networkUser.userName == user.userName)
+                {
+                    deadPlayers.RemoveAt(i);
+                    Logger.LogInfo(" ---------------- Living Player Removed ---------------- ");
+                    return;
+                }
+            }
+
             orig(self, user);
-            SetupPlayers();
         }
 
-        void hook_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, RoR2.SurvivorPodController self, GameObject passenger) 
+        void hook_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, RoR2.SurvivorPodController self, GameObject passenger)
         {
             orig(self, passenger);
-            if(!playersSetup)
+
+            if (!playersSetup)
                 SetupPlayers();
 
             playersSetup = true;
         }
 
-        public void SetupPlayers() 
+        public void SetupPlayers()
         {
             alivePlayers.Clear();
             deadPlayers.Clear();
@@ -100,98 +144,123 @@ namespace TeammateRevive
             var instances = PlayerCharacterMasterController.instances;
             foreach (PlayerCharacterMasterController playerCharacterMaster in instances)
             {
-                Player newPlayer = new Player();
-                if (playerCharacterMaster.networkUser) newPlayer.networkUser = playerCharacterMaster.networkUser;
-                if (playerCharacterMaster.master) newPlayer.master = playerCharacterMaster.master;
-                if (playerCharacterMaster.master) newPlayer.playerCharacterMaster = playerCharacterMaster;
-                if (playerCharacterMaster.master.GetBody()) newPlayer.body = playerCharacterMaster.master.GetBody();
-                if (playerCharacterMaster.master.bodyPrefab) newPlayer.bodyObject = playerCharacterMaster.master.bodyPrefab;
-                newPlayer.isDead = false;
-                newPlayer.rechargedHealth = 0;
-
-                alivePlayers.Add(newPlayer);
+                Player _player = new Player(playerCharacterMaster);
+                alivePlayers.Add(_player);
+                if (!_player.networkUser) Logger.LogInfo("No Network User!");
+                if (!_player.master) Logger.LogInfo("No master!");
+                if (!_player.playerCharacterMaster) Logger.LogInfo("No playerCharacterMaster!");
+                if (!_player.master.GetBody()) Logger.LogInfo("No body component!");
+                if (!_player.master.bodyPrefab) Logger.LogInfo("No body Prefab!");
             }
             Logger.LogInfo(" ---------------- Setup Players ---------------- ");
         }
-
         #endregion
+
+        public void SpawnDeathVisuals(Player player) 
+        {
+            //set the transforms of the prefabs before spawning them in
+            player.deathMark = Instantiate(deathMarker);
+            player.nearbyRadiusIndicator = Instantiate(nearbyMarker);
+
+            player.deathMark.transform.position = player.lastPosition + Vector3.up * 2;
+            player.deathMark.transform.rotation = Quaternion.identity;
+            player.nearbyRadiusIndicator.transform.localScale = (Vector3.one / 26) * 8;
+            player.nearbyRadiusIndicator.transform.position = player.lastPosition;
+            player.nearbyRadiusIndicator.transform.rotation = Quaternion.identity;
+
+            NetworkServer.Spawn(player.deathMark);
+            NetworkServer.Spawn(player.nearbyRadiusIndicator);
+        }
+
+
+        public void PlayerDied (On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
+        {
+            orig(self, damageReport, victimNetworkUser);
+
+            for (int i = 0; i < alivePlayers.Count; i++)
+            {
+                Player player = alivePlayers[i];
+                if (player.networkUser.userName == victimNetworkUser.userName)
+                {
+                    alivePlayers.Remove(player);
+                    deadPlayers.Add(player);
+                    SpawnDeathVisuals(player);
+                    
+                    Logger.LogInfo(" ---------------- Player Died! ---------------- ");
+                    return;
+                }
+            }
+            Logger.LogError(" ---------------- Player Died but they were not alive to begin with! ---------------- ");
+        }
 
         public void RespawnPlayer(Player player)
         {
             if (!deadPlayers.Contains(player)) return;
 
             bool playerConnected = player.playerCharacterMaster.isConnected;
-            if (playerConnected && player.isDead)
+            if (playerConnected)
             {
                 player.master.RespawnExtraLife();
                 player.body = player.master.GetBody();
-                player.bodyObject = player.master.bodyPrefab;
-                player.isDead = false;
                 alivePlayers.Add(player);
                 deadPlayers.Remove(player);
             }
         }
 
+        float smallestMax = float.PositiveInfinity;
+        float threshold = 0;
         public void Update()
         {
-            //god mode for testing ;)
-            //if (Input.GetKeyDown(KeyCode.F2))
-            //{
-            //    PlayerCharacterMasterController.instances[0].master.ToggleGod();
-            //}
+            if (!playersSetup) return;
 
-            //find smallest max health out of all the players
-            int smallestMax = int.MaxValue;
-            for (int i = 0; i < alivePlayers.Count; i++)
+            if (Input.GetKeyDown(KeyCode.F2))
             {
-                if(alivePlayers[i].body.healthComponent.health < smallestMax)
-                    smallestMax = (int)alivePlayers[i].body.maxHealth;
+                //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
+                SpawnDeathVisuals(alivePlayers[0]);
+                //PlayerCharacterMasterController.instances[0].master.ToggleGod();
             }
 
+            bool solo = RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active;
+            if (solo)
+            {
+                return;
+            }
+            
+            
+
+            //find smallest max health out of all the players
+            smallestMax = int.MaxValue;
+            for (int i = 0; i < alivePlayers.Count; i++)
+            { 
+                Player player = alivePlayers[i];
+
+                if(!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) 
+                {
+                    alivePlayers.Remove(player);
+                    deadPlayers.Add(player);
+                    SpawnDeathVisuals(player);
+                    Logger.LogInfo(" ---------------- Player Died (Not called from Event)! ---------------- ");
+                    continue;
+                }
+
+                if (alivePlayers[i].body.maxHealth < smallestMax)
+                    smallestMax = (int)alivePlayers[i].body.maxHealth;
+            }
             //the player must give this much health to revive the other player
-            float threshold = (smallestMax * 0.9f);
+            threshold = (smallestMax * 0.9f);
 
-
+            //interactions between dead and alive players
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 Player player = alivePlayers[i];
-
-                //is player dead?
-                if (!player.master.GetBody())
-                {
-                    player.isDead = true;
-                    deadPlayers.Add(player);
-                    alivePlayers.Remove(player);
-
-                    //set the transforms of the prefabs before spawning them in
-                    deathMarker.transform.position = player.lastPosition + Vector3.up * 2;
-                    deathMarker.transform.rotation = Quaternion.identity;
-                    nearbyMarker.transform.localScale = (Vector3.one / 26) * 8;
-                    nearbyMarker.transform.position = player.lastPosition;
-                    nearbyMarker.transform.rotation = Quaternion.identity;
-
-                    player.deathMark = Instantiate(deathMarker);
-                    player.nearbyRadiusIndicator = Instantiate(nearbyMarker);
-
-                    //spawn another nearby circle to make it more visible
-                    var secondMarker = Instantiate(nearbyMarker);
-                    secondMarker.transform.SetParent(player.nearbyRadiusIndicator.transform);
-                    secondMarker.transform.localScale = Vector3.one;
-
-                    continue;
-                }
-                //else, then player must be alive
-
-                player.lastPosition = player.master.GetBodyObject().transform.position;
-                
-
+                player.lastPosition = player.body.transform.position;
                 for (int j = 0; j < deadPlayers.Count; j++)
                 {
                     Player dead = deadPlayers[j];
-
                     //if alive player is within the range of the circle
                     if ((player.lastPosition - dead.lastPosition).magnitude < 4)
                     {
+                        Logger.LogInfo("In Range");
                         //add health to dead player
                         float amount = player.body.level * Time.deltaTime * 5;
                         dead.rechargedHealth += amount;
@@ -203,11 +272,11 @@ namespace TeammateRevive
                         DI.damageColorIndex = DamageColorIndex.Default;
                         DI.damageType = DamageType.BypassArmor | DamageType.NonLethal;
                         DI.force = Vector3.zero;
-                        
+
                         player.body.healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.body.healthComponent.health - 1f);
 
-                        if(Random.Range(0f, 100f) < 10f)
-                            DamageNumberManager.instance.SpawnDamageNumber(amount * 10 + Random.Range(-1,2), player.lastPosition + Vector3.up * 0.75f, false, TeamIndex.Player, DamageColorIndex.Bleed);
+                        if (Random.Range(0f, 100f) < 10f)
+                            DamageNumberManager.instance.SpawnDamageNumber(amount * 10 + Random.Range(-1, 2), player.lastPosition + Vector3.up * 0.75f, false, TeamIndex.Player, DamageColorIndex.Bleed);
                         if (Random.Range(0f, 100f) < 10f)
                             DamageNumberManager.instance.SpawnDamageNumber(amount * 10 + Random.Range(-1, 2), dead.lastPosition + Vector3.up * 2, false, TeamIndex.Player, DamageColorIndex.Heal);
 
@@ -220,15 +289,15 @@ namespace TeammateRevive
                     {
                         dead.deathMark.transform.GetChild(0).GetComponentInChildren<Light>(false).color = new Color(1, 0, 0);
                     }
-                    
+
                     //if dead player has recharged enough health, respawn
                     if (dead.rechargedHealth >= threshold)
                     {
-                        Destroy(dead.nearbyRadiusIndicator);
-                        Destroy(dead.deathMark);
+                        NetworkServer.Destroy(dead.nearbyRadiusIndicator);
+                        NetworkServer.Destroy(dead.deathMark);
 
                         RespawnPlayer(dead);
-                        
+
                         dead.body.healthComponent.Networkhealth = threshold;
                         dead.rechargedHealth = 0;
                     }
