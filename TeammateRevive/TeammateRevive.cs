@@ -42,11 +42,12 @@ namespace TeammateRevival
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
         public const string PluginVersion = "3.0.0";
-        bool logging = true;
-        bool fileLogging = true;
-        bool godMode = false;
+        public static bool logging = true;
+        public static bool fileLogging = true;
+        public static bool godMode = true;
 
         public bool playersSetup = false;
+        public int totalPlayers = 0;
         public List<Player> alivePlayers = new List<Player>();
         public List<Player> deadPlayers = new List<Player>();
 
@@ -104,8 +105,9 @@ namespace TeammateRevival
 
         void SetupHooks()
         {
-            On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
-            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += OnPlayerCharacterDeath;
+            On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
+            On.RoR2.Run.OnUserRemoved += hook_OnUserRemoved;
+            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += hook_OnPlayerCharacterDeath;
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
@@ -121,13 +123,22 @@ namespace TeammateRevival
             return false;
         }
 
-        private void Run_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
+        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, global::RoR2.Run self, global::RoR2.NetworkUser user) 
+        {
+            orig(self, user);
+            if (IsClient()) return;
+
+            totalPlayers++;
+        }
+
+        private void hook_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
         {
             if (IsClient())
             {
                 orig(self, user);
                 return;
             }
+            totalPlayers--;
             for (int i = 0; i < deadPlayers.Count; i++)
             {
                 Player player = deadPlayers[i];
@@ -155,6 +166,8 @@ namespace TeammateRevival
                 }
             }
 
+            LogInfo("  PLayer Left - they were not registed as alive or dead  ");
+
             orig(self, user);
         }
 
@@ -176,8 +189,7 @@ namespace TeammateRevival
             numPlayersSetup++;
             LogInfo(self.networkUser.userName + " Setup");
 
-
-            if (numPlayersSetup == NetworkServer.connections.Count)
+            if (numPlayersSetup == totalPlayers)
             {
                 playersSetup = true;
                 LogInfo("All Players Setup Succesfully");
@@ -193,6 +205,7 @@ namespace TeammateRevival
             LogInfo("  Game Over - reseting data  ");
             
             ResetSetup();
+            totalPlayers = 0;
         }
 
         void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, global::RoR2.Run self, global::RoR2.SceneDef nextScene) 
@@ -242,7 +255,7 @@ namespace TeammateRevival
         }
 
 
-        public void OnPlayerCharacterDeath (On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
+        public void hook_OnPlayerCharacterDeath (On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
         {
             orig(self, damageReport, victimNetworkUser);
 

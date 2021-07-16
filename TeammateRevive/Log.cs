@@ -9,7 +9,8 @@ namespace TeammateRevival
         internal static void Init(ManualLogSource logSource)
         {
             _logSource = logSource;
-            DebugLogger.Init();
+            if(TeammateRevive.fileLogging)
+                DebugLogger.Init();
         }
 
         internal static void LogDebug(object data) => _logSource.LogDebug(data);
