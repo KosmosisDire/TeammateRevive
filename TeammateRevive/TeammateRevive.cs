@@ -80,7 +80,7 @@ namespace TeammateRevive
             On.RoR2.SurvivorPodController.OnPassengerExit += hook_OnPassengerExit;
             On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
             On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
-            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += PlayerDied;
+            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += OnPlayerCharacterDeath;
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             
@@ -243,7 +243,7 @@ namespace TeammateRevive
         }
 
 
-        public void PlayerDied (On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
+        public void OnPlayerCharacterDeath (On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
         {
             orig(self, damageReport, victimNetworkUser);
 
