@@ -87,7 +87,7 @@ namespace TeammateRevive
 
         bool IsClient() 
         {
-            if (RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active || !playersSetup)
+            if (RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active)
             {
                 return true;
             }
@@ -150,9 +150,10 @@ namespace TeammateRevive
 
             if (IsClient()) return;
 
+            Logger.LogInfo(" ---------------- Passenger Exit Pod ---------------- ");
+
             if (!playersSetup)
                 SetupPlayers();
-
             playersSetup = true;
         }
 
@@ -162,6 +163,7 @@ namespace TeammateRevive
 
             if (IsClient()) return;
 
+            Logger.LogInfo(" ---------------- Game Over - reseting data ---------------- ");
             ResetSetup();
         }
 
@@ -170,6 +172,8 @@ namespace TeammateRevive
             orig(self, nextScene);
 
             if (IsClient()) return;
+
+            Logger.LogInfo(" ---------------- Advanced a stage - now resetting ---------------- ");
 
             ResetSetup();
         }
@@ -201,8 +205,9 @@ namespace TeammateRevive
             smallestMax = float.PositiveInfinity;
             threshold = 0;
             playersSetup = false;
-            List<Player> alivePlayers = new List<Player>();
-            List<Player> deadPlayers = new List<Player>();
+            alivePlayers = new List<Player>();
+            deadPlayers = new List<Player>();
+            Logger.LogInfo(" ---------------- Reset Data ---------------- ");
         }
 
         #endregion
@@ -223,6 +228,8 @@ namespace TeammateRevive
 
             NetworkServer.Spawn(player.deathMark);
             NetworkServer.Spawn(player.nearbyRadiusIndicator);
+
+            Logger.LogInfo(" ---------------- Skull spawned on Server and Client ---------------- ");
         }
 
 
@@ -262,6 +269,7 @@ namespace TeammateRevive
                 alivePlayers.Add(player);
                 deadPlayers.Remove(player);
             }
+            Logger.LogInfo(" ---------------- Player Respawned ---------------- ");
         }
 
         float smallestMax = float.PositiveInfinity;
@@ -274,7 +282,7 @@ namespace TeammateRevive
                 //SpawnDeathVisuals(alivePlayers[0]);
             }
 
-            if (IsClient()) return;
+            if (IsClient() || !playersSetup) return;
 
             //find smallest max health out of all the players
             smallestMax = int.MaxValue;
@@ -282,11 +290,8 @@ namespace TeammateRevive
             { 
                 Player player = alivePlayers[i];
 
-                if(!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) 
+                if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive)
                 {
-                    alivePlayers.Remove(player);
-                    deadPlayers.Add(player);
-                    SpawnDeathVisuals(player);
                     Logger.LogInfo(" ---------------- Player Died (Not called from Event)! ---------------- ");
                     continue;
                 }
