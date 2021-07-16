@@ -43,7 +43,7 @@ namespace TeammateRevival
         public const string PluginName = "TeammateRevival";
         public const string PluginVersion = "3.0.0";
         bool logging = true;
-        bool fileLogging = false;
+        bool fileLogging = true;
         bool godMode = false;
 
         public bool playersSetup = false;
