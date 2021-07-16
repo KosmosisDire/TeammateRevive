@@ -4,13 +4,10 @@ using R2API;
 using R2API.Networking;
 using R2API.Utils;
 using RoR2;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
-using Random = UnityEngine.Random;
 
 namespace TeammateRevive
 {
@@ -83,7 +80,7 @@ namespace TeammateRevive
             On.RoR2.SurvivorPodController.OnPassengerExit += hook_OnPassengerExit;
             On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
             On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
-            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += OnPlayerCharacterDeath;
+            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += PlayerDied;
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             
@@ -110,6 +107,7 @@ namespace TeammateRevive
             {
                 alivePlayers.Add(new Player(user.masterController));
                 Logger.LogInfo(" ---------------- Player Added ---------------- ");
+                
             }
         }
 
@@ -130,6 +128,7 @@ namespace TeammateRevive
                     
                     deadPlayers.RemoveAt(i);
                     Logger.LogInfo(" ---------------- Dead Player Removed ---------------- ");
+                    
                     return;
                 }
             }
@@ -141,6 +140,7 @@ namespace TeammateRevive
                 {
                     deadPlayers.RemoveAt(i);
                     Logger.LogInfo(" ---------------- Living Player Removed ---------------- ");
+                    
                     return;
                 }
             }
@@ -155,6 +155,7 @@ namespace TeammateRevive
             if (IsClient()) return;
 
             Logger.LogInfo(" ---------------- Passenger Exit Pod ---------------- ");
+            
 
             if (!playersSetup)
                 SetupPlayers();
@@ -168,6 +169,7 @@ namespace TeammateRevive
             if (IsClient()) return;
 
             Logger.LogInfo(" ---------------- Game Over - reseting data ---------------- ");
+            
             ResetSetup();
         }
 
@@ -178,6 +180,7 @@ namespace TeammateRevive
             if (IsClient()) return;
 
             Logger.LogInfo(" ---------------- Advanced a stage - now resetting ---------------- ");
+           
 
             ResetSetup();
         }
@@ -202,6 +205,7 @@ namespace TeammateRevive
                 //playerCharacterMaster.master.godMode = true;
             }
             Logger.LogInfo(" ---------------- Setup Players ---------------- ");
+            
         }
 
         void ResetSetup() 
@@ -212,6 +216,7 @@ namespace TeammateRevive
             alivePlayers = new List<Player>();
             deadPlayers = new List<Player>();
             Logger.LogInfo(" ---------------- Reset Data ---------------- ");
+
         }
 
         #endregion
@@ -234,10 +239,11 @@ namespace TeammateRevive
             NetworkServer.Spawn(player.nearbyRadiusIndicator);
 
             Logger.LogInfo(" ---------------- Skull spawned on Server and Client ---------------- ");
+           
         }
 
 
-        public void OnPlayerCharacterDeath (On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
+        public void PlayerDied (On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
         {
             orig(self, damageReport, victimNetworkUser);
 
@@ -253,10 +259,12 @@ namespace TeammateRevive
                     SpawnDeathVisuals(player);
                     
                     Logger.LogInfo(" ---------------- Player Died! ---------------- ");
+                  
                     return;
                 }
             }
             Logger.LogError(" ---------------- Player Died but they were not alive to begin with! ---------------- ");
+
         }
 
         public void RespawnPlayer(Player player)
@@ -274,6 +282,7 @@ namespace TeammateRevive
                 deadPlayers.Remove(player);
             }
             Logger.LogInfo(" ---------------- Player Respawned ---------------- ");
+         
         }
 
         float smallestMax = float.PositiveInfinity;
@@ -297,6 +306,7 @@ namespace TeammateRevive
                 if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive)
                 {
                     Logger.LogInfo(" ---------------- Player Died (Not called from Event)! ---------------- ");
+                   
                     continue;
                 }
 
