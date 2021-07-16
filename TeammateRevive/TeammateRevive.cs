@@ -9,7 +9,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace TeammateRevive
+namespace TeammateRevival
 {
     public class Player
     {
@@ -41,7 +41,8 @@ namespace TeammateRevive
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "2.3.2";
+        public const string PluginVersion = "2.3.3";
+        public bool logging = true;
 
         public bool playersSetup = false;
         public List<Player> alivePlayers = new List<Player>();
@@ -52,9 +53,30 @@ namespace TeammateRevive
 
         #region Setup
 
+        public void LogInfo(object msg) 
+        {
+            if (!logging) return;
+            Logger.LogInfo(msg);
+            DebugLogger.LogInfo(msg);
+        }
+        public void LogWarning(object msg)
+        {
+            if (!logging) return;
+            Logger.LogWarning(msg);
+            DebugLogger.LogWarning(msg);
+        }
+        public void LogError(object msg)
+        {
+            if (!logging) return;
+            Logger.LogError(msg);
+            DebugLogger.LogError(msg);
+        }
+
+
         public void Awake()
         {
             Log.Init(Logger);
+
             InitConfig();
             SetupHooks();
 
@@ -72,7 +94,7 @@ namespace TeammateRevive
                 bundle.Unload(false);
             }
 
-            Logger.LogInfo(" ------------------- Setup Teammate Revival -------------------");
+            LogInfo(" Setup Teammate Revival -");
         }
 
         void SetupHooks()
@@ -106,7 +128,7 @@ namespace TeammateRevive
             if (playersSetup)
             {
                 alivePlayers.Add(new Player(user.masterController));
-                Logger.LogInfo(" ---------------- Player Added ---------------- ");
+                LogInfo("  Player Added  ");
                 
             }
         }
@@ -127,7 +149,7 @@ namespace TeammateRevive
                     Destroy(player.deathMark);
                     
                     deadPlayers.RemoveAt(i);
-                    Logger.LogInfo(" ---------------- Dead Player Removed ---------------- ");
+                    LogInfo("  Dead Player Removed  ");
                     
                     return;
                 }
@@ -139,7 +161,7 @@ namespace TeammateRevive
                 if (player.networkUser.userName == user.userName)
                 {
                     deadPlayers.RemoveAt(i);
-                    Logger.LogInfo(" ---------------- Living Player Removed ---------------- ");
+                    LogInfo("  Living Player Removed  ");
                     
                     return;
                 }
@@ -154,7 +176,7 @@ namespace TeammateRevive
 
             if (IsClient()) return;
 
-            Logger.LogInfo(" ---------------- Passenger Exit Pod ---------------- ");
+            LogInfo("  Passenger Exit Pod  ");
             
 
             if (!playersSetup)
@@ -168,7 +190,7 @@ namespace TeammateRevive
 
             if (IsClient()) return;
 
-            Logger.LogInfo(" ---------------- Game Over - reseting data ---------------- ");
+            LogInfo("  Game Over - reseting data  ");
             
             ResetSetup();
         }
@@ -179,7 +201,7 @@ namespace TeammateRevive
 
             if (IsClient()) return;
 
-            Logger.LogInfo(" ---------------- Advanced a stage - now resetting ---------------- ");
+            LogInfo("  Advanced a stage - now resetting  ");
            
 
             ResetSetup();
@@ -197,14 +219,19 @@ namespace TeammateRevive
             {
                 Player _player = new Player(playerCharacterMaster);
                 alivePlayers.Add(_player);
-                if (!_player.networkUser) Logger.LogInfo("No Network User!");
-                if (!_player.master) Logger.LogInfo("No master!");
-                if (!_player.playerCharacterMaster) Logger.LogInfo("No playerCharacterMaster!");
-                if (!_player.master.GetBody()) Logger.LogInfo("No body component!");
-                if (!_player.master.bodyPrefab) Logger.LogInfo("No body Prefab!");
-                //playerCharacterMaster.master.godMode = true;
+                if (!_player.networkUser) LogInfo("No Network User!");
+                if (!_player.master) LogInfo("No master!");
+                if (!_player.playerCharacterMaster) LogInfo("No playerCharacterMaster!");
+                if (!_player.master.GetBody()) LogInfo("No body component!");
+                if (!_player.master.bodyPrefab) LogInfo("No body Prefab!");
+
+                if (logging)
+                {
+                    playerCharacterMaster.master.ToggleGod();
+                    playerCharacterMaster.body.baseDamage = 100;
+                }
             }
-            Logger.LogInfo(" ---------------- Setup Players ---------------- ");
+            LogInfo("  Setup Players  ");
             
         }
 
@@ -215,7 +242,7 @@ namespace TeammateRevive
             playersSetup = false;
             alivePlayers = new List<Player>();
             deadPlayers = new List<Player>();
-            Logger.LogInfo(" ---------------- Reset Data ---------------- ");
+            LogInfo("  Reset Data  ");
 
         }
 
@@ -238,7 +265,7 @@ namespace TeammateRevive
             NetworkServer.Spawn(player.deathMark);
             NetworkServer.Spawn(player.nearbyRadiusIndicator);
 
-            Logger.LogInfo(" ---------------- Skull spawned on Server and Client ---------------- ");
+            LogInfo("  Skull spawned on Server and Client  ");
            
         }
 
@@ -258,12 +285,12 @@ namespace TeammateRevive
                     deadPlayers.Add(player);
                     SpawnDeathVisuals(player);
                     
-                    Logger.LogInfo(" ---------------- Player Died! ---------------- ");
+                    LogInfo("  Player Died!  ");
                   
                     return;
                 }
             }
-            Logger.LogError(" ---------------- Player Died but they were not alive to begin with! ---------------- ");
+            LogError("  Player Died but they were not alive to begin with!  ");
 
         }
 
@@ -281,7 +308,7 @@ namespace TeammateRevive
                 alivePlayers.Add(player);
                 deadPlayers.Remove(player);
             }
-            Logger.LogInfo(" ---------------- Player Respawned ---------------- ");
+            LogInfo("  Player Respawned  ");
          
         }
 
@@ -305,7 +332,7 @@ namespace TeammateRevive
 
                 if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive)
                 {
-                    Logger.LogInfo(" ---------------- Player Died (Not called from Event)! ---------------- ");
+                    LogInfo("  Player Died (Not called from Event)!  ");
                    
                     continue;
                 }
