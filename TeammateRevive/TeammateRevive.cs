@@ -41,7 +41,7 @@ namespace TeammateRevive
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "2.2.1";
+        public const string PluginVersion = "2.3.2";
 
         public bool playersSetup = false;
         public List<Player> alivePlayers = new List<Player>();
@@ -271,7 +271,7 @@ namespace TeammateRevive
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
-                SpawnDeathVisuals(alivePlayers[0]);
+                //SpawnDeathVisuals(alivePlayers[0]);
             }
 
             if (IsClient()) return;
