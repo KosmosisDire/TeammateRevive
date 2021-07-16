@@ -1,6 +1,6 @@
 ﻿{
 	"name": "TeammateRevival",
-	"version_number": "2.3.2",
+	"version_number": "3.0.0",
 	"website_url": "https://github.com/KosmosisDire/TeammateRevive",
 	"description": "[WIP] Survivors can revive their fallen colleagues by staying near the dead's skull marking, but it comes at the price of their own health and safety.  \n\nkeywords: respawn heal bleed steal multiplayer",
 	"dependencies": [
