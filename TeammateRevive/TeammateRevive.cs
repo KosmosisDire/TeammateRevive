@@ -81,11 +81,26 @@ namespace TeammateRevive
             On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
             On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
             On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += PlayerDied;
+            On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
+            On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
+        }
+
+        bool IsClient() 
+        {
+            if (RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active || !playersSetup)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user)
         {
             orig(self, user);
+
+            if (IsClient()) return;
+
 
             if (playersSetup)
             {
@@ -96,6 +111,11 @@ namespace TeammateRevive
 
         private void Run_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
         {
+            if (IsClient())
+            {
+                orig(self, user);
+                return;
+            }
             for (int i = 0; i < deadPlayers.Count; i++)
             {
                 Player player = deadPlayers[i];
@@ -128,14 +148,36 @@ namespace TeammateRevive
         {
             orig(self, passenger);
 
+            if (IsClient()) return;
+
             if (!playersSetup)
                 SetupPlayers();
 
             playersSetup = true;
         }
 
+        void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, global::RoR2.Run self, global::RoR2.GameEndingDef gameEndingDef) 
+        {
+            orig(self, gameEndingDef);
+
+            if (IsClient()) return;
+
+            ResetSetup();
+        }
+
+        void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, global::RoR2.Run self, global::RoR2.SceneDef nextScene) 
+        {
+            orig(self, nextScene);
+
+            if (IsClient()) return;
+
+            ResetSetup();
+        }
+
         public void SetupPlayers()
         {
+            if (IsClient()) return;
+
             alivePlayers.Clear();
             deadPlayers.Clear();
 
@@ -153,10 +195,22 @@ namespace TeammateRevive
             }
             Logger.LogInfo(" ---------------- Setup Players ---------------- ");
         }
+
+        void ResetSetup() 
+        {
+            smallestMax = float.PositiveInfinity;
+            threshold = 0;
+            playersSetup = false;
+            List<Player> alivePlayers = new List<Player>();
+            List<Player> deadPlayers = new List<Player>();
+        }
+
         #endregion
 
         public void SpawnDeathVisuals(Player player) 
         {
+            if (IsClient()) return;
+
             //set the transforms of the prefabs before spawning them in
             player.deathMark = Instantiate(deathMarker);
             player.nearbyRadiusIndicator = Instantiate(nearbyMarker);
@@ -176,6 +230,8 @@ namespace TeammateRevive
         {
             orig(self, damageReport, victimNetworkUser);
 
+            if (IsClient()) return;
+
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 Player player = alivePlayers[i];
@@ -194,6 +250,8 @@ namespace TeammateRevive
 
         public void RespawnPlayer(Player player)
         {
+            if (IsClient()) return;
+
             if (!deadPlayers.Contains(player)) return;
 
             bool playerConnected = player.playerCharacterMaster.isConnected;
@@ -210,31 +268,13 @@ namespace TeammateRevive
         float threshold = 0;
         public void Update()
         {
-            if (!playersSetup) return;
-
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
                 SpawnDeathVisuals(alivePlayers[0]);
             }
 
-            bool solo = RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active;
-            if (solo)
-            {
-                return;
-            }
-
-
-            if(alivePlayers.Count == 0) 
-            {
-                smallestMax = float.PositiveInfinity;
-                threshold = 0;
-                playersSetup = false;
-                List<Player> alivePlayers = new List<Player>();
-                List<Player> deadPlayers = new List<Player>();
-            }
-            
-            
+            if (IsClient()) return;
 
             //find smallest max health out of all the players
             smallestMax = int.MaxValue;
