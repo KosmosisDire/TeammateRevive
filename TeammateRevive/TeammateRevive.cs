@@ -41,8 +41,10 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "2.3.3";
-        public bool logging = true;
+        public const string PluginVersion = "3.0.0";
+        bool logging = false;
+        bool fileLogging = true;
+        bool godMode = false;
 
         public bool playersSetup = false;
         public List<Player> alivePlayers = new List<Player>();
@@ -55,21 +57,24 @@ namespace TeammateRevival
 
         public void LogInfo(object msg) 
         {
-            if (!logging) return;
-            Logger.LogInfo(msg);
-            DebugLogger.LogInfo(msg);
+            if (logging)
+                Logger.LogInfo(msg);
+            if (fileLogging)
+                DebugLogger.LogInfo(msg);
         }
         public void LogWarning(object msg)
         {
-            if (!logging) return;
-            Logger.LogWarning(msg);
-            DebugLogger.LogWarning(msg);
+            if (logging)
+                Logger.LogWarning(msg);
+            if (fileLogging)
+                DebugLogger.LogWarning(msg);
         }
         public void LogError(object msg)
         {
-            if (!logging) return;
-            Logger.LogError(msg);
-            DebugLogger.LogError(msg);
+            if (logging)
+                Logger.LogError(msg);
+            if (fileLogging)
+                DebugLogger.LogError(msg);
         }
 
 
@@ -99,13 +104,11 @@ namespace TeammateRevival
 
         void SetupHooks()
         {
-            On.RoR2.SurvivorPodController.OnPassengerExit += hook_OnPassengerExit;
-            On.RoR2.Run.OnUserAdded += hook_OnUserAdded;
             On.RoR2.Run.OnUserRemoved += Run_OnUserRemoved;
             On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += OnPlayerCharacterDeath;
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
-            
+            On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
         }
 
         bool IsClient() 
@@ -116,21 +119,6 @@ namespace TeammateRevival
             }
 
             return false;
-        }
-
-        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user)
-        {
-            orig(self, user);
-
-            if (IsClient()) return;
-
-
-            if (playersSetup)
-            {
-                alivePlayers.Add(new Player(user.masterController));
-                LogInfo("  Player Added  ");
-                
-            }
         }
 
         private void Run_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
@@ -170,18 +158,30 @@ namespace TeammateRevival
             orig(self, user);
         }
 
-        void hook_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, RoR2.SurvivorPodController self, GameObject passenger)
+        int numPlayersSetup = 0;
+        void hook_OnBodyStart(On.RoR2.PlayerCharacterMasterController.orig_OnBodyStart orig, global::RoR2.PlayerCharacterMasterController self)
         {
-            orig(self, passenger);
+            orig(self);
 
             if (IsClient()) return;
 
-            LogInfo("  Passenger Exit Pod  ");
-            
+            Player p = new Player(self);
+            if (godMode) {
+                p.master.ToggleGod();
+                p.body.baseDamage = 100;
+                p.body.baseMoveSpeed = 30;
+            }
 
-            if (!playersSetup)
-                SetupPlayers();
-            playersSetup = true;
+            alivePlayers.Add(p);
+            numPlayersSetup++;
+            LogInfo(self.networkUser.userName + " Setup");
+
+
+            if (numPlayersSetup == NetworkServer.connections.Count)
+            {
+                playersSetup = true;
+                LogInfo("All Players Setup Succesfully");
+            }
         }
 
         void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, global::RoR2.Run self, global::RoR2.GameEndingDef gameEndingDef) 
@@ -207,34 +207,6 @@ namespace TeammateRevival
             ResetSetup();
         }
 
-        public void SetupPlayers()
-        {
-            if (IsClient()) return;
-
-            alivePlayers.Clear();
-            deadPlayers.Clear();
-
-            var instances = PlayerCharacterMasterController.instances;
-            foreach (PlayerCharacterMasterController playerCharacterMaster in instances)
-            {
-                Player _player = new Player(playerCharacterMaster);
-                alivePlayers.Add(_player);
-                if (!_player.networkUser) LogInfo("No Network User!");
-                if (!_player.master) LogInfo("No master!");
-                if (!_player.playerCharacterMaster) LogInfo("No playerCharacterMaster!");
-                if (!_player.master.GetBody()) LogInfo("No body component!");
-                if (!_player.master.bodyPrefab) LogInfo("No body Prefab!");
-
-                if (logging)
-                {
-                    playerCharacterMaster.master.ToggleGod();
-                    playerCharacterMaster.body.baseDamage = 100;
-                }
-            }
-            LogInfo("  Setup Players  ");
-            
-        }
-
         void ResetSetup() 
         {
             smallestMax = float.PositiveInfinity;
@@ -242,8 +214,8 @@ namespace TeammateRevival
             playersSetup = false;
             alivePlayers = new List<Player>();
             deadPlayers = new List<Player>();
+            numPlayersSetup = 0;
             LogInfo("  Reset Data  ");
-
         }
 
         #endregion
@@ -319,7 +291,7 @@ namespace TeammateRevival
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
-                //SpawnDeathVisuals(alivePlayers[0]);
+                SpawnDeathVisuals(alivePlayers[0]);
             }
 
             if (IsClient() || !playersSetup) return;
@@ -330,12 +302,8 @@ namespace TeammateRevival
             { 
                 Player player = alivePlayers[i];
 
-                if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive)
-                {
-                    LogInfo("  Player Died (Not called from Event)!  ");
-                   
-                    continue;
-                }
+                if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) continue;
+                
 
                 if (alivePlayers[i].body.maxHealth < smallestMax)
                     smallestMax = (int)alivePlayers[i].body.maxHealth;
@@ -347,6 +315,10 @@ namespace TeammateRevival
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 Player player = alivePlayers[i];
+
+                if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) continue;
+
+
                 player.lastPosition = player.body.transform.position;
                 for (int j = 0; j < deadPlayers.Count; j++)
                 {

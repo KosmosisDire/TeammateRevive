@@ -19,7 +19,7 @@ namespace TeammateRevival
         {
             using (StreamWriter writer = new StreamWriter(System.Environment.GetEnvironmentVariable("USERPROFILE") + "\\Desktop\\log.txt", true))
             {
-                writer.WriteLine("[Info] - " + message.ToString() + DateTime.Now + '\n');
+                writer.WriteLine("[Info] - " + message.ToString() + "  - " + DateTime.Now + '\n');
             }
         }
 
@@ -28,7 +28,7 @@ namespace TeammateRevival
         {
             using (StreamWriter writer = new StreamWriter(System.Environment.GetEnvironmentVariable("USERPROFILE") + "\\Desktop\\log.txt", true))
             {
-                writer.WriteLine("[WARNING] - " + message.ToString() + DateTime.Now + '\n');
+                writer.WriteLine("[WARNING] - " + message.ToString() + "  - " + DateTime.Now + '\n');
             }
         }
 
@@ -37,7 +37,7 @@ namespace TeammateRevival
         {
             using (StreamWriter writer = new StreamWriter(System.Environment.GetEnvironmentVariable("USERPROFILE") + "\\Desktop\\log.txt", true))
             {
-                writer.WriteLine("[ERROR] - " + message.ToString() + DateTime.Now + '\n');
+                writer.WriteLine("[ERROR] - " + message.ToString() + "  - " + DateTime.Now + '\n');
             }
         }
     }

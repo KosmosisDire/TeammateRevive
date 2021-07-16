@@ -2,12 +2,18 @@
 Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull marks where the player died. Stand within the circle to begin, but stay at your own risk :)
 
 ## To Do:
+* Sync damage numbers and lighting over the server
+* Add better indicator for how close the player is to revival
 * Allow an interaction to start reviving a player (rather than automatically starting when inside the circle.
 * Add customizability / config
-* Test it on the real network rather than only on splitscreen
-* Add better indicator for how close the player is to revival
+
 
 ## Change Notes:
+* 3.0.0
+    * Actually fixed a bug that kept it from working after the first stage
+    * Fixed a TON of other netwroking bugs.
+    * Everything should actually work now.
+
 * 2.3.2
     * Hopefully fixed bug where it wouldn't do anything after the first stage
     * Fixed a bug where clients would run server-side code
