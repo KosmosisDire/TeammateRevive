@@ -83,6 +83,7 @@ namespace TeammateRevive
             On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += PlayerDied;
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
+            
         }
 
         bool IsClient() 
