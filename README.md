@@ -11,7 +11,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 ## Change Notes:
 * 3.0.0
     * Actually fixed a bug that kept it from working after the first stage
-    * Fixed a TON of other netwroking bugs.
+    * Fixed a TON of other networking bugs.
     * Everything should actually work now.
 
 * 2.3.2
