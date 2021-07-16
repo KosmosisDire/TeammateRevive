@@ -42,8 +42,8 @@ namespace TeammateRevival
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
         public const string PluginVersion = "3.0.0";
-        bool logging = false;
-        bool fileLogging = true;
+        bool logging = true;
+        bool fileLogging = false;
         bool godMode = false;
 
         public bool playersSetup = false;
