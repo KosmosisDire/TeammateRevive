@@ -9,8 +9,16 @@ namespace TeammateRevival
         internal static void Init(ManualLogSource logSource)
         {
             _logSource = logSource;
-            if(TeammateRevive.fileLogging)
-                DebugLogger.Init();
+            try
+            {
+                if (TeammateRevive.fileLogging)
+                    DebugLogger.Init();
+            }
+            catch 
+            {
+                _logSource.LogWarning("Log location unavailable!");
+                TeammateRevive.fileLogging = false;
+            }
         }
 
         internal static void LogDebug(object data) => _logSource.LogDebug(data);

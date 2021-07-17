@@ -9,6 +9,10 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 
 ## Change Notes:
+* 3.1.0
+    * Works now lol
+    * I actually tested it this time :P
+
 * 3.0.0
     * Actually fixed a bug that kept it from working after the first stage
     * Fixed a TON of other networking bugs.

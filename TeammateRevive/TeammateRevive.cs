@@ -41,10 +41,10 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.0.0";
+        public const string PluginVersion = "3.1.0";
         public static bool logging = true;
-        public static bool fileLogging = true;
-        public static bool godMode = true;
+        public static bool fileLogging = false;
+        public static bool godMode = false;
 
         public bool playersSetup = false;
         public int totalPlayers = 0;
@@ -111,7 +111,25 @@ namespace TeammateRevival
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
+            On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
+            
         }
+
+        void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, global::RoR2.NetworkUser self)
+        {
+            orig(self);
+            LogWarning("Start Local Player!!!!");
+            if (IsClient())
+            {
+                ClientScene.RegisterPrefab(deathMarker);
+                ClientScene.RegisterPrefab(nearbyMarker);
+                FindObjectOfType<NetworkManager>().spawnPrefabs.Add(deathMarker);
+                FindObjectOfType<NetworkManager>().spawnPrefabs.Add(nearbyMarker);
+                LogInfo("Registered Prefabs");
+                return;
+            }
+        }
+
 
         bool IsClient() 
         {
@@ -176,7 +194,10 @@ namespace TeammateRevival
         {
             orig(self);
 
-            if (IsClient()) return;
+            if (IsClient())
+            {
+                return;
+            }
 
             Player p = new Player(self);
             if (godMode) {
@@ -276,7 +297,6 @@ namespace TeammateRevival
                 }
             }
             LogError("  Player Died but they were not alive to begin with!  ");
-
         }
 
         public void RespawnPlayer(Player player)
@@ -304,7 +324,7 @@ namespace TeammateRevival
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 //Instantiate(deathMarker, PlayerCharacterMasterController.instances[0].body.transform.position + Vector3.up * 2, Quaternion.identity);
-                SpawnDeathVisuals(alivePlayers[0]);
+                //SpawnDeathVisuals(alivePlayers[0]);
             }
 
             if (IsClient() || !playersSetup) return;
