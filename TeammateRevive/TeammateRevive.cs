@@ -1,5 +1,6 @@
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using R2API;
 using R2API.Networking;
 using R2API.Utils;
@@ -42,9 +43,16 @@ namespace TeammateRevival
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
         public const string PluginVersion = "3.1.0";
-        public static bool logging = true;
+
+        //debugging config
+        public static ConfigEntry<bool> consoleLoggingConfig;
+        public static ConfigEntry<bool> fileLoggingConfig;
+        public static ConfigEntry<string> fileLoggingPath;
+        public static ConfigEntry<bool> godModeConfig;
+        public static bool consoleLogging = true;
         public static bool fileLogging = false;
         public static bool godMode = false;
+        
 
         public bool playersSetup = false;
         public int totalPlayers = 0;
@@ -56,23 +64,37 @@ namespace TeammateRevival
 
         #region Setup
 
+        public void LogInit() 
+        {
+            Log.Init(Logger);
+            try
+            {
+                if (fileLogging)
+                    DebugLogger.Init();
+            }
+            catch
+            {
+                Logger.LogWarning("Log file location unavailable!");
+                fileLogging = false;
+            }
+        }
         public void LogInfo(object msg) 
         {
-            if (logging)
+            if (consoleLogging)
                 Logger.LogInfo(msg);
             if (fileLogging)
                 DebugLogger.LogInfo(msg);
         }
         public void LogWarning(object msg)
         {
-            if (logging)
+            if (consoleLogging)
                 Logger.LogWarning(msg);
             if (fileLogging)
                 DebugLogger.LogWarning(msg);
         }
         public void LogError(object msg)
         {
-            if (logging)
+            if (consoleLogging)
                 Logger.LogError(msg);
             if (fileLogging)
                 DebugLogger.LogError(msg);
@@ -81,10 +103,11 @@ namespace TeammateRevival
 
         public void Awake()
         {
-            Log.Init(Logger);
-
-            InitConfig();
+            
             SetupHooks();
+            LogInit();
+            InitConfig();
+
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
@@ -100,7 +123,17 @@ namespace TeammateRevival
                 bundle.Unload(false);
             }
 
-            LogInfo(" Setup Teammate Revival -");
+            LogInfo("Setup Teammate Revival");
+        }
+
+        bool IsClient()
+        {
+            if (RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         void SetupHooks()
@@ -112,7 +145,13 @@ namespace TeammateRevival
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
             On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
-            
+            Config.SettingChanged += OnConfigChanged;
+        }
+
+        void OnConfigChanged(object sender, System.EventArgs e) 
+        {
+            InitConfig();
+            LogInit();
         }
 
         void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, global::RoR2.NetworkUser self)
@@ -128,17 +167,6 @@ namespace TeammateRevival
                 LogInfo("Registered Prefabs");
                 return;
             }
-        }
-
-
-        bool IsClient() 
-        {
-            if (RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, global::RoR2.Run self, global::RoR2.NetworkUser user) 
@@ -166,7 +194,7 @@ namespace TeammateRevival
                     Destroy(player.deathMark);
                     
                     deadPlayers.RemoveAt(i);
-                    LogInfo("  Dead Player Removed  ");
+                    LogInfo("Dead Player Removed");
                     
                     return;
                 }
@@ -178,13 +206,13 @@ namespace TeammateRevival
                 if (player.networkUser.userName == user.userName)
                 {
                     deadPlayers.RemoveAt(i);
-                    LogInfo("  Living Player Removed  ");
+                    LogInfo("Living Player Removed");
                     
                     return;
                 }
             }
 
-            LogInfo("  PLayer Left - they were not registed as alive or dead  ");
+            LogInfo("PLayer Left - they were not registed as alive or dead");
 
             orig(self, user);
         }
@@ -223,7 +251,7 @@ namespace TeammateRevival
 
             if (IsClient()) return;
 
-            LogInfo("  Game Over - reseting data  ");
+            LogInfo("Game Over - reseting data");
             
             ResetSetup();
             totalPlayers = 0;
@@ -235,7 +263,7 @@ namespace TeammateRevival
 
             if (IsClient()) return;
 
-            LogInfo("  Advanced a stage - now resetting  ");
+            LogInfo("Advanced a stage - now resetting");
            
 
             ResetSetup();
@@ -249,7 +277,7 @@ namespace TeammateRevival
             alivePlayers = new List<Player>();
             deadPlayers = new List<Player>();
             numPlayersSetup = 0;
-            LogInfo("  Reset Data  ");
+            LogInfo("Reset Data");
         }
 
         #endregion
@@ -271,7 +299,7 @@ namespace TeammateRevival
             NetworkServer.Spawn(player.deathMark);
             NetworkServer.Spawn(player.nearbyRadiusIndicator);
 
-            LogInfo("  Skull spawned on Server and Client  ");
+            LogInfo("Skull spawned on Server and Client");
            
         }
 
@@ -291,12 +319,12 @@ namespace TeammateRevival
                     deadPlayers.Add(player);
                     SpawnDeathVisuals(player);
                     
-                    LogInfo("  Player Died!  ");
+                    LogInfo("Player Died!");
                   
                     return;
                 }
             }
-            LogError("  Player Died but they were not alive to begin with!  ");
+            LogError("Player Died but they were not alive to begin with!");
         }
 
         public void RespawnPlayer(Player player)
@@ -313,7 +341,7 @@ namespace TeammateRevival
                 alivePlayers.Add(player);
                 deadPlayers.Remove(player);
             }
-            LogInfo("  Player Respawned  ");
+            LogInfo("Player Respawned");
          
         }
 
@@ -351,8 +379,18 @@ namespace TeammateRevival
 
                 if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) continue;
 
+                if(player.playerCharacterMaster.bodyMotor.isGrounded && player.playerCharacterMaster.bodyMotor.lastGroundedTime.t - Run.FixedTimeStamp.tNow < 4)
+                    player.lastPosition = player.body.transform.position;
+                else
+                {
+                    RaycastHit hit;
+                    if( Physics.Raycast( transform.position, Vector3.down, out hit, 1000, LayerMask.NameToLayer("World") ) )
+                    {
+                        player.lastPosition = hit.point;
+                    }
+                }
+                LogInfo(player.lastPosition);
 
-                player.lastPosition = player.body.transform.position;
                 for (int j = 0; j < deadPlayers.Count; j++)
                 {
                     Player dead = deadPlayers[j];
@@ -405,10 +443,36 @@ namespace TeammateRevival
 
         private void InitConfig()
         {
-            //config not here yet
-            Config.Clear();
+            LogInfo("Testing - Config Setup");
 
+            consoleLoggingConfig = Config.Bind<bool>(
+                section: "Debugging",
+                key: "Console Logging",
+                description: "Log debugging messages to the console.",
+                defaultValue: false);
 
+            fileLoggingConfig = Config.Bind<bool>(
+                section: "Debugging",
+                key: "File Logging",
+                description: "Log debugging messages to log.txt located on the desktop by default (sometimes the path cannot be found, so set a custom path below). If the path cannot be found it will write to \"C:\\log.txt\" instead.",
+                defaultValue: false);
+
+            fileLoggingPath = Config.Bind<string>(
+                section: "Debugging",
+                key: "File Logging Path",
+                description: "[Please include filename and extention in the path] This setss the location that the logging file will be created. Leave blank to put log.txt on the desktop. If the log file is not showing up set your path manually here.",
+                defaultValue: "");
+
+            godModeConfig = Config.Bind<bool>(
+                section: "Debugging",
+                key: "Console Logging",
+                description: "Log debugging and error messages to the console.",
+                defaultValue: false);
+
+            //set variables
+            consoleLogging = consoleLoggingConfig.Value;
+            fileLogging = fileLoggingConfig.Value;
+            godMode = godModeConfig.Value;
         }
     }
 }
