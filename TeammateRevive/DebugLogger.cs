@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Globalization;
-using UnityEngine;
 namespace TeammateRevival
 {
     public class DebugLogger
@@ -9,19 +7,19 @@ namespace TeammateRevival
         public static string path = System.Environment.GetEnvironmentVariable("USERPROFILE") + "\\Desktop\\log.txt";
         public static void Init()
         {
-            if(TeammateRevive.fileLoggingPath.Value != "") 
+            if (TeammateRevive.fileLoggingPath.Value != "")
             {
                 path = TeammateRevive.fileLoggingPath.Value;
             }
 
             FileAttributes checkPath = File.GetAttributes(path);
-            if((checkPath & FileAttributes.Directory) == FileAttributes.Directory) 
+            if ((checkPath & FileAttributes.Directory) == FileAttributes.Directory)
             {
-                if(path.EndsWith("/") || path.EndsWith("\\")) 
+                if (path.EndsWith("/") || path.EndsWith("\\"))
                 {
                     path = path + "log.txt";
                 }
-                else 
+                else
                 {
                     path = path + "\\log.txt";
                 }
@@ -34,7 +32,7 @@ namespace TeammateRevival
                     writer.WriteLine("Setup Log - " + DateTime.Now + '\n');
                 }
             }
-            catch 
+            catch
             {
                 Log.LogError("Couldn't write to specified file logging path! Will write to \"C:\\log.txt\" instead --------------------------------------------");
 

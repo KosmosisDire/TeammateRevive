@@ -1,6 +1,5 @@
 using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using R2API;
 using R2API.Networking;
 using R2API.Utils;
@@ -44,7 +43,7 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.2.1";
+        public const string PluginVersion = "3.2.2";
 
         //debugging config
         public static ConfigEntry<bool> consoleLoggingConfig;
@@ -56,7 +55,7 @@ namespace TeammateRevival
         public static bool chatLogging = true;
         public static bool fileLogging = false;
         public static bool godMode = false;
-        
+
 
         public bool playersSetup = false;
         public int totalPlayers = 0;
@@ -69,7 +68,7 @@ namespace TeammateRevival
 
         #region Setup
 
-        public void LogInit() 
+        public void LogInit()
         {
             Log.Init(Logger);
             try
@@ -83,7 +82,7 @@ namespace TeammateRevival
                 fileLogging = false;
             }
         }
-        public void LogInfo(object msg) 
+        public void LogInfo(object msg)
         {
             if (consoleLogging)
                 Logger.LogInfo(msg);
@@ -93,7 +92,7 @@ namespace TeammateRevival
 
             if (chatLogging && runStarted)
                 ChatMessage.SendColored(msg.ToString(), Color.blue);
-            
+
         }
         public void LogWarning(object msg)
         {
@@ -103,9 +102,9 @@ namespace TeammateRevival
             if (fileLogging)
                 DebugLogger.LogWarning(msg);
 
-            if(chatLogging && runStarted) 
+            if (chatLogging && runStarted)
                 ChatMessage.SendColored(msg.ToString(), Color.yellow);
-            
+
         }
         public void LogError(object msg)
         {
@@ -117,7 +116,7 @@ namespace TeammateRevival
 
             if (chatLogging && runStarted)
                 ChatMessage.SendColored(msg.ToString(), Color.red);
-            
+
         }
 
 
@@ -126,13 +125,13 @@ namespace TeammateRevival
             InitConfig();
             SetupHooks();
             LogInit();
-            
+
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
                 var bundle = AssetBundle.LoadFromStream(stream);
                 var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
                 var nm = Resources.Load<GameObject>("prefabs/networkedobjects/NearbyDamageBonusIndicator");
-                
+
 
                 deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
                 deathMarker.AddComponent<SkullNetwork>();
@@ -168,7 +167,7 @@ namespace TeammateRevival
             Config.SettingChanged += OnConfigChanged;
         }
 
-        void OnConfigChanged(object sender, System.EventArgs e) 
+        void OnConfigChanged(object sender, System.EventArgs e)
         {
             InitConfig();
             LogInit();
@@ -182,7 +181,7 @@ namespace TeammateRevival
 
             if (IsClient())
             {
-                
+
                 ClientScene.RegisterPrefab(deathMarker);
                 ClientScene.RegisterPrefab(nearbyMarker);
                 FindObjectOfType<NetworkManager>().spawnPrefabs.Add(deathMarker);
@@ -192,7 +191,7 @@ namespace TeammateRevival
             }
         }
 
-        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, global::RoR2.Run self, global::RoR2.NetworkUser user) 
+        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, global::RoR2.Run self, global::RoR2.NetworkUser user)
         {
             orig(self, user);
             if (IsClient()) return;
@@ -215,10 +214,10 @@ namespace TeammateRevival
                 {
                     Destroy(player.nearbyRadiusIndicator);
                     Destroy(player.deathMark);
-                    
+
                     deadPlayers.RemoveAt(i);
                     LogInfo("Dead Player Removed");
-                    
+
                     return;
                 }
             }
@@ -230,7 +229,7 @@ namespace TeammateRevival
                 {
                     deadPlayers.RemoveAt(i);
                     LogInfo("Living Player Removed");
-                    
+
                     return;
                 }
             }
@@ -251,7 +250,8 @@ namespace TeammateRevival
             }
 
             Player p = new Player(self);
-            if (godMode) {
+            if (godMode)
+            {
                 p.master.ToggleGod();
                 p.body.baseDamage = 100;
                 p.body.baseMoveSpeed = 30;
@@ -269,30 +269,30 @@ namespace TeammateRevival
             }
         }
 
-        void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, global::RoR2.Run self, global::RoR2.GameEndingDef gameEndingDef) 
+        void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, global::RoR2.Run self, global::RoR2.GameEndingDef gameEndingDef)
         {
             orig(self, gameEndingDef);
 
             if (IsClient()) return;
 
             LogInfo("Game Over - reseting data");
-            
+
             ResetSetup();
             totalPlayers = 0;
         }
 
-        void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, global::RoR2.Run self, global::RoR2.SceneDef nextScene) 
+        void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, global::RoR2.Run self, global::RoR2.SceneDef nextScene)
         {
             orig(self, nextScene);
 
             if (IsClient()) return;
 
             LogInfo("Advanced a stage - now resetting");
-           
+
 
             ResetSetup();
         }
-        
+
         void hook_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
         {
             orig(self, damageReport, victimNetworkUser);
@@ -316,7 +316,7 @@ namespace TeammateRevival
             LogError("Player Died but they were not alive to begin with!");
         }
 
-        void ResetSetup() 
+        void ResetSetup()
         {
             smallestMax = float.PositiveInfinity;
             threshold = 0;
@@ -329,17 +329,17 @@ namespace TeammateRevival
 
         #endregion
 
-        public SkullNetwork SpawnDeathVisuals(Player player) 
+        public SkullNetwork SpawnDeathVisuals(Player player)
         {
             if (IsClient()) return null;
 
             //set the transforms of the prefabs before spawning them in
             player.deathMark = Instantiate(deathMarker);
             player.nearbyRadiusIndicator = Instantiate(nearbyMarker);
-            
+
             player.deathMark.transform.position = player.lastPosition + Vector3.up * 2;
             player.deathMark.transform.rotation = Quaternion.identity;
-            
+
             player.nearbyRadiusIndicator.transform.position = player.lastPosition;
             player.nearbyRadiusIndicator.transform.rotation = Quaternion.identity;
 
@@ -350,7 +350,7 @@ namespace TeammateRevival
 
             return player.deathMark.GetComponent<SkullNetwork>();
         }
-        
+
 
         public void RespawnPlayer(Player player)
         {
@@ -368,10 +368,10 @@ namespace TeammateRevival
                 player.justRespawned = true;
             }
             LogInfo("Player Respawned");
-         
+
         }
 
-        public IEnumerator SpawnTest() 
+        public IEnumerator SpawnTest()
         {
             while (true)
             {
@@ -399,11 +399,11 @@ namespace TeammateRevival
             //find smallest max health out of all the players
             smallestMax = int.MaxValue;
             for (int i = 0; i < alivePlayers.Count; i++)
-            { 
+            {
                 Player player = alivePlayers[i];
 
                 if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) continue;
-                
+
 
                 if (alivePlayers[i].body.maxHealth < smallestMax)
                     smallestMax = (int)alivePlayers[i].body.maxHealth;
@@ -424,20 +424,20 @@ namespace TeammateRevival
                 }
 
 
-                if (player.justRespawned) 
+                if (player.justRespawned)
                 {
                     player.body.healthComponent.Networkhealth = threshold;
                     player.rechargedHealth = 0;
-                    if(player.body.healthComponent.health == threshold) 
+                    if (player.body.healthComponent.health == threshold)
                     {
                         player.justRespawned = false;
                     }
                 }
 
                 RaycastHit hit;
-                if (Physics.Raycast(player.body.transform.position, Vector3.down, out hit, 1000, LayerMask.GetMask(new string[] {"World"})))
+                if (Physics.Raycast(player.body.transform.position, Vector3.down, out hit, 1000, LayerMask.GetMask(new string[] { "World" })))
                 {
-                    if(Vector3.Dot(hit.normal, Vector3.up) > 0.5f && Vector3.Distance(player.body.transform.position, player.lastPosition) > Vector3.Distance(player.body.transform.position, hit.point)) 
+                    if (Vector3.Dot(hit.normal, Vector3.up) > 0.5f && Vector3.Distance(player.body.transform.position, player.lastPosition) > Vector3.Distance(player.body.transform.position, hit.point))
                     {
                         player.lastPosition = hit.point;
                     }
@@ -457,14 +457,14 @@ namespace TeammateRevival
 
                         //damage alive player
                         player.body.healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.body.healthComponent.health - 1f);
-                        if(!skull.insidePlayerIDs.Contains(player.networkUser._id.value))
+                        if (!skull.insidePlayerIDs.Contains(player.networkUser._id.value))
                             skull.insidePlayerIDs.Add(player.networkUser._id.value);
                         SkullNetwork.amount = amount;
-                        
+
                         //set light color and intensity based on ratio
                         float ratio = (dead.rechargedHealth / threshold);
                         skull.SetColor(1 - ratio, ratio, 0.6f * ratio, 4 + 15 * ratio);
-                        
+
                     }
                     else
                     {
