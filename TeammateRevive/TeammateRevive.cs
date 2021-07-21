@@ -1,5 +1,6 @@
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using R2API;
 using R2API.Networking;
 using R2API.Utils;
@@ -64,13 +65,16 @@ namespace TeammateRevival
 
         private GameObject deathMarker;
         private GameObject nearbyMarker;
-        public bool runStarted;
+        public static bool runStarted;
+        public static ManualLogSource log;
 
         #region Setup
 
         public void LogInit()
         {
             Log.Init(Logger);
+            log = Logger;
+
             try
             {
                 if (fileLogging)
@@ -82,10 +86,10 @@ namespace TeammateRevival
                 fileLogging = false;
             }
         }
-        public void LogInfo(object msg)
+        public static void LogInfo(object msg)
         {
             if (consoleLogging)
-                Logger.LogInfo(msg);
+                log.LogInfo(msg);
 
             if (fileLogging)
                 DebugLogger.LogInfo(msg);
@@ -94,10 +98,10 @@ namespace TeammateRevival
                 ChatMessage.SendColored(msg.ToString(), Color.blue);
 
         }
-        public void LogWarning(object msg)
+        public static void LogWarning(object msg)
         {
             if (consoleLogging)
-                Logger.LogWarning(msg);
+                log.LogWarning(msg);
 
             if (fileLogging)
                 DebugLogger.LogWarning(msg);
@@ -106,10 +110,10 @@ namespace TeammateRevival
                 ChatMessage.SendColored(msg.ToString(), Color.yellow);
 
         }
-        public void LogError(object msg)
+        public static void LogError(object msg)
         {
             if (consoleLogging)
-                Logger.LogError(msg);
+                log.LogError(msg);
 
             if (fileLogging)
                 DebugLogger.LogError(msg);
@@ -125,22 +129,23 @@ namespace TeammateRevival
             InitConfig();
             SetupHooks();
             LogInit();
-
+            
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
                 var bundle = AssetBundle.LoadFromStream(stream);
                 var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
                 var nm = Resources.Load<GameObject>("prefabs/networkedobjects/NearbyDamageBonusIndicator");
-
+                dm.AddComponent<DeadPlayerSkull>();
 
                 deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
-                deathMarker.AddComponent<SkullNetwork>();
                 nearbyMarker = PrefabAPI.InstantiateClone(nm, "Nearby Marker");
                 nearbyMarker.transform.localScale = (Vector3.one / 26) * 8;
                 Destroy(nearbyMarker.GetComponent<NetworkedBodyAttachment>());
 
                 bundle.Unload(false);
             }
+
+            NetworkingAPI.RegisterMessageType<SyncSkull>();
 
             LogInfo("Setup Teammate Revival");
         }
@@ -265,7 +270,6 @@ namespace TeammateRevival
             {
                 playersSetup = true;
                 LogInfo("All Players Setup Succesfully");
-                StartCoroutine(SpawnTest());
             }
         }
 
@@ -329,7 +333,7 @@ namespace TeammateRevival
 
         #endregion
 
-        public SkullNetwork SpawnDeathVisuals(Player player)
+        public DeadPlayerSkull SpawnDeathVisuals(Player player)
         {
             if (IsClient()) return null;
 
@@ -348,7 +352,7 @@ namespace TeammateRevival
 
             LogInfo("Skull spawned on Server and Client");
 
-            return player.deathMark.GetComponent<SkullNetwork>();
+            return player.deathMark.GetComponent<DeadPlayerSkull>();
         }
 
 
@@ -369,18 +373,6 @@ namespace TeammateRevival
             }
             LogInfo("Player Respawned");
 
-        }
-
-        public IEnumerator SpawnTest()
-        {
-            while (true)
-            {
-                yield return new WaitForSeconds(2);
-                foreach (var player in alivePlayers)
-                {
-                    SpawnDeathVisuals(player).insidePlayerIDs.Add(player.networkUser._id.value);
-                }
-            }
         }
 
 
@@ -447,7 +439,7 @@ namespace TeammateRevival
                 for (int j = 0; j < deadPlayers.Count; j++)
                 {
                     Player dead = deadPlayers[j];
-                    SkullNetwork skull = dead.deathMark.GetComponent<SkullNetwork>();
+                    DeadPlayerSkull skull = dead.deathMark.GetComponent<DeadPlayerSkull>();
                     //if alive player is within the range of the circle
                     if ((player.lastPosition - dead.lastPosition).magnitude < 4)
                     {
@@ -457,22 +449,21 @@ namespace TeammateRevival
 
                         //damage alive player
                         player.body.healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.body.healthComponent.health - 1f);
-                        if (!skull.insidePlayerIDs.Contains(player.networkUser._id.value))
-                            skull.insidePlayerIDs.Add(player.networkUser._id.value);
-                        SkullNetwork.amount = amount;
+                        
 
                         //set light color and intensity based on ratio
                         float ratio = (dead.rechargedHealth / threshold);
-                        skull.SetColor(1 - ratio, ratio, 0.6f * ratio, 4 + 15 * ratio);
-
+                        skull.SetValues(amount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
+                        if (!skull.insidePlayerIDs.Contains(player.networkUser.netId))
+                            skull.insidePlayerIDs.Add(player.body.netId);
                     }
                     else
                     {
                         //set light to red if no one is inside the circle
-                        skull.SetColor(1, 0, 0, skull.intensity);
+                        skull.SetValues(skull.amount, new Color(1, 0, 0), skull.intensity);
 
-                        if (skull.insidePlayerIDs.Contains(player.networkUser._id.value))
-                            skull.insidePlayerIDs.Remove(player.networkUser._id.value);
+                        if (skull.insidePlayerIDs.Contains(player.body.netId))
+                            skull.insidePlayerIDs.Remove(player.body.netId);
                     }
 
                     //if dead player has recharged enough health, respawn
