@@ -38,7 +38,7 @@ namespace TeammateRevival
 
         public CharacterBody GetBody()
         {
-            if(!master.master.GetBody()) Log.LogError("PLAYER HAS NO BODY!!!!!!!!!!!!!!!!!");
+            if(!master.master.GetBody()) MainTeammateRevival.LogError("PLAYER HAS NO BODY!!!!!!!!!!!!!!!!!");
 
             bodyID = master.master.GetBody().netId;
             return master.master.GetBody();
@@ -382,14 +382,16 @@ namespace TeammateRevival
         public static void PlayerDead(Player p)
         {
             alivePlayers.Remove(p);
-            deadPlayers.Add(p);
+            if(!deadPlayers.Contains(p))            
+                deadPlayers.Add(p);
             p.isDead = true;
             SpawnDeathVisuals(p);
         }
 
         public static void PlayerAlive(Player p)
         {
-            alivePlayers.Add(p);
+            if (!alivePlayers.Contains(p))
+                alivePlayers.Add(p);
             deadPlayers.Remove(p);
             p.isDead = false;
             NetworkServer.Destroy(p.nearbyRadiusIndicator);
@@ -414,7 +416,7 @@ namespace TeammateRevival
         void CalculateReviveThreshold()
         {
             //find smallest max health out of all the players
-            smallestMax = int.MaxValue;
+            smallestMax = Mathf.Infinity;
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 Player player = alivePlayers[i];
@@ -455,25 +457,11 @@ namespace TeammateRevival
 
         #endregion
 
-        float timer = 0;
-
         public void Update()
         {
             if (IsClient() || !playersSetup) return;
 
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                //PlayerDead(alivePlayers[0]);
-                //SpawnDeathVisuals(alivePlayers[0]);
-            }
-
-            timer += Time.deltaTime;
-            if(timer > 15) 
-            {
-                deadPlayers.Add(alivePlayers[0]);
-                SpawnDeathVisuals(alivePlayers[0]);
-                timer = -100000;
-            }
+            CalculateReviveThreshold();
 
             //interactions between dead and alive players
             for (int p = 0; p < alivePlayers.Count; p++)
@@ -491,10 +479,9 @@ namespace TeammateRevival
                     //have they been revived by other means?
                     if (dead.CheckAlive()) 
                     {
-                        //PlayerAlive(dead);
-                        //continue;
+                        PlayerAlive(dead);
+                        continue;
                     }
-
 
                     //if alive player is within the range of the circle
                     if (Vector3.Distance(player.groundPosition, dead.groundPosition) < totemRange)
@@ -509,17 +496,19 @@ namespace TeammateRevival
 
                         //set light color and intensity based on ratio
                         float ratio = (dead.rechargedHealth / threshold);
-                        skull.SetValues(amount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
                         if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
                             skull.insidePlayerIDs.Add(player.GetBody().netId);
+
+                        skull.SetValues(amount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
+                        
                     }
                     else
                     {
                         //set light to red if no one is inside the circle
-                        skull.SetValues(skull.amount, new Color(1, 0, 0), skull.intensity);
-
                         if (skull.insidePlayerIDs.Contains(player.GetBody().netId))
                             skull.insidePlayerIDs.Remove(player.GetBody().netId);
+
+                        skull.SetValues(skull.amount, new Color(1, 0, 0), skull.intensity);
                     }
 
                     //if dead player has recharged enough health, respawn

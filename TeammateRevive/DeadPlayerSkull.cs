@@ -48,7 +48,6 @@ public class SyncSkull : INetMessage
     {
         if (NetworkServer.active) return;
         Util.FindNetworkObject(skull).GetComponent<DeadPlayerSkull>().SetValues(amount, color, intensity, insideIDs);
-        TeammateRevival.MainTeammateRevival.LogInfo("Received Message!");
     }
 
     public void Serialize(NetworkWriter writer)
@@ -83,15 +82,24 @@ public class DeadPlayerSkull : MonoBehaviour
         insidePlayerIDs = _insidePlayerIDs;
     }
 
+    public void SetValues(float _amount, Color _color, float _intensity)
+    {
+        amount = _amount;
+        color = _color;
+        intensity = _intensity;
+
+        SyncToClients();
+    }
+
     public void RemoveDeadIDs() 
     {
         for (int i = 0; i < insidePlayerIDs.Count; i++)
         {
             NetworkInstanceId ID = insidePlayerIDs[i];
-            Player p = TeammateRevival.MainTeammateRevival.FindPlayerFromBodyInstanceID(ID);
+            Player p = MainTeammateRevival.FindPlayerFromBodyInstanceID(ID);
             if (p != null)
             {
-                if (p.isDead) 
+                if (p.CheckDead()) 
                 {
                     insidePlayerIDs.RemoveAt(i);
                     i--;
@@ -106,51 +114,13 @@ public class DeadPlayerSkull : MonoBehaviour
         {
             RemoveDeadIDs();
             new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity).Send(NetworkDestination.Clients);
-            TeammateRevival.MainTeammateRevival.LogInfo("Sent Message to Client");
         }
     }
 
-    public void SetValues(float _amount, Color _color, float _intensity)
-    {
-        amount = _amount;
-        color = _color;
-        intensity = _intensity;
-
-        SyncToClients();
-    }
+    
 
     void Update()
     {
-        //if (NetworkServer.active)
-        //{
-        //    foreach (var player in PlayerCharacterMasterController.instances)
-        //    {
-        //        if (!player.master.GetBody()) continue;
-        //        if (Vector3.Distance(player.master.GetBody().transform.position, transform.position) < 4)
-        //        {
-        //            player.body = player.master.GetBody();
-        //            color = Color.green;
-        //            amount = 8;
-        //            intensity += Time.deltaTime * 1;
-        //            if (!insidePlayerIDs.Contains(player.body.netId))
-        //            {
-        //                insidePlayerIDs.Add(player.body.netId);
-        //                SyncToClients();
-        //            }
-        //        }
-        //        else
-        //        {
-        //            color = Color.red;
-        //            intensity -= Time.deltaTime * 0.3f;
-        //            if (insidePlayerIDs.Contains(player.body.netId))
-        //            {
-        //                insidePlayerIDs.Remove(player.body.netId);
-        //                SyncToClients();
-        //            }
-        //        }
-        //    }
-        //}
-
         if (DamageNumberManager.instance == null) return;
         SetLighting();
         DamageNumbers();
@@ -172,7 +142,6 @@ public class DeadPlayerSkull : MonoBehaviour
                 
                 if (!player)
                 {
-                    TeammateRevival.MainTeammateRevival.LogWarning("Inside Player is NULL! Skipping");
                     continue;
                 }
 

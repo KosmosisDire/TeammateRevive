@@ -12,7 +12,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
     * Now when a player dies in midair the totem / skull will spawn at the closest ground location  (rather than midair).
     * Damage numbers now show on both client and server.
     * Lighting should now also sync to the clients as well.
-    * Fixed a bug where the mod didn't recognize if the player was revived by something other than this mod. 
+    * Fixed a bug where the mod didn't recognize if the player was revived by something other than this mod.
 
 * 3.1.0
     * Works now lol
