@@ -38,9 +38,8 @@ namespace TeammateRevival
 
         public CharacterBody GetBody()
         {
-            if(!master.master.GetBody()) MainTeammateRevival.LogError("PLAYER HAS NO BODY!!!!!!!!!!!!!!!!!");
+            if (master.master.GetBody()) bodyID = master.master.GetBody().netId;
 
-            bodyID = master.master.GetBody().netId;
             return master.master.GetBody();
         }
 
@@ -64,7 +63,7 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.3.2";
+        public const string PluginVersion = "3.3.3";
 
         //debugging config
         public static ConfigEntry<bool> consoleLoggingConfig;
@@ -543,13 +542,13 @@ namespace TeammateRevival
             fileLoggingPath = Config.Bind<string>(
                 section: "Debugging",
                 key: "File Logging Path",
-                description: "[Please include filename and extention in the path] This setss the location that the logging file will be created. Leave blank to put log.txt on the desktop. If the log file is not showing up set your path manually here.",
+                description: "This sets the location that the logging file will be created. Leave blank to put log.txt on the desktop. If the log file is not showing up set your path manually here.",
                 defaultValue: "");
 
             godModeConfig = Config.Bind<bool>(
                 section: "Debugging",
                 key: "God Mode",
-                description: "Grants Invincibility on every other level (starting on first level, off on second, on for 3rd, etc...). Super massive base damage, and super speed. For testing purposes only, Makes the game incredibly boring.",
+                description: "Super massive base damage, and super speed for the host. For testing purposes only, Makes the game incredibly boring.",
                 defaultValue: false);
 
             //set variables
