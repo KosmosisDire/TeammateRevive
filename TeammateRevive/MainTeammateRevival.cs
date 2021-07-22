@@ -5,7 +5,6 @@ using R2API;
 using R2API.Networking;
 using R2API.Utils;
 using RoR2;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -16,35 +15,56 @@ namespace TeammateRevival
     public class Player
     {
         public NetworkUser networkUser;
-        public CharacterMaster master;
-        public PlayerCharacterMasterController playerCharacterMaster;
-        public CharacterBody body;
-        public float rechargedHealth = 0;
-        public Vector3 lastPosition = Vector3.zero;
+        public PlayerCharacterMasterController master;
+
         public GameObject deathMark = null;
         public GameObject nearbyRadiusIndicator = null;
-        public bool justRespawned;
+
+        public Vector3 groundPosition = Vector3.zero;
+        public float rechargedHealth = 0;
+        
+        public bool isDead = false;
+        public NetworkInstanceId bodyID;
 
         public Player(PlayerCharacterMasterController _player)
         {
             if (_player.networkUser) networkUser = _player.networkUser;
-            if (_player.master) master = _player.master;
-            if (_player.master) playerCharacterMaster = _player;
-            if (_player.master.GetBody()) body = _player.master.GetBody();
+            master = _player;
+            if(master.master.GetBody())
+                bodyID = master.master.GetBody().netId;
+
             rechargedHealth = 0;
         }
-    }
 
+        public CharacterBody GetBody()
+        {
+            if(!master.master.GetBody()) Log.LogError("PLAYER HAS NO BODY!!!!!!!!!!!!!!!!!");
+
+            bodyID = master.master.GetBody().netId;
+            return master.master.GetBody();
+        }
+
+        public bool CheckAlive() 
+        {
+            return (GetBody() && !master.master.IsDeadAndOutOfLivesServer() && GetBody().healthComponent.alive);
+        }
+
+        public bool CheckDead()
+        {
+            return (!GetBody() || master.master.IsDeadAndOutOfLivesServer() || !GetBody().healthComponent.alive);
+        }
+    }
 
     [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI))]
-    public class TeammateRevive : BaseUnityPlugin
+    public class MainTeammateRevival : BaseUnityPlugin
     {
+        #region Variables
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.2.2";
+        public const string PluginVersion = "3.3.2";
 
         //debugging config
         public static ConfigEntry<bool> consoleLoggingConfig;
@@ -57,16 +77,31 @@ namespace TeammateRevival
         public static bool fileLogging = false;
         public static bool godMode = false;
 
+        float smallestMax = float.PositiveInfinity;
+        float threshold = 0;
+        int numPlayersSetup = 0;
 
-        public bool playersSetup = false;
-        public int totalPlayers = 0;
-        public List<Player> alivePlayers = new List<Player>();
-        public List<Player> deadPlayers = new List<Player>();
-
-        private GameObject deathMarker;
-        private GameObject nearbyMarker;
+        public static bool playersSetup = false;
+        public static int totalPlayers = 0;
+        public static List<Player> alivePlayers = new List<Player>();
+        public static List<Player> deadPlayers = new List<Player>();
+        public static List<Player> allPlayers = new List<Player>();
         public static bool runStarted;
+
+        private static GameObject deathMarker;
+        private static GameObject nearbyMarker;
+        
         public static ManualLogSource log;
+
+
+        
+
+        //configurable variables
+        public float totemRange = 4;
+        public float revivalSpeed = 5;
+
+
+        #endregion
 
         #region Setup
 
@@ -150,14 +185,15 @@ namespace TeammateRevival
             LogInfo("Setup Teammate Revival");
         }
 
-        public static bool IsClient()
+        void ResetSetup()
         {
-            if (RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active)
-            {
-                return true;
-            }
-
-            return false;
+            smallestMax = float.PositiveInfinity;
+            threshold = 0;
+            playersSetup = false;
+            alivePlayers = new List<Player>();
+            deadPlayers = new List<Player>();
+            numPlayersSetup = 0;
+            LogInfo("Reset Data");
         }
 
         void SetupHooks()
@@ -169,15 +205,10 @@ namespace TeammateRevival
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
             On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
-            Config.SettingChanged += OnConfigChanged;
         }
+        #endregion
 
-        void OnConfigChanged(object sender, System.EventArgs e)
-        {
-            InitConfig();
-            LogInit();
-            LogInfo("Config Changed - Settings have been updated.");
-        }
+        #region Hooks
 
         void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, global::RoR2.NetworkUser self)
         {
@@ -186,7 +217,6 @@ namespace TeammateRevival
 
             if (IsClient())
             {
-
                 ClientScene.RegisterPrefab(deathMarker);
                 ClientScene.RegisterPrefab(nearbyMarker);
                 FindObjectOfType<NetworkManager>().spawnPrefabs.Add(deathMarker);
@@ -202,15 +232,17 @@ namespace TeammateRevival
             if (IsClient()) return;
 
             totalPlayers++;
+            LogInfo(user.userName + " added.");
         }
 
-        private void hook_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
+        void hook_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
         {
             if (IsClient())
             {
                 orig(self, user);
                 return;
             }
+
             totalPlayers--;
             for (int i = 0; i < deadPlayers.Count; i++)
             {
@@ -220,31 +252,28 @@ namespace TeammateRevival
                     Destroy(player.nearbyRadiusIndicator);
                     Destroy(player.deathMark);
 
-                    deadPlayers.RemoveAt(i);
+                    deadPlayers.Remove(player);
+                    allPlayers.Remove(player);
                     LogInfo("Dead Player Removed");
-
                     return;
                 }
             }
-
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 Player player = alivePlayers[i];
                 if (player.networkUser.userName == user.userName)
                 {
-                    deadPlayers.RemoveAt(i);
+                    deadPlayers.Remove(player);
+                    allPlayers.Remove(player);
                     LogInfo("Living Player Removed");
-
                     return;
                 }
             }
 
             LogInfo("PLayer Left - they were not registed as alive or dead");
-
             orig(self, user);
         }
 
-        int numPlayersSetup = 0;
         void hook_OnBodyStart(On.RoR2.PlayerCharacterMasterController.orig_OnBodyStart orig, global::RoR2.PlayerCharacterMasterController self)
         {
             orig(self);
@@ -257,12 +286,15 @@ namespace TeammateRevival
             Player p = new Player(self);
             if (godMode)
             {
-                p.master.ToggleGod();
-                p.body.baseDamage = 100;
-                p.body.baseMoveSpeed = 30;
+                p.GetBody().baseDamage = 120;
+                p.networkUser.GetCurrentBody().baseMoveSpeed = 30;
+                p.GetBody().baseAttackSpeed = 200;
             }
 
             alivePlayers.Add(p);
+            allPlayers.Add(p);
+            p.isDead = false;
+            
             numPlayersSetup++;
             LogInfo(self.networkUser.userName + " Setup");
 
@@ -282,7 +314,6 @@ namespace TeammateRevival
             LogInfo("Game Over - reseting data");
 
             ResetSetup();
-            totalPlayers = 0;
         }
 
         void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, global::RoR2.Run self, global::RoR2.SceneDef nextScene)
@@ -292,8 +323,6 @@ namespace TeammateRevival
             if (IsClient()) return;
 
             LogInfo("Advanced a stage - now resetting");
-
-
             ResetSetup();
         }
 
@@ -303,37 +332,32 @@ namespace TeammateRevival
 
             if (IsClient()) return;
 
-            for (int i = 0; i < alivePlayers.Count; i++)
+            Player victim = FindPlayerFromBodyInstanceID(victimNetworkUser.GetCurrentBody().netId);
+            if (alivePlayers.Contains(victim))
             {
-                Player player = alivePlayers[i];
-                if (player.networkUser.userName == victimNetworkUser.userName)
-                {
-                    alivePlayers.Remove(player);
-                    deadPlayers.Add(player);
-                    SpawnDeathVisuals(player);
-
-                    LogInfo("Player Died!");
-
-                    return;
-                }
+                PlayerDead(victim);
+                LogInfo(victimNetworkUser.userName + " Died!");
+                return;
             }
+            
             LogError("Player Died but they were not alive to begin with!");
-        }
-
-        void ResetSetup()
-        {
-            smallestMax = float.PositiveInfinity;
-            threshold = 0;
-            playersSetup = false;
-            alivePlayers = new List<Player>();
-            deadPlayers = new List<Player>();
-            numPlayersSetup = 0;
-            LogInfo("Reset Data");
         }
 
         #endregion
 
-        public DeadPlayerSkull SpawnDeathVisuals(Player player)
+        #region Helpers
+        
+        public static bool IsClient()
+        {
+            if (RoR2.RoR2Application.isInSinglePlayer || !NetworkServer.active)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static DeadPlayerSkull SpawnDeathVisuals(Player player)
         {
             if (IsClient()) return null;
 
@@ -341,10 +365,10 @@ namespace TeammateRevival
             player.deathMark = Instantiate(deathMarker);
             player.nearbyRadiusIndicator = Instantiate(nearbyMarker);
 
-            player.deathMark.transform.position = player.lastPosition + Vector3.up * 2;
+            player.deathMark.transform.position = player.groundPosition + Vector3.up * 2;
             player.deathMark.transform.rotation = Quaternion.identity;
 
-            player.nearbyRadiusIndicator.transform.position = player.lastPosition;
+            player.nearbyRadiusIndicator.transform.position = player.groundPosition;
             player.nearbyRadiusIndicator.transform.rotation = Quaternion.identity;
 
             NetworkServer.Spawn(player.deathMark);
@@ -355,123 +379,152 @@ namespace TeammateRevival
             return player.deathMark.GetComponent<DeadPlayerSkull>();
         }
 
+        public static void PlayerDead(Player p)
+        {
+            alivePlayers.Remove(p);
+            deadPlayers.Add(p);
+            p.isDead = true;
+            SpawnDeathVisuals(p);
+        }
 
-        public void RespawnPlayer(Player player)
+        public static void PlayerAlive(Player p)
+        {
+            alivePlayers.Add(p);
+            deadPlayers.Remove(p);
+            p.isDead = false;
+            NetworkServer.Destroy(p.nearbyRadiusIndicator);
+            NetworkServer.Destroy(p.deathMark);
+        }
+
+        public static void RespawnPlayer(Player player)
         {
             if (IsClient()) return;
 
             if (!deadPlayers.Contains(player)) return;
 
-            bool playerConnected = player.playerCharacterMaster.isConnected;
+            bool playerConnected = player.master.isConnected;
             if (playerConnected)
             {
-                player.master.RespawnExtraLife();
-                player.body = player.master.GetBody();
-                alivePlayers.Add(player);
-                deadPlayers.Remove(player);
-                player.justRespawned = true;
+                player.master.master.RespawnExtraLife();
+                PlayerAlive(player);
             }
             LogInfo("Player Respawned");
-
         }
 
-
-        float smallestMax = float.PositiveInfinity;
-        float threshold = 0;
-        public void Update()
+        void CalculateReviveThreshold()
         {
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                //SkullNetwork.RpcDamageNumbers();
-                SpawnDeathVisuals(alivePlayers[0]);
-            }
-
-            if (IsClient() || !playersSetup) return;
-
             //find smallest max health out of all the players
             smallestMax = int.MaxValue;
             for (int i = 0; i < alivePlayers.Count; i++)
             {
                 Player player = alivePlayers[i];
 
-                if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) continue;
+                if (player.CheckDead()) continue;
 
-
-                if (alivePlayers[i].body.maxHealth < smallestMax)
-                    smallestMax = (int)alivePlayers[i].body.maxHealth;
+                if (alivePlayers[i].GetBody().maxHealth < smallestMax)
+                    smallestMax = (int)alivePlayers[i].GetBody().maxHealth;
             }
             //the player must give this much health to revive the other player
             threshold = (smallestMax * 0.9f);
+        }
+
+        public static Vector3 GroundPosition(Player player)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(player.GetBody().transform.position, Vector3.down, out hit, 1000, LayerMask.GetMask(new string[] { "World" })))
+            {
+                if (Vector3.Dot(hit.normal, Vector3.up) > 0.5f && Vector3.Distance(player.GetBody().transform.position, player.groundPosition) > Vector3.Distance(player.GetBody().transform.position, hit.point))
+                {
+                    return hit.point;
+                }
+            }
+            
+            return player.groundPosition;
+        }
+        
+        public static Player FindPlayerFromBodyInstanceID(NetworkInstanceId id) 
+        {
+            foreach (var p in allPlayers)
+            {
+                p.GetBody();
+                if (p.bodyID == id) return p;
+            }
+
+            return null;
+        }
+
+        #endregion
+
+        float timer = 0;
+
+        public void Update()
+        {
+            if (IsClient() || !playersSetup) return;
+
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                //PlayerDead(alivePlayers[0]);
+                //SpawnDeathVisuals(alivePlayers[0]);
+            }
+
+            timer += Time.deltaTime;
+            if(timer > 15) 
+            {
+                deadPlayers.Add(alivePlayers[0]);
+                SpawnDeathVisuals(alivePlayers[0]);
+                timer = -100000;
+            }
 
             //interactions between dead and alive players
-            for (int i = 0; i < alivePlayers.Count; i++)
+            for (int p = 0; p < alivePlayers.Count; p++)
             {
-                Player player = alivePlayers[i];
+                Player player = alivePlayers[p];
+                if (player.CheckDead()) continue;
 
-                if (!player.master.GetBody() || player.master.IsDeadAndOutOfLivesServer() || !player.master.GetBody().healthComponent.alive) continue;
+                player.groundPosition = GroundPosition(player);
 
-                if (player.body.inputBank.jump.justPressed)
+                for (int d = 0; d < deadPlayers.Count; d++)
                 {
-                    SpawnDeathVisuals(player);
-                }
-
-
-                if (player.justRespawned)
-                {
-                    player.body.healthComponent.Networkhealth = threshold;
-                    player.rechargedHealth = 0;
-                    if (player.body.healthComponent.health == threshold)
-                    {
-                        player.justRespawned = false;
-                    }
-                }
-
-                RaycastHit hit;
-                if (Physics.Raycast(player.body.transform.position, Vector3.down, out hit, 1000, LayerMask.GetMask(new string[] { "World" })))
-                {
-                    if (Vector3.Dot(hit.normal, Vector3.up) > 0.5f && Vector3.Distance(player.body.transform.position, player.lastPosition) > Vector3.Distance(player.body.transform.position, hit.point))
-                    {
-                        player.lastPosition = hit.point;
-                    }
-                }
-
-
-                for (int j = 0; j < deadPlayers.Count; j++)
-                {
-                    Player dead = deadPlayers[j];
+                    Player dead = deadPlayers[d];
                     DeadPlayerSkull skull = dead.deathMark.GetComponent<DeadPlayerSkull>();
+
+                    //have they been revived by other means?
+                    if (dead.CheckAlive()) 
+                    {
+                        //PlayerAlive(dead);
+                        //continue;
+                    }
+
+
                     //if alive player is within the range of the circle
-                    if ((player.lastPosition - dead.lastPosition).magnitude < 4)
+                    if (Vector3.Distance(player.groundPosition, dead.groundPosition) < totemRange)
                     {
                         //add health to dead player
-                        float amount = player.body.level * Time.deltaTime * 5;
+                        float amount = player.GetBody().level * Time.deltaTime * revivalSpeed;
                         dead.rechargedHealth += amount;
 
-                        //damage alive player
-                        player.body.healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.body.healthComponent.health - 1f);
+                        //damage alive player - down to 1 HP
+                        player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.GetBody().healthComponent.health - 1f);
                         
 
                         //set light color and intensity based on ratio
                         float ratio = (dead.rechargedHealth / threshold);
                         skull.SetValues(amount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
-                        if (!skull.insidePlayerIDs.Contains(player.networkUser.netId))
-                            skull.insidePlayerIDs.Add(player.body.netId);
+                        if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
+                            skull.insidePlayerIDs.Add(player.GetBody().netId);
                     }
                     else
                     {
                         //set light to red if no one is inside the circle
                         skull.SetValues(skull.amount, new Color(1, 0, 0), skull.intensity);
 
-                        if (skull.insidePlayerIDs.Contains(player.body.netId))
-                            skull.insidePlayerIDs.Remove(player.body.netId);
+                        if (skull.insidePlayerIDs.Contains(player.GetBody().netId))
+                            skull.insidePlayerIDs.Remove(player.GetBody().netId);
                     }
 
                     //if dead player has recharged enough health, respawn
                     if (dead.rechargedHealth >= threshold)
                     {
-                        NetworkServer.Destroy(dead.nearbyRadiusIndicator);
-                        NetworkServer.Destroy(dead.deathMark);
-
                         RespawnPlayer(dead);
                     }
                 }

@@ -7,9 +7,9 @@ namespace TeammateRevival
         public static string path = System.Environment.GetEnvironmentVariable("USERPROFILE") + "\\Desktop\\log.txt";
         public static void Init()
         {
-            if (TeammateRevive.fileLoggingPath.Value != "")
+            if (MainTeammateRevival.fileLoggingPath.Value != "")
             {
-                path = TeammateRevive.fileLoggingPath.Value;
+                path = MainTeammateRevival.fileLoggingPath.Value;
             }
 
             FileAttributes checkPath = File.GetAttributes(path);

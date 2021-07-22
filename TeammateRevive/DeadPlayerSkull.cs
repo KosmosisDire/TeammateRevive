@@ -1,4 +1,5 @@
-﻿using R2API.Networking.Interfaces;
+﻿using R2API.Networking;
+using R2API.Networking.Interfaces;
 using RoR2;
 using System.Collections.Generic;
 using TeammateRevival;
@@ -47,6 +48,7 @@ public class SyncSkull : INetMessage
     {
         if (NetworkServer.active) return;
         Util.FindNetworkObject(skull).GetComponent<DeadPlayerSkull>().SetValues(amount, color, intensity, insideIDs);
+        TeammateRevival.MainTeammateRevival.LogInfo("Received Message!");
     }
 
     public void Serialize(NetworkWriter writer)
@@ -67,9 +69,9 @@ public class SyncSkull : INetMessage
 
 public class DeadPlayerSkull : MonoBehaviour
 {
-    public float amount;
-    public Color color;
-    public float intensity;
+    public float amount = 1;
+    public Color color = Color.red;
+    public float intensity = 1;
     public List<NetworkInstanceId> insidePlayerIDs = new List<NetworkInstanceId>();
 
 
@@ -80,25 +82,75 @@ public class DeadPlayerSkull : MonoBehaviour
         intensity = _intensity;
         insidePlayerIDs = _insidePlayerIDs;
     }
+
+    public void RemoveDeadIDs() 
+    {
+        for (int i = 0; i < insidePlayerIDs.Count; i++)
+        {
+            NetworkInstanceId ID = insidePlayerIDs[i];
+            Player p = TeammateRevival.MainTeammateRevival.FindPlayerFromBodyInstanceID(ID);
+            if (p != null)
+            {
+                if (p.isDead) 
+                {
+                    insidePlayerIDs.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
+    }
+
+    public void SyncToClients() 
+    {
+        if (NetworkServer.active)
+        {
+            RemoveDeadIDs();
+            new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity).Send(NetworkDestination.Clients);
+            TeammateRevival.MainTeammateRevival.LogInfo("Sent Message to Client");
+        }
+    }
+
     public void SetValues(float _amount, Color _color, float _intensity)
     {
         amount = _amount;
         color = _color;
         intensity = _intensity;
 
-        if (NetworkServer.active)
-        {
-            new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity);
-        }
-    }
-
-    void Start()
-    {
-        color = new Color(1, 0, 0, 1);
+        SyncToClients();
     }
 
     void Update()
     {
+        //if (NetworkServer.active)
+        //{
+        //    foreach (var player in PlayerCharacterMasterController.instances)
+        //    {
+        //        if (!player.master.GetBody()) continue;
+        //        if (Vector3.Distance(player.master.GetBody().transform.position, transform.position) < 4)
+        //        {
+        //            player.body = player.master.GetBody();
+        //            color = Color.green;
+        //            amount = 8;
+        //            intensity += Time.deltaTime * 1;
+        //            if (!insidePlayerIDs.Contains(player.body.netId))
+        //            {
+        //                insidePlayerIDs.Add(player.body.netId);
+        //                SyncToClients();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            color = Color.red;
+        //            intensity -= Time.deltaTime * 0.3f;
+        //            if (insidePlayerIDs.Contains(player.body.netId))
+        //            {
+        //                insidePlayerIDs.Remove(player.body.netId);
+        //                SyncToClients();
+        //            }
+        //        }
+        //    }
+        //}
+
         if (DamageNumberManager.instance == null) return;
         SetLighting();
         DamageNumbers();
@@ -118,10 +170,10 @@ public class DeadPlayerSkull : MonoBehaviour
             {
                 GameObject player = Util.FindNetworkObject(playerID);
                 
-                if (!player) 
+                if (!player)
                 {
-                    TeammateRevive.LogError("Inside Player is NULL!");
-                    return;
+                    TeammateRevival.MainTeammateRevival.LogWarning("Inside Player is NULL! Skipping");
+                    continue;
                 }
 
                 if (Random.Range(0f, 100f) < 10f)
