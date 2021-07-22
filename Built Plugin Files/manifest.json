@@ -2,7 +2,7 @@
 	"name": "TeammateRevival",
 	"version_number": "3.3.2",
 	"website_url": "https://github.com/KosmosisDire/TeammateRevive",
-	"description": "[WIP - report issues on GitHub] Survivors can revive their fallen colleagues, but it comes at the price of their own health and safety. Stay near dead player's death totems to begin...   \n\nkeywords: respawn heal bleed steal multiplayer",
+	"description": "[WIP - report issues on GitHub] Survivors can revive their fallen colleagues, but it comes at the price of their own health and safety.   \n\nkeywords: respawn heal bleed steal multiplayer",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.9",
 		"RiskofThunder-HookGenPatcher-1.2.1",
