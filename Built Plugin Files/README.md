@@ -2,12 +2,14 @@
 Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk :)
 
 ## To Do:
-* Add better indicator for how close the player is to revival
+* Add better indicator for how close the player is to revival.
 * Add customizability / config
 * Fix bugs
 
 
 ## Change Notes:
+* 3.3.4
+    * Fixed a bug that made the mod think the players hadn't died
 
 * 3.3.3
     * Hopefully fixed a bug that caused a NRE on player death.

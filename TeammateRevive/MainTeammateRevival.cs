@@ -43,7 +43,7 @@ namespace TeammateRevival
             return master.master.GetBody();
         }
 
-        public bool CheckAlive() 
+        public bool CheckAlive()
         {
             return (GetBody() && !master.master.IsDeadAndOutOfLivesServer() && GetBody().healthComponent.alive);
         }
@@ -63,7 +63,7 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.3.3";
+        public const string PluginVersion = "3.3.4";
 
         //debugging config
         public static ConfigEntry<bool> consoleLoggingConfig;
@@ -191,6 +191,7 @@ namespace TeammateRevival
             playersSetup = false;
             alivePlayers = new List<Player>();
             deadPlayers = new List<Player>();
+            allPlayers = new List<Player>();
             numPlayersSetup = 0;
             LogInfo("Reset Data");
         }
@@ -204,6 +205,7 @@ namespace TeammateRevival
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
             On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
+            
         }
         #endregion
 
@@ -213,6 +215,9 @@ namespace TeammateRevival
         {
             runStarted = true;
             orig(self);
+
+            NetworkManager.singleton.connectionConfig.DisconnectTimeout = 5;
+            NetworkManager.singleton.connectionConfig.MaxSentMessageQueueSize = 1024;
 
             if (IsClient())
             {
@@ -243,30 +248,15 @@ namespace TeammateRevival
             }
 
             totalPlayers--;
-            for (int i = 0; i < deadPlayers.Count; i++)
+            Player leavingPlayer = FindPlayerFromPlayerCharacterMasterControllerInstanceID(user.masterController.netId);
+            if (allPlayers.Contains(leavingPlayer))
             {
-                Player player = deadPlayers[i];
-                if (player.networkUser.userName == user.userName)
-                {
-                    Destroy(player.nearbyRadiusIndicator);
-                    Destroy(player.deathMark);
+                allPlayers.Remove(leavingPlayer);
+                if (deadPlayers.Contains(leavingPlayer)) deadPlayers.Remove(leavingPlayer);
+                if (alivePlayers.Contains(leavingPlayer)) alivePlayers.Remove(leavingPlayer);
 
-                    deadPlayers.Remove(player);
-                    allPlayers.Remove(player);
-                    LogInfo("Dead Player Removed");
-                    return;
-                }
-            }
-            for (int i = 0; i < alivePlayers.Count; i++)
-            {
-                Player player = alivePlayers[i];
-                if (player.networkUser.userName == user.userName)
-                {
-                    deadPlayers.Remove(player);
-                    allPlayers.Remove(player);
-                    LogInfo("Living Player Removed");
-                    return;
-                }
+                LogInfo(user.userName + " Left!");
+                return;
             }
 
             LogInfo("PLayer Left - they were not registed as alive or dead");
@@ -327,19 +317,20 @@ namespace TeammateRevival
 
         void hook_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
         {
-            orig(self, damageReport, victimNetworkUser);
-
-            if (IsClient()) return;
-
-            Player victim = FindPlayerFromBodyInstanceID(victimNetworkUser.GetCurrentBody().netId);
-            if (alivePlayers.Contains(victim))
+            if (!IsClient())
             {
-                PlayerDead(victim);
-                LogInfo(victimNetworkUser.userName + " Died!");
-                return;
+                Player victim = FindPlayerFromBodyInstanceID(victimNetworkUser.GetCurrentBody().netId);
+                if (alivePlayers.Contains(victim))
+                {
+                    PlayerDead(victim);
+                    LogInfo(victimNetworkUser.userName + " Died!");
+                    return;
+                }
+
+                LogError("Player Died but they were not alive to begin with!");
             }
-            
-            LogError("Player Died but they were not alive to begin with!");
+
+            orig(self, damageReport, victimNetworkUser);
         }
 
         #endregion
@@ -445,12 +436,24 @@ namespace TeammateRevival
         
         public static Player FindPlayerFromBodyInstanceID(NetworkInstanceId id) 
         {
-            foreach (var p in allPlayers)
+            foreach (var p in alivePlayers)
             {
                 p.GetBody();
                 if (p.bodyID == id) return p;
             }
 
+            return null;
+        }
+
+        public static Player FindPlayerFromPlayerCharacterMasterControllerInstanceID(NetworkInstanceId id) 
+        {
+            foreach (var p in allPlayers) 
+            {
+                if(p.master && p.master.netId == id)
+                {
+                    return p;
+                }
+            }
             return null;
         }
 
@@ -525,7 +528,7 @@ namespace TeammateRevival
                 section: "Debugging",
                 key: "Console Logging",
                 description: "Log debugging messages to the console.",
-                defaultValue: false);
+                defaultValue: true);
 
             chatLoggingConfig = Config.Bind<bool>(
                 section: "Debugging",

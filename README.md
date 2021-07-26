@@ -8,6 +8,8 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 
 ## Change Notes:
+* 3.3.4
+    * Fixed a bug that made the mod think the players hadn't died
 
 * 3.3.3
     * Hopefully fixed a bug that caused a NRE on player death.
