@@ -8,6 +8,11 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 
 ## Change Notes:
+
+* 3.3.5
+    * Fixed a bug that caused skulls to not spawn - not tested but pretty sure this will fix it
+    * Please submit an issue on Github if there is still a problem!
+
 * 3.3.4
     * Fixed a bug that made the mod think the players hadn't died
 

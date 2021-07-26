@@ -47,7 +47,8 @@ public class SyncSkull : INetMessage
     public void OnReceived()
     {
         if (NetworkServer.active) return;
-        Util.FindNetworkObject(skull).GetComponent<DeadPlayerSkull>().SetValues(amount, color, intensity, insideIDs);
+        DeadPlayerSkull skullComp = Util.FindNetworkObject(skull).GetComponent<DeadPlayerSkull>();
+        if (skullComp) skullComp.SetValuesReceive(amount, color, intensity, insideIDs);
     }
 
     public void Serialize(NetworkWriter writer)
@@ -62,8 +63,6 @@ public class SyncSkull : INetMessage
         writer.Write(color);
         writer.Write(intensity);
     }
-
-
 }
 
 public class DeadPlayerSkull : MonoBehaviour
@@ -72,18 +71,21 @@ public class DeadPlayerSkull : MonoBehaviour
     public Color color = Color.red;
     public float intensity = 1;
     public List<NetworkInstanceId> insidePlayerIDs = new List<NetworkInstanceId>();
+    public float lastSyncTime = 0;
 
-
-    public void SetValues(float _amount, Color _color, float _intensity, List<NetworkInstanceId> _insidePlayerIDs)
+    public void SetValuesReceive(float _amount, Color _color, float _intensity, List<NetworkInstanceId> _insidePlayerIDs)
     {
         amount = _amount;
         color = _color;
         intensity = _intensity;
         insidePlayerIDs = _insidePlayerIDs;
+        lastSyncTime = Time.realtimeSinceStartup;
     }
 
-    public void SetValues(float _amount, Color _color, float _intensity)
+    public void SetValuesSend(float _amount, Color _color, float _intensity)
     {
+        if (amount == _amount && color == _color && intensity == _intensity) return;
+
         amount = _amount;
         color = _color;
         intensity = _intensity;
@@ -91,7 +93,7 @@ public class DeadPlayerSkull : MonoBehaviour
         SyncToClients();
     }
 
-    public void RemoveDeadIDs() 
+    public void RemoveDeadIDs()
     {
         for (int i = 0; i < insidePlayerIDs.Count; i++)
         {
@@ -110,14 +112,14 @@ public class DeadPlayerSkull : MonoBehaviour
 
     public void SyncToClients() 
     {
-        if (NetworkServer.active)
+        float timeSinceLastSync = Time.realtimeSinceStartup - lastSyncTime;
+        if (NetworkServer.active && timeSinceLastSync > 0.08f)
         {
             RemoveDeadIDs();
             new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity).Send(NetworkDestination.Clients);
+            lastSyncTime = Time.realtimeSinceStartup;
         }
     }
-
-    
 
     void Update()
     {

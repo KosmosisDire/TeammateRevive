@@ -63,7 +63,7 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.3.4";
+        public const string PluginVersion = "3.3.5";
 
         //debugging config
         public static ConfigEntry<bool> consoleLoggingConfig;
@@ -259,7 +259,8 @@ namespace TeammateRevival
                 return;
             }
 
-            LogInfo("PLayer Left - they were not registed as alive or dead");
+            LogError(user.userName + " Left - but they were not registed as a player!");
+
             orig(self, user);
         }
 
@@ -267,11 +268,8 @@ namespace TeammateRevival
         {
             orig(self);
 
-            if (IsClient())
-            {
-                return;
-            }
-
+            if (IsClient()) return;
+            
             Player p = new Player(self);
             if (godMode)
             {
@@ -303,6 +301,7 @@ namespace TeammateRevival
             LogInfo("Game Over - reseting data");
 
             ResetSetup();
+            totalPlayers = 0;
         }
 
         void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, global::RoR2.Run self, global::RoR2.SceneDef nextScene)
@@ -462,7 +461,6 @@ namespace TeammateRevival
         public void Update()
         {
             if (IsClient() || !playersSetup) return;
-
             CalculateReviveThreshold();
 
             //interactions between dead and alive players
@@ -501,7 +499,7 @@ namespace TeammateRevival
                         if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
                             skull.insidePlayerIDs.Add(player.GetBody().netId);
 
-                        skull.SetValues(amount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
+                        skull.SetValuesSend(amount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
                         
                     }
                     else
@@ -510,7 +508,7 @@ namespace TeammateRevival
                         if (skull.insidePlayerIDs.Contains(player.GetBody().netId))
                             skull.insidePlayerIDs.Remove(player.GetBody().netId);
 
-                        skull.SetValues(skull.amount, new Color(1, 0, 0), skull.intensity);
+                        skull.SetValuesSend(skull.amount, new Color(1, 0, 0), skull.intensity);
                     }
 
                     //if dead player has recharged enough health, respawn
