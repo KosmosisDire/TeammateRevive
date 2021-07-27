@@ -63,7 +63,7 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.3.5";
+        public const string PluginVersion = "3.3.6";
 
         //debugging config
         public static ConfigEntry<bool> consoleLoggingConfig;
@@ -79,6 +79,7 @@ namespace TeammateRevival
         float smallestMax = float.PositiveInfinity;
         float threshold = 0;
         int numPlayersSetup = 0;
+        float playerSetupTimer = 3;
 
         public static bool playersSetup = false;
         public static int totalPlayers = 0;
@@ -180,6 +181,8 @@ namespace TeammateRevival
             }
 
             NetworkingAPI.RegisterMessageType<SyncSkull>();
+            NetworkManager.singleton.connectionConfig.DisconnectTimeout = 5;
+            NetworkManager.singleton.connectionConfig.MaxSentMessageQueueSize = 1024;
 
             LogInfo("Setup Teammate Revival");
         }
@@ -189,10 +192,11 @@ namespace TeammateRevival
             smallestMax = float.PositiveInfinity;
             threshold = 0;
             playersSetup = false;
-            alivePlayers = new List<Player>();
-            deadPlayers = new List<Player>();
-            allPlayers = new List<Player>();
+            alivePlayers.Clear();
+            deadPlayers.Clear();
+            allPlayers.Clear();
             numPlayersSetup = 0;
+            totalPlayers = 0;
             LogInfo("Reset Data");
         }
 
@@ -205,19 +209,15 @@ namespace TeammateRevival
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
             On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
-            
         }
         #endregion
 
         #region Hooks
 
-        void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, global::RoR2.NetworkUser self)
+        void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, NetworkUser self)
         {
             runStarted = true;
             orig(self);
-
-            NetworkManager.singleton.connectionConfig.DisconnectTimeout = 5;
-            NetworkManager.singleton.connectionConfig.MaxSentMessageQueueSize = 1024;
 
             if (IsClient())
             {
@@ -230,12 +230,10 @@ namespace TeammateRevival
             }
         }
 
-        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, global::RoR2.Run self, global::RoR2.NetworkUser user)
+        void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user)
         {
             orig(self, user);
             if (IsClient()) return;
-
-            totalPlayers++;
             LogInfo(user.userName + " added.");
         }
 
@@ -247,7 +245,6 @@ namespace TeammateRevival
                 return;
             }
 
-            totalPlayers--;
             Player leavingPlayer = FindPlayerFromPlayerCharacterMasterControllerInstanceID(user.masterController.netId);
             if (allPlayers.Contains(leavingPlayer))
             {
@@ -264,7 +261,7 @@ namespace TeammateRevival
             orig(self, user);
         }
 
-        void hook_OnBodyStart(On.RoR2.PlayerCharacterMasterController.orig_OnBodyStart orig, global::RoR2.PlayerCharacterMasterController self)
+        void hook_OnBodyStart(On.RoR2.PlayerCharacterMasterController.orig_OnBodyStart orig, PlayerCharacterMasterController self)
         {
             orig(self);
 
@@ -284,15 +281,18 @@ namespace TeammateRevival
             
             numPlayersSetup++;
             LogInfo(self.networkUser.userName + " Setup");
+            totalPlayers = NetworkManager.singleton.numPlayers;
+            if (DamageNumberManager.instance != null) totalPlayers++;
+            playerSetupTimer = 0;
 
             if (numPlayersSetup == totalPlayers)
             {
                 playersSetup = true;
-                LogInfo("All Players Setup Succesfully");
+                LogInfo("All " + totalPlayers + " Players Setup Succesfully");
             }
         }
 
-        void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, global::RoR2.Run self, global::RoR2.GameEndingDef gameEndingDef)
+        void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
         {
             orig(self, gameEndingDef);
 
@@ -304,7 +304,7 @@ namespace TeammateRevival
             totalPlayers = 0;
         }
 
-        void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, global::RoR2.Run self, global::RoR2.SceneDef nextScene)
+        void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
         {
             orig(self, nextScene);
 
@@ -314,7 +314,7 @@ namespace TeammateRevival
             ResetSetup();
         }
 
-        void hook_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, global::RoR2.GlobalEventManager self, global::RoR2.DamageReport damageReport, global::RoR2.NetworkUser victimNetworkUser)
+        void hook_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, GlobalEventManager self, DamageReport damageReport, NetworkUser victimNetworkUser)
         {
             if (!IsClient())
             {
@@ -460,6 +460,16 @@ namespace TeammateRevival
 
         public void Update()
         {
+            if(numPlayersSetup > 0) 
+            {
+                playerSetupTimer += Time.deltaTime;
+                if(playerSetupTimer >= 3)
+                {
+                    playersSetup = true;
+                    LogError("The " + totalPlayers + " total players were not all setup, falling back. Consider filing an issue on Github.");
+                }
+            }
+
             if (IsClient() || !playersSetup) return;
             CalculateReviveThreshold();
 
