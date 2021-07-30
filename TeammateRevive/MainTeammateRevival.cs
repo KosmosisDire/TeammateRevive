@@ -63,7 +63,7 @@ namespace TeammateRevival
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "KosmosisDire";
         public const string PluginName = "TeammateRevival";
-        public const string PluginVersion = "3.3.6";
+        public const string PluginVersion = "3.3.7";
 
         //debugging config
         public static ConfigEntry<bool> consoleLoggingConfig;
@@ -92,9 +92,6 @@ namespace TeammateRevival
         private static GameObject nearbyMarker;
         
         public static ManualLogSource log;
-
-
-        
 
         //configurable variables
         public float totemRange = 4;
@@ -246,6 +243,11 @@ namespace TeammateRevival
                 return;
             }
 
+            if (!runStarted) 
+            {
+                LogInfo(user.userName + " left while run wasn't in session.");
+            }
+
             Player leavingPlayer = FindPlayerFromPlayerCharacterMasterControllerInstanceID(user.masterController.netId);
             if (allPlayers.Contains(leavingPlayer))
             {
@@ -257,6 +259,7 @@ namespace TeammateRevival
                 return;
             }
 
+            
             LogError(user.userName + " Left - but they were not registed as a player!");
 
             orig(self, user);

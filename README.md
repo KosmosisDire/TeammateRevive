@@ -8,6 +8,8 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 
 ## Change Notes:
+# 3.3.7
+    * Fixed stupid bug that made the whole mod do nothing and break.
 
 * 3.3.6
     * Fixed possible incompatibility with drop in multiplayer
