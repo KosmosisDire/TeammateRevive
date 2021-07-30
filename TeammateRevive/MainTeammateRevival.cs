@@ -181,9 +181,6 @@ namespace TeammateRevival
             }
 
             NetworkingAPI.RegisterMessageType<SyncSkull>();
-            NetworkManager.singleton.connectionConfig.DisconnectTimeout = 5;
-            NetworkManager.singleton.connectionConfig.MaxSentMessageQueueSize = 1024;
-
             LogInfo("Setup Teammate Revival");
         }
 
@@ -197,6 +194,7 @@ namespace TeammateRevival
             allPlayers.Clear();
             numPlayersSetup = 0;
             totalPlayers = 0;
+            playerSetupTimer = 0;
             LogInfo("Reset Data");
         }
 
@@ -228,6 +226,9 @@ namespace TeammateRevival
                 LogInfo("Client Registered Prefabs");
                 return;
             }
+
+            NetworkManager.singleton.connectionConfig.DisconnectTimeout = 5;
+            NetworkManager.singleton.connectionConfig.MaxSentMessageQueueSize = 1024;
         }
 
         void hook_OnUserAdded(On.RoR2.Run.orig_OnUserAdded orig, Run self, NetworkUser user)
@@ -290,6 +291,7 @@ namespace TeammateRevival
                 playersSetup = true;
                 LogInfo("All " + totalPlayers + " Players Setup Succesfully");
             }
+
         }
 
         void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
@@ -302,6 +304,7 @@ namespace TeammateRevival
 
             ResetSetup();
             totalPlayers = 0;
+            runStarted = false;
         }
 
         void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
@@ -364,7 +367,6 @@ namespace TeammateRevival
             NetworkServer.Spawn(player.nearbyRadiusIndicator);
 
             LogInfo("Skull spawned on Server and Client");
-
             return player.deathMark.GetComponent<DeadPlayerSkull>();
         }
 
@@ -460,17 +462,22 @@ namespace TeammateRevival
 
         public void Update()
         {
-            if(numPlayersSetup > 0) 
+            if (IsClient()) return;
+
+            if (!playersSetup) 
             {
-                playerSetupTimer += Time.deltaTime;
-                if(playerSetupTimer >= 3)
+                if (numPlayersSetup > 0)
                 {
-                    playersSetup = true;
-                    LogError("The " + totalPlayers + " total players were not all setup, falling back. Consider filing an issue on Github.");
+                    playerSetupTimer += Time.deltaTime;
+                    if (playerSetupTimer >= 3)
+                    {
+                        playersSetup = true;
+                        LogError("The " + totalPlayers + " total players were not all setup, falling back. Consider filing an issue on Github.");
+                    }
                 }
+                return;
             }
 
-            if (IsClient() || !playersSetup) return;
             CalculateReviveThreshold();
 
             //interactions between dead and alive players
@@ -480,6 +487,18 @@ namespace TeammateRevival
                 if (player.CheckDead()) continue;
 
                 player.groundPosition = GroundPosition(player);
+
+                //if(player.deathMark == null) 
+                //{
+                //    SpawnDeathVisuals(player);
+                //}
+                //else 
+                //{
+                //    player.deathMark.transform.position = player.groundPosition + Vector3.up * 2;
+                //    player.nearbyRadiusIndicator.transform.position = player.groundPosition;
+                //}
+                
+
 
                 for (int d = 0; d < deadPlayers.Count; d++)
                 {
@@ -503,7 +522,6 @@ namespace TeammateRevival
                         //damage alive player - down to 1 HP
                         player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.GetBody().healthComponent.health - 1f);
                         
-
                         //set light color and intensity based on ratio
                         float ratio = (dead.rechargedHealth / threshold);
                         if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
