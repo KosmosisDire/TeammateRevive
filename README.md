@@ -8,7 +8,11 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 
 ## Change Notes:
-# 3.3.7
+
+* 3.3.8
+    * Fixed bug that caused players to instantly respawn after their first revival.
+
+* 3.3.7
     * Fixed stupid bug that made the whole mod do nothing and break.
 
 * 3.3.6

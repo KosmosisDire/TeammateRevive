@@ -375,19 +375,19 @@ namespace TeammateRevival
 
         public static void PlayerDead(Player p)
         {
-            alivePlayers.Remove(p);
-            if(!deadPlayers.Contains(p))            
-                deadPlayers.Add(p);
+            if (alivePlayers.Contains(p)) alivePlayers.Remove(p);
+            if(!deadPlayers.Contains(p)) deadPlayers.Add(p);
             p.isDead = true;
+            p.rechargedHealth = 0;
             SpawnDeathVisuals(p);
         }
 
         public static void PlayerAlive(Player p)
         {
-            if (!alivePlayers.Contains(p))
-                alivePlayers.Add(p);
-            deadPlayers.Remove(p);
+            if (!alivePlayers.Contains(p)) alivePlayers.Add(p);
+            if (deadPlayers.Contains(p)) deadPlayers.Remove(p);
             p.isDead = false;
+            p.rechargedHealth = 0;
             NetworkServer.Destroy(p.nearbyRadiusIndicator);
             NetworkServer.Destroy(p.deathMark);
         }
