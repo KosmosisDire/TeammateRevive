@@ -18,7 +18,6 @@ namespace TeammateRevival
         public PlayerCharacterMasterController master;
 
         public GameObject deathMark = null;
-        public GameObject nearbyRadiusIndicator = null;
 
         public Vector3 groundPosition = Vector3.zero;
         public float rechargedHealth = 0;
@@ -89,7 +88,6 @@ namespace TeammateRevival
         public static bool runStarted;
 
         private static GameObject deathMarker;
-        private static GameObject nearbyMarker;
         
         public static ManualLogSource log;
 
@@ -155,7 +153,6 @@ namespace TeammateRevival
 
         }
 
-
         public void Awake()
         {
             InitConfig();
@@ -165,14 +162,22 @@ namespace TeammateRevival
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
                 var bundle = AssetBundle.LoadFromStream(stream);
+                var materials = bundle.LoadAllAssets<Material>();
+                foreach (Material material in materials)
+                {
+                    if (material.shader.name.StartsWith("StubbedShader"))
+                        material.shader = Resources.Load<Shader>("shaders" + material.shader.name.Substring(13));
+                }
+
+
                 var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
-                var nm = Resources.Load<GameObject>("prefabs/networkedobjects/NearbyDamageBonusIndicator");
                 dm.AddComponent<DeadPlayerSkull>();
+                var teleporterRangeMat = Resources.Load<GameObject>("prefabs/networkedobjects/teleporters/Teleporter1").transform.Find("TeleporterBaseMesh/BuiltInEffects/ChargingEffect/RadiusScaler/ClearAreaIndicator").GetComponent<MeshRenderer>().sharedMaterial;
 
                 deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
-                nearbyMarker = PrefabAPI.InstantiateClone(nm, "Nearby Marker");
-                nearbyMarker.transform.localScale = (Vector3.one / 26) * 8;
-                Destroy(nearbyMarker.GetComponent<NetworkedBodyAttachment>());
+                var radInd = deathMarker.transform.Find("Radius Indicator").GetComponent<MeshRenderer>();
+                radInd.material = teleporterRangeMat;
+                radInd.transform.localScale = Vector3.one * totemRange * 2;
 
                 bundle.Unload(false);
             }
@@ -217,9 +222,7 @@ namespace TeammateRevival
             if (IsClient())
             {
                 ClientScene.RegisterPrefab(deathMarker);
-                ClientScene.RegisterPrefab(nearbyMarker);
                 FindObjectOfType<NetworkManager>().spawnPrefabs.Add(deathMarker);
-                FindObjectOfType<NetworkManager>().spawnPrefabs.Add(nearbyMarker);
                 LogInfo("Client Registered Prefabs");
                 return;
             }
@@ -356,18 +359,11 @@ namespace TeammateRevival
         {
             if (IsClient()) return null;
 
-            //set the transforms of the prefabs before spawning them in
             player.deathMark = Instantiate(deathMarker);
-            player.nearbyRadiusIndicator = Instantiate(nearbyMarker);
-
-            player.deathMark.transform.position = player.groundPosition + Vector3.up * 2;
+            player.deathMark.transform.position = player.groundPosition;
             player.deathMark.transform.rotation = Quaternion.identity;
 
-            player.nearbyRadiusIndicator.transform.position = player.groundPosition;
-            player.nearbyRadiusIndicator.transform.rotation = Quaternion.identity;
-
             NetworkServer.Spawn(player.deathMark);
-            NetworkServer.Spawn(player.nearbyRadiusIndicator);
 
             LogInfo("Skull spawned on Server and Client");
             return player.deathMark.GetComponent<DeadPlayerSkull>();
@@ -388,7 +384,6 @@ namespace TeammateRevival
             if (deadPlayers.Contains(p)) deadPlayers.Remove(p);
             p.isDead = false;
             p.rechargedHealth = 0;
-            NetworkServer.Destroy(p.nearbyRadiusIndicator);
             NetworkServer.Destroy(p.deathMark);
         }
 
@@ -481,6 +476,11 @@ namespace TeammateRevival
                 return;
             }
 
+            //if (Input.GetKeyDown(KeyCode.F2)) 
+            //{
+            //    SpawnDeathVisuals(alivePlayers[0]);
+            //}
+
             CalculateReviveThreshold();
 
             //interactions between dead and alive players
@@ -491,16 +491,15 @@ namespace TeammateRevival
 
                 player.groundPosition = GroundPosition(player);
 
-                //if(player.deathMark == null) 
-                //{
-                //    SpawnDeathVisuals(player);
-                //}
-                //else 
-                //{
-                //    player.deathMark.transform.position = player.groundPosition + Vector3.up * 2;
-                //    player.nearbyRadiusIndicator.transform.position = player.groundPosition;
-                //}
-                
+                if (player.deathMark == null)
+                {
+                    SpawnDeathVisuals(player);
+                }
+                else
+                {
+                    player.deathMark.transform.position = player.groundPosition;
+                }
+
 
 
                 for (int d = 0; d < deadPlayers.Count; d++)
