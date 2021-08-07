@@ -531,7 +531,7 @@ namespace TeammateRevival
                         dead.rechargedHealth += healAmount;
 
                         //damage alive player - down to 1 HP
-                        float damageAmount = (player.GetBody().maxHealth * 0.85f * Time.deltaTime)/reviveTimeSeconds;
+                        float damageAmount = (player.GetBody().maxHealth * 0.85f * Time.deltaTime)/reviveTimeSeconds/dead.deathMark.insidePlayerIDs.Count;
                         player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(damageAmount, 0f, player.GetBody().healthComponent.health - 1f);
                         
                         //set light color and intensity based on ratio
