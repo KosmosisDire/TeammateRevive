@@ -94,7 +94,8 @@ namespace TeammateRevival
 
         //configurable variables
         public static float totemRange = 3;
-        public static float revivalSpeed = 5;
+        public bool increaseRangeWithPlayers = true;
+        public static float reviveTimeSeconds = 5;
 
 
         #endregion
@@ -174,7 +175,7 @@ namespace TeammateRevival
                 }
 
                 var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
-                dm.AddComponent<DeadPlayerSkull>().Setup();
+                dm.AddComponent<DeadPlayerSkull>();
                 deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
                 dm.GetComponent<DeadPlayerSkull>().radiusSphere.material = materials[0];
 
@@ -506,7 +507,6 @@ namespace TeammateRevival
                 else
                 {
                     player.deathMark.transform.position = player.groundPosition;
-                    player.deathMark.SyncToClients();
                 }
 
 
@@ -527,18 +527,19 @@ namespace TeammateRevival
                     if (Vector3.Distance(player.groundPosition, dead.groundPosition) < totemRange)
                     {
                         //add health to dead player
-                        float amount = player.GetBody().level * Time.deltaTime * revivalSpeed;
-                        dead.rechargedHealth += amount;
+                        float healAmount = (Time.deltaTime)/reviveTimeSeconds;
+                        dead.rechargedHealth += healAmount;
 
                         //damage alive player - down to 1 HP
-                        player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(amount, 0f, player.GetBody().healthComponent.health - 1f);
+                        float damageAmount = (player.GetBody().maxHealth * 0.85f * Time.deltaTime)/reviveTimeSeconds;
+                        player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(damageAmount, 0f, player.GetBody().healthComponent.health - 1f);
                         
                         //set light color and intensity based on ratio
-                        float ratio = (dead.rechargedHealth / threshold);
+                        float ratio = dead.rechargedHealth;
                         if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
                             skull.insidePlayerIDs.Add(player.GetBody().netId);
 
-                        skull.SetValuesSend(amount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
+                        skull.SetValuesSend(healAmount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
                         
                     }
                     else
@@ -551,7 +552,7 @@ namespace TeammateRevival
                     }
 
                     //if dead player has recharged enough health, respawn
-                    if (dead.rechargedHealth >= threshold)
+                    if (dead.rechargedHealth >= 1)
                     {
                         RespawnPlayer(dead);
                     }

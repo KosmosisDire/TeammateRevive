@@ -15,14 +15,13 @@ public class SyncSkull : INetMessage
     public Color color;
     public float intensity;
     public float radius;
-    public Vector3 position;
 
     public SyncSkull() 
     {
 
     }
 
-    public SyncSkull(NetworkInstanceId skull, int insideCount, List<NetworkInstanceId> insideIDs, float amount, Color color, float intensity, float radius, Vector3 position)
+    public SyncSkull(NetworkInstanceId skull, int insideCount, List<NetworkInstanceId> insideIDs, float amount, Color color, float intensity, float radius)
     {
         this.skull = skull;
         this.insideCount = insideCount;
@@ -31,7 +30,6 @@ public class SyncSkull : INetMessage
         this.color = color;
         this.intensity = intensity;
         this.radius = radius;
-        this.position = position;
     }
 
     public void Deserialize(NetworkReader reader)
@@ -47,14 +45,13 @@ public class SyncSkull : INetMessage
         color = reader.ReadColor();
         intensity = reader.ReadSingle();
         radius = reader.ReadSingle();
-        position = reader.ReadVector3();
     }
 
     public void OnReceived()
     {
         if (NetworkServer.active) return;
         DeadPlayerSkull skullComp = Util.FindNetworkObject(skull).GetComponent<DeadPlayerSkull>();
-        if (skullComp) skullComp.SetValuesReceive(amount, color, intensity, insideIDs, radius, position);
+        if (skullComp) skullComp.SetValuesReceive(amount, color, intensity, insideIDs, radius);
     }
 
     public void Serialize(NetworkWriter writer)
@@ -69,7 +66,6 @@ public class SyncSkull : INetMessage
         writer.Write(color);
         writer.Write(intensity);
         writer.Write(radius);
-        writer.Write(position);
     }
 }
 
@@ -81,6 +77,7 @@ public class DeadPlayerSkull : MonoBehaviour
     public List<NetworkInstanceId> insidePlayerIDs = new List<NetworkInstanceId>();
     public float lastSyncTime = 0;
     public MeshRenderer radiusSphere;
+    
 
     void Awake()
     {
@@ -92,7 +89,7 @@ public class DeadPlayerSkull : MonoBehaviour
         radiusSphere = transform.Find("Radius Indicator").GetComponent<MeshRenderer>();
     }
 
-    public void SetValuesReceive(float _amount, Color _color, float _intensity, List<NetworkInstanceId> _insidePlayerIDs, float radius, Vector3 position)
+    public void SetValuesReceive(float _amount, Color _color, float _intensity, List<NetworkInstanceId> _insidePlayerIDs, float radius)
     {
         amount = _amount;
         color = _color;
@@ -100,8 +97,6 @@ public class DeadPlayerSkull : MonoBehaviour
         insidePlayerIDs = _insidePlayerIDs;
         lastSyncTime = Time.realtimeSinceStartup;
         radiusSphere.transform.localScale = Vector3.one * radius * 2;
-        transform.position = position;
-        MainTeammateRevival.LogInfo("Set position to: " + position);
     }
 
     public void SetValuesSend(float _amount, Color _color, float _intensity)
@@ -138,7 +133,7 @@ public class DeadPlayerSkull : MonoBehaviour
         if (NetworkServer.active && timeSinceLastSync > 0.05f)
         {
             RemoveDeadIDs();
-            new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity, radiusSphere.transform.localScale.x/2, transform.position).Send(NetworkDestination.Clients);
+            new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity, radiusSphere.transform.localScale.x/2).Send(NetworkDestination.Clients);
             lastSyncTime = Time.realtimeSinceStartup;
         }
     }
