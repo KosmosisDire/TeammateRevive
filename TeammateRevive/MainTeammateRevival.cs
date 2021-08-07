@@ -17,7 +17,7 @@ namespace TeammateRevival
         public NetworkUser networkUser;
         public PlayerCharacterMasterController master;
 
-        public GameObject deathMark = null;
+        public DeadPlayerSkull deathMark = null;
 
         public Vector3 groundPosition = Vector3.zero;
         public float rechargedHealth = 0;
@@ -88,12 +88,13 @@ namespace TeammateRevival
         public static bool runStarted;
 
         private static GameObject deathMarker;
+        private static List<Material> materials = new List<Material>();
         
         public static ManualLogSource log;
 
         //configurable variables
-        public float totemRange = 4;
-        public float revivalSpeed = 5;
+        public static float totemRange = 3;
+        public static float revivalSpeed = 5;
 
 
         #endregion
@@ -162,22 +163,20 @@ namespace TeammateRevival
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
                 var bundle = AssetBundle.LoadFromStream(stream);
-                var materials = bundle.LoadAllAssets<Material>();
-                foreach (Material material in materials)
+                var materialsL = bundle.LoadAllAssets<Material>();
+                foreach (Material material in materialsL)
                 {
                     if (material.shader.name.StartsWith("StubbedShader"))
+                    {
                         material.shader = Resources.Load<Shader>("shaders" + material.shader.name.Substring(13));
+                        materials.Add(material);
+                    }
                 }
 
-
                 var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
-                dm.AddComponent<DeadPlayerSkull>();
-                var teleporterRangeMat = Resources.Load<GameObject>("prefabs/networkedobjects/teleporters/Teleporter1").transform.Find("TeleporterBaseMesh/BuiltInEffects/ChargingEffect/RadiusScaler/ClearAreaIndicator").GetComponent<MeshRenderer>().sharedMaterial;
-
+                dm.AddComponent<DeadPlayerSkull>().Setup();
                 deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
-                var radInd = deathMarker.transform.Find("Radius Indicator").GetComponent<MeshRenderer>();
-                radInd.material = teleporterRangeMat;
-                radInd.transform.localScale = Vector3.one * totemRange * 2;
+                dm.GetComponent<DeadPlayerSkull>().radiusSphere.material = materials[0];
 
                 bundle.Unload(false);
             }
@@ -209,14 +208,22 @@ namespace TeammateRevival
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.PlayerCharacterMasterController.OnBodyStart += hook_OnBodyStart;
             On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
+            On.RoR2.Run.BeginStage += hook_BeginStage;
         }
+
+
         #endregion
 
         #region Hooks
 
+        void hook_BeginStage(On.RoR2.Run.orig_BeginStage orig, Run self)
+        {
+            orig(self);
+            runStarted = true;
+        }
+
         void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, NetworkUser self)
         {
-            runStarted = true;
             orig(self);
 
             if (IsClient())
@@ -297,7 +304,6 @@ namespace TeammateRevival
                 playersSetup = true;
                 LogInfo("All " + totalPlayers + " Players Setup Succesfully");
             }
-
         }
 
         void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
@@ -359,14 +365,16 @@ namespace TeammateRevival
         {
             if (IsClient()) return null;
 
-            player.deathMark = Instantiate(deathMarker);
+            player.deathMark = Instantiate(deathMarker).GetComponent<DeadPlayerSkull>();
+            //player.deathMark.Setup();
             player.deathMark.transform.position = player.groundPosition;
             player.deathMark.transform.rotation = Quaternion.identity;
+            player.deathMark.radiusSphere.transform.localScale = Vector3.one * (totemRange * 2 + 0.5f * totalPlayers);
 
-            NetworkServer.Spawn(player.deathMark);
+            NetworkServer.Spawn(player.deathMark.gameObject);
 
             LogInfo("Skull spawned on Server and Client");
-            return player.deathMark.GetComponent<DeadPlayerSkull>();
+            return player.deathMark;
         }
 
         public static void PlayerDead(Player p)
@@ -384,7 +392,7 @@ namespace TeammateRevival
             if (deadPlayers.Contains(p)) deadPlayers.Remove(p);
             p.isDead = false;
             p.rechargedHealth = 0;
-            NetworkServer.Destroy(p.deathMark);
+            NetworkServer.Destroy(p.deathMark.gameObject);
         }
 
         public static void RespawnPlayer(Player player)
@@ -498,6 +506,7 @@ namespace TeammateRevival
                 else
                 {
                     player.deathMark.transform.position = player.groundPosition;
+                    player.deathMark.SyncToClients();
                 }
 
 
@@ -584,6 +593,7 @@ namespace TeammateRevival
 
             //set variables
             consoleLogging = consoleLoggingConfig.Value;
+            consoleLogging = true;
             chatLogging = chatLoggingConfig.Value;
             fileLogging = fileLoggingConfig.Value;
             godMode = godModeConfig.Value;

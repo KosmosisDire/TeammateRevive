@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 4092221099
+CRC: 3512810943
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 019c6692bba727428727161db727dbf3
+    Hash: ced4339f2d2cc47d145996614276e001
   TypeTreeHash:
     serializedVersion: 2
     Hash: 06d653467015d6edf03e91ea3283e4ae
@@ -38,13 +38,19 @@ ClassTypes:
 - Class: 213
   Script: {instanceID: 0}
 Assets:
-- Assets/Front.mat
+- Assets/hgintersectioncloudremap.shader
+- Assets/texCloudDifferenceBW2.asset
+- Assets/Game Source/Mesh/Sphere, Unwrapped.asset
+- Assets/texCloudCrackedIce.asset
+- Assets/matFront.mat
+- Assets/texRampTeleporter.asset
 - Assets/texThermiteDroplet2Mask.png
 - Assets/matDeathMark.mat
 - Assets/FrontRenderedSprite.shader
+- Assets/matTotemRangeIndicator.mat
 - Assets/texDeathMarkDiffuse.png
 - Assets/texChevronDead.png
-- Assets/Drip.mat
+- Assets/matDrip.mat
 - Assets/Deathmark_Low.asset
 - Assets/PlayerDeathPoint.prefab
 Dependencies: []
