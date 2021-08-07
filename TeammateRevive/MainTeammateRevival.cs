@@ -527,7 +527,7 @@ namespace TeammateRevival
                     if (Vector3.Distance(player.groundPosition, dead.groundPosition) < totemRange)
                     {
                         //add health to dead player
-                        float healAmount = (Time.deltaTime)/reviveTimeSeconds;
+                        float healAmount = (Time.deltaTime)/reviveTimeSeconds/totalPlayers * 2;
                         dead.rechargedHealth += healAmount;
 
                         //damage alive player - down to 1 HP
