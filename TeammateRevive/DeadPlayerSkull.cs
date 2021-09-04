@@ -51,6 +51,7 @@ public class SyncSkull : INetMessage
     {
         if (NetworkServer.active) return;
         DeadPlayerSkull skullComp = Util.FindNetworkObject(skull).GetComponent<DeadPlayerSkull>();
+        skullComp.gameObject.SetActive(true);
         if (skullComp) skullComp.SetValuesReceive(amount, color, intensity, insideIDs, radius);
     }
 
@@ -87,16 +88,19 @@ public class DeadPlayerSkull : MonoBehaviour
     public void Setup()
     {
         radiusSphere = transform.Find("Radius Indicator").GetComponent<MeshRenderer>();
+        if(!NetworkServer.active)
+            gameObject.SetActive(false);
     }
 
-    public void SetValuesReceive(float _amount, Color _color, float _intensity, List<NetworkInstanceId> _insidePlayerIDs, float radius)
+    public void SetValuesReceive(float _amount, Color _color, float _intensity, List<NetworkInstanceId> _insidePlayerIDs, float scale)
     {
+        
         amount = _amount;
         color = _color;
         intensity = _intensity;
         insidePlayerIDs = _insidePlayerIDs;
         lastSyncTime = Time.realtimeSinceStartup;
-        radiusSphere.transform.localScale = Vector3.one * radius * 2;
+        radiusSphere.transform.localScale = Vector3.one * scale;
     }
 
     public void SetValuesSend(float _amount, Color _color, float _intensity)
@@ -133,8 +137,9 @@ public class DeadPlayerSkull : MonoBehaviour
         if (NetworkServer.active && timeSinceLastSync > 0.05f)
         {
             RemoveDeadIDs();
-            new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity, radiusSphere.transform.localScale.x/2).Send(NetworkDestination.Clients);
+            new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity, radiusSphere.transform.localScale.x).Send(NetworkDestination.Clients);
             lastSyncTime = Time.realtimeSinceStartup;
+            MainTeammateRevival.LogInfo("Rad: " + radiusSphere.transform.localScale.x);
         }
     }
 

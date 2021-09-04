@@ -5,6 +5,7 @@ using R2API;
 using R2API.Networking;
 using R2API.Utils;
 using RoR2;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -94,9 +95,9 @@ namespace TeammateRevival
 
         //configurable variables
         public static float totemRange = 3;
-        public bool increaseRangeWithPlayers = true;
+        public static bool increaseRangeWithPlayers = true;
         public static float reviveTimeSeconds = 5;
-
+        public static MainTeammateRevival instance;
 
         #endregion
 
@@ -157,6 +158,7 @@ namespace TeammateRevival
 
         public void Awake()
         {
+            instance = this;
             InitConfig();
             SetupHooks();
             LogInit();
@@ -177,6 +179,7 @@ namespace TeammateRevival
                 var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
                 dm.AddComponent<DeadPlayerSkull>();
                 deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
+                dm.GetComponent<DeadPlayerSkull>().Setup();
                 dm.GetComponent<DeadPlayerSkull>().radiusSphere.material = materials[0];
 
                 bundle.Unload(false);
@@ -297,7 +300,7 @@ namespace TeammateRevival
             numPlayersSetup++;
             LogInfo(self.networkUser.userName + " Setup");
             totalPlayers = NetworkManager.singleton.numPlayers;
-            if (DamageNumberManager.instance != null) totalPlayers++;
+            if (DamageNumberManager.instance == null) totalPlayers--;
             playerSetupTimer = 0;
 
             if (numPlayersSetup == totalPlayers)
@@ -362,20 +365,36 @@ namespace TeammateRevival
             return false;
         }
 
-        public static DeadPlayerSkull SpawnDeathVisuals(Player player)
+        public DeadPlayerSkull SpawnDeathVisuals(Player player)
         {
             if (IsClient()) return null;
 
             player.deathMark = Instantiate(deathMarker).GetComponent<DeadPlayerSkull>();
-            //player.deathMark.Setup();
             player.deathMark.transform.position = player.groundPosition;
             player.deathMark.transform.rotation = Quaternion.identity;
-            player.deathMark.radiusSphere.transform.localScale = Vector3.one * (totemRange * 2 + 0.5f * totalPlayers);
+
+            if (increaseRangeWithPlayers)
+            {
+                player.deathMark.radiusSphere.transform.localScale = Vector3.one * (totemRange * 2 + 0.5f * totalPlayers);
+                LogInfo(totemRange * 2 + 0.5f * totalPlayers);
+            }
+            else
+            {
+                player.deathMark.radiusSphere.transform.localScale = Vector3.one * (totemRange);
+            }
 
             NetworkServer.Spawn(player.deathMark.gameObject);
+            StartCoroutine(SendValuesDelay(0.2f, player.deathMark));
+            
 
             LogInfo("Skull spawned on Server and Client");
             return player.deathMark;
+        }
+
+        public IEnumerator SendValuesDelay(float delay, DeadPlayerSkull skull) 
+        {
+            yield return new WaitForSecondsRealtime(delay);
+            skull.SetValuesSend(skull.amount, new Color(1, 0, 0), skull.intensity);
         }
 
         public static void PlayerDead(Player p)
@@ -384,7 +403,7 @@ namespace TeammateRevival
             if(!deadPlayers.Contains(p)) deadPlayers.Add(p);
             p.isDead = true;
             p.rechargedHealth = 0;
-            SpawnDeathVisuals(p);
+            instance.SpawnDeathVisuals(p);
         }
 
         public static void PlayerAlive(Player p)
@@ -469,6 +488,13 @@ namespace TeammateRevival
 
         public void Update()
         {
+            if (Input.GetKeyDown(KeyCode.F3)) 
+            {
+                allPlayers[1].GetBody().maxHealth -= 5 * Time.deltaTime;
+            }
+
+
+
             if (IsClient()) return;
 
             if (!playersSetup) 
@@ -533,7 +559,7 @@ namespace TeammateRevival
                         //damage alive player - down to 1 HP
                         float damageAmount = (player.GetBody().maxHealth * 0.85f * Time.deltaTime)/reviveTimeSeconds/dead.deathMark.insidePlayerIDs.Count;
                         player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(damageAmount, 0f, player.GetBody().healthComponent.health - 1f);
-                        
+
                         //set light color and intensity based on ratio
                         float ratio = dead.rechargedHealth;
                         if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
