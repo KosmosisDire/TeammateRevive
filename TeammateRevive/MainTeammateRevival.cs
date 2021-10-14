@@ -1,62 +1,24 @@
+using System;
 using BepInEx;
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using R2API;
 using R2API.Networking;
 using R2API.Utils;
 using RoR2;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using RoR2.Orbs;
+using TeammateRevival.Logging;
+using TeammateRevival.RevivalStrategies;
+using TeammateRevive.RevivalStrategies.ReduceMaxHp;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace TeammateRevival
 {
-    public class Player
-    {
-        public NetworkUser networkUser;
-        public PlayerCharacterMasterController master;
-
-        public DeadPlayerSkull deathMark = null;
-
-        public Vector3 groundPosition = Vector3.zero;
-        public float rechargedHealth = 0;
-        
-        public bool isDead = false;
-        public NetworkInstanceId bodyID;
-
-        public Player(PlayerCharacterMasterController _player)
-        {
-            if (_player.networkUser) networkUser = _player.networkUser;
-            master = _player;
-            if(master.master.GetBody())
-                bodyID = master.master.GetBody().netId;
-
-            rechargedHealth = 0;
-        }
-
-        public CharacterBody GetBody()
-        {
-            if (master.master.GetBody()) bodyID = master.master.GetBody().netId;
-
-            return master.master.GetBody();
-        }
-
-        public bool CheckAlive()
-        {
-            return (GetBody() && !master.master.IsDeadAndOutOfLivesServer() && GetBody().healthComponent.alive);
-        }
-
-        public bool CheckDead()
-        {
-            return (!GetBody() || master.master.IsDeadAndOutOfLivesServer() || !GetBody().healthComponent.alive);
-        }
-    }
-
     [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI), nameof(BuffAPI), nameof(ItemAPI))]
     public class MainTeammateRevival : BaseUnityPlugin
     {
         #region Variables
@@ -66,15 +28,7 @@ namespace TeammateRevival
         public const string PluginVersion = "3.3.8";
 
         //debugging config
-        public static ConfigEntry<bool> consoleLoggingConfig;
-        public static ConfigEntry<bool> chatLoggingConfig;
-        public static ConfigEntry<bool> fileLoggingConfig;
-        public static ConfigEntry<string> fileLoggingPath;
-        public static ConfigEntry<bool> godModeConfig;
-        public static bool consoleLogging = true;
-        public static bool chatLogging = true;
-        public static bool fileLogging = false;
-        public static bool godMode = false;
+        public static PluginConfig PluginConfig;
 
         float smallestMax = float.PositiveInfinity;
         float threshold = 0;
@@ -82,87 +36,50 @@ namespace TeammateRevival
         float playerSetupTimer = 3;
 
         public static bool playersSetup = false;
-        public static int totalPlayers = 0;
-        public static List<Player> alivePlayers = new List<Player>();
-        public static List<Player> deadPlayers = new List<Player>();
-        public static List<Player> allPlayers = new List<Player>();
+        public int TotalPlayers { get; private set; }
+        
+        public List<Player> AlivePlayers = new();
+        public List<Player> DeadPlayers = new();
+        public List<Player> AllPlayers = new();
+        
         public static bool runStarted;
 
-        private static GameObject deathMarker;
-        private static List<Material> materials = new List<Material>();
-        
-        public static ManualLogSource log;
+        public GameObject DeathMarker { get; private set; }
+        public GameObject DeathMarkerPrefab { get; private set; }
+        private static List<Material> materials = new();
 
         //configurable variables
-        public static float totemRange = 3;
-        public static bool increaseRangeWithPlayers = true;
-        public static float reviveTimeSeconds = 5;
         public static MainTeammateRevival instance;
+
+        public IRevivalStrategy RevivalStrategy { get; set; }
 
         #endregion
 
         #region Setup
 
-        public void LogInit()
-        {
-            Log.Init(Logger);
-            log = Logger;
-
-            try
-            {
-                if (fileLogging)
-                    DebugLogger.Init();
-            }
-            catch
-            {
-                Logger.LogWarning("Log file location unavailable!");
-                fileLogging = false;
-            }
-        }
-        public static void LogInfo(object msg)
-        {
-            if (consoleLogging)
-                log.LogInfo(msg);
-
-            if (fileLogging)
-                DebugLogger.LogInfo(msg);
-
-            if (chatLogging && runStarted)
-                ChatMessage.SendColored(msg.ToString(), Color.blue);
-
-        }
-        public static void LogWarning(object msg)
-        {
-            if (consoleLogging)
-                log.LogWarning(msg);
-
-            if (fileLogging)
-                DebugLogger.LogWarning(msg);
-
-            if (chatLogging && runStarted)
-                ChatMessage.SendColored(msg.ToString(), Color.yellow);
-
-        }
-        public static void LogError(object msg)
-        {
-            if (consoleLogging)
-                log.LogError(msg);
-
-            if (fileLogging)
-                DebugLogger.LogError(msg);
-
-            if (chatLogging && runStarted)
-                ChatMessage.SendColored(msg.ToString(), Color.red);
-
-        }
-
         public void Awake()
         {
             instance = this;
-            InitConfig();
+            PluginConfig = PluginConfig.Load(Config);
             SetupHooks();
-            LogInit();
-            
+            Log.Init(PluginConfig, Logger);
+            this.RevivalStrategy = PluginConfig.ReviveStrategy switch {
+                ReviveStrategy.DamageInRange => new DamageInRageRevivalStrategy(this),
+                ReviveStrategy.ReduceMaxHp => new ReduceMaxHpRevivalStrategy(this),
+                _ => new DamageInRageRevivalStrategy(this),
+            };
+            Log.Debug("Strategy " + PluginConfig.ReviveStrategy);
+            this.RevivalStrategy.Init();
+            LoadSkullPrefab();
+
+            Log.Debug("Awake.RegisterMessageType");
+            NetworkingAPI.RegisterMessageType<SyncSkull>();
+            Log.Debug("Setup Teammate Revival");
+        }
+
+        void LoadSkullPrefab()
+        {
+            Log.Debug("Awake.customprefabs");
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.customprefabs"))
             {
                 var bundle = AssetBundle.LoadFromStream(stream);
@@ -177,30 +94,28 @@ namespace TeammateRevival
                 }
 
                 var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
+                DeathMarkerPrefab = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
                 dm.AddComponent<DeadPlayerSkull>();
-                deathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
+                DeathMarker = PrefabAPI.InstantiateClone(dm, "Death Marker");
                 dm.GetComponent<DeadPlayerSkull>().Setup();
                 dm.GetComponent<DeadPlayerSkull>().radiusSphere.material = materials[0];
 
                 bundle.Unload(false);
             }
-
-            NetworkingAPI.RegisterMessageType<SyncSkull>();
-            LogInfo("Setup Teammate Revival");
         }
-
+        
         void ResetSetup()
         {
             smallestMax = float.PositiveInfinity;
             threshold = 0;
             playersSetup = false;
-            alivePlayers.Clear();
-            deadPlayers.Clear();
-            allPlayers.Clear();
+            AlivePlayers.Clear();
+            DeadPlayers.Clear();
+            AllPlayers.Clear();
             numPlayersSetup = 0;
-            totalPlayers = 0;
+            TotalPlayers = 0;
             playerSetupTimer = 0;
-            LogInfo("Reset Data");
+            Log.Info("Reset Data");
         }
 
         void SetupHooks()
@@ -232,11 +147,12 @@ namespace TeammateRevival
 
             if (IsClient())
             {
-                ClientScene.RegisterPrefab(deathMarker);
-                FindObjectOfType<NetworkManager>().spawnPrefabs.Add(deathMarker);
-                LogInfo("Client Registered Prefabs");
+                ClientScene.RegisterPrefab(DeathMarker);
+                FindObjectOfType<NetworkManager>().spawnPrefabs.Add(DeathMarker);
+                Log.Info("Client Registered Prefabs");
                 return;
             }
+            
 
             NetworkManager.singleton.connectionConfig.DisconnectTimeout = 5;
             NetworkManager.singleton.connectionConfig.MaxSentMessageQueueSize = 1024;
@@ -246,7 +162,7 @@ namespace TeammateRevival
         {
             orig(self, user);
             if (IsClient()) return;
-            LogInfo(user.userName + " added.");
+            Log.Info(user.userName + " added.");
         }
 
         void hook_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
@@ -259,22 +175,22 @@ namespace TeammateRevival
 
             if (!runStarted) 
             {
-                LogInfo(user.userName + " left while run wasn't in session.");
+                Log.Info(user.userName + " left while run wasn't in session.");
             }
 
             Player leavingPlayer = FindPlayerFromPlayerCharacterMasterControllerInstanceID(user.masterController.netId);
-            if (allPlayers.Contains(leavingPlayer))
+            if (AllPlayers.Contains(leavingPlayer))
             {
-                allPlayers.Remove(leavingPlayer);
-                if (deadPlayers.Contains(leavingPlayer)) deadPlayers.Remove(leavingPlayer);
-                if (alivePlayers.Contains(leavingPlayer)) alivePlayers.Remove(leavingPlayer);
+                AllPlayers.Remove(leavingPlayer);
+                if (DeadPlayers.Contains(leavingPlayer)) DeadPlayers.Remove(leavingPlayer);
+                if (this.AlivePlayers.Contains(leavingPlayer)) this.AlivePlayers.Remove(leavingPlayer);
 
-                LogInfo(user.userName + " Left!");
+                Log.Info(user.userName + " Left!");
                 return;
             }
 
             
-            LogError(user.userName + " Left - but they were not registed as a player!");
+            Log.Error(user.userName + " Left - but they were not registered as a player!");
 
             orig(self, user);
         }
@@ -286,27 +202,27 @@ namespace TeammateRevival
             if (IsClient()) return;
             
             Player p = new Player(self);
-            if (godMode)
+            if (PluginConfig.GodMode)
             {
                 p.GetBody().baseDamage = 120;
                 p.networkUser.GetCurrentBody().baseMoveSpeed = 30;
                 p.GetBody().baseAttackSpeed = 200;
             }
 
-            alivePlayers.Add(p);
-            allPlayers.Add(p);
+            this.AlivePlayers.Add(p);
+            AllPlayers.Add(p);
             p.isDead = false;
             
             numPlayersSetup++;
-            LogInfo(self.networkUser.userName + " Setup");
-            totalPlayers = NetworkManager.singleton.numPlayers;
-            if (DamageNumberManager.instance == null) totalPlayers--;
+            Log.Info(self.networkUser.userName + " Setup");
+            TotalPlayers = NetworkManager.singleton.numPlayers;
+            if (DamageNumberManager.instance == null) TotalPlayers--;
             playerSetupTimer = 0;
 
-            if (numPlayersSetup == totalPlayers)
+            if (numPlayersSetup == TotalPlayers)
             {
                 playersSetup = true;
-                LogInfo("All " + totalPlayers + " Players Setup Succesfully");
+                Log.Info("All " + TotalPlayers + " Players Setup Successfully");
             }
         }
 
@@ -316,10 +232,10 @@ namespace TeammateRevival
 
             if (IsClient()) return;
 
-            LogInfo("Game Over - reseting data");
+            Log.Info("Game Over - reseting data");
 
             ResetSetup();
-            totalPlayers = 0;
+            TotalPlayers = 0;
             runStarted = false;
         }
 
@@ -329,7 +245,7 @@ namespace TeammateRevival
 
             if (IsClient()) return;
 
-            LogInfo("Advanced a stage - now resetting");
+            Log.Info("Advanced a stage - now resetting");
             ResetSetup();
         }
 
@@ -338,14 +254,14 @@ namespace TeammateRevival
             if (!IsClient())
             {
                 Player victim = FindPlayerFromBodyInstanceID(victimNetworkUser.GetCurrentBody().netId);
-                if (alivePlayers.Contains(victim))
+                if (this.AlivePlayers.Contains(victim))
                 {
                     PlayerDead(victim);
-                    LogInfo(victimNetworkUser.userName + " Died!");
+                    Log.Info(victimNetworkUser.userName + " Died!");
                     return;
                 }
 
-                LogError("Player Died but they were not alive to begin with!");
+                Log.Error("Player Died but they were not alive to begin with!");
             }
 
             orig(self, damageReport, victimNetworkUser);
@@ -354,6 +270,8 @@ namespace TeammateRevival
         #endregion
 
         #region Helpers
+
+        public static bool IsServer => !IsClient();
         
         public static bool IsClient()
         {
@@ -365,61 +283,31 @@ namespace TeammateRevival
             return false;
         }
 
-        public DeadPlayerSkull SpawnDeathVisuals(Player player)
+        public void PlayerDead(Player p)
         {
-            if (IsClient()) return null;
-
-            player.deathMark = Instantiate(deathMarker).GetComponent<DeadPlayerSkull>();
-            player.deathMark.transform.position = player.groundPosition;
-            player.deathMark.transform.rotation = Quaternion.identity;
-
-            if (increaseRangeWithPlayers)
-            {
-                player.deathMark.radiusSphere.transform.localScale = Vector3.one * (totemRange * 2 + 0.5f * totalPlayers);
-                LogInfo(totemRange * 2 + 0.5f * totalPlayers);
-            }
-            else
-            {
-                player.deathMark.radiusSphere.transform.localScale = Vector3.one * (totemRange);
-            }
-
-            NetworkServer.Spawn(player.deathMark.gameObject);
-            StartCoroutine(SendValuesDelay(0.2f, player.deathMark));
-            
-
-            LogInfo("Skull spawned on Server and Client");
-            return player.deathMark;
-        }
-
-        public IEnumerator SendValuesDelay(float delay, DeadPlayerSkull skull) 
-        {
-            yield return new WaitForSecondsRealtime(delay);
-            skull.SetValuesSend(skull.amount, new Color(1, 0, 0), skull.intensity);
-        }
-
-        public static void PlayerDead(Player p)
-        {
-            if (alivePlayers.Contains(p)) alivePlayers.Remove(p);
-            if(!deadPlayers.Contains(p)) deadPlayers.Add(p);
+            if (this.AlivePlayers.Contains(p)) this.AlivePlayers.Remove(p);
+            if(!DeadPlayers.Contains(p)) DeadPlayers.Add(p);
             p.isDead = true;
             p.rechargedHealth = 0;
-            instance.SpawnDeathVisuals(p);
+            
+            if (IsClient()) return;
+            this.RevivalStrategy.ServerSpawnSkull(p);
         }
 
-        public static void PlayerAlive(Player p)
+        public void PlayerAlive(Player p)
         {
-            if (!alivePlayers.Contains(p)) alivePlayers.Add(p);
-            if (deadPlayers.Contains(p)) deadPlayers.Remove(p);
+            if (!this.AlivePlayers.Contains(p)) this.AlivePlayers.Add(p);
+            if (DeadPlayers.Contains(p)) DeadPlayers.Remove(p);
             p.isDead = false;
             p.rechargedHealth = 0;
             NetworkServer.Destroy(p.deathMark.gameObject);
         }
 
-        public static void RespawnPlayer(Player player)
+        public void RespawnPlayer(Player player)
         {
             if (IsClient()) return;
 
-            if (!deadPlayers.Contains(player)) return;
+            if (!DeadPlayers.Contains(player)) return;
 
             bool playerConnected = player.master.isConnected;
             if (playerConnected)
@@ -427,21 +315,21 @@ namespace TeammateRevival
                 player.master.master.RespawnExtraLife();
                 PlayerAlive(player);
             }
-            LogInfo("Player Respawned");
+            Log.Info("Player Respawned");
         }
 
         void CalculateReviveThreshold()
         {
             //find smallest max health out of all the players
             smallestMax = Mathf.Infinity;
-            for (int i = 0; i < alivePlayers.Count; i++)
+            for (int i = 0; i < this.AlivePlayers.Count; i++)
             {
-                Player player = alivePlayers[i];
+                Player player = this.AlivePlayers[i];
 
                 if (player.CheckDead()) continue;
 
-                if (alivePlayers[i].GetBody().maxHealth < smallestMax)
-                    smallestMax = (int)alivePlayers[i].GetBody().maxHealth;
+                if (this.AlivePlayers[i].GetBody().maxHealth < smallestMax)
+                    smallestMax = (int)this.AlivePlayers[i].GetBody().maxHealth;
             }
             //the player must give this much health to revive the other player
             threshold = (smallestMax * 0.9f);
@@ -461,9 +349,9 @@ namespace TeammateRevival
             return player.groundPosition;
         }
         
-        public static Player FindPlayerFromBodyInstanceID(NetworkInstanceId id) 
+        public Player FindPlayerFromBodyInstanceID(NetworkInstanceId id) 
         {
-            foreach (var p in alivePlayers)
+            foreach (var p in this.AlivePlayers)
             {
                 p.GetBody();
                 if (p.bodyID == id) return p;
@@ -472,9 +360,9 @@ namespace TeammateRevival
             return null;
         }
 
-        public static Player FindPlayerFromPlayerCharacterMasterControllerInstanceID(NetworkInstanceId id) 
+        public Player FindPlayerFromPlayerCharacterMasterControllerInstanceID(NetworkInstanceId id) 
         {
-            foreach (var p in allPlayers) 
+            foreach (var p in AllPlayers) 
             {
                 if(p.master && p.master.netId == id)
                 {
@@ -488,12 +376,13 @@ namespace TeammateRevival
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F3)) 
-            {
-                allPlayers[1].GetBody().maxHealth -= 5 * Time.deltaTime;
-            }
-
-
+            if (Input.GetKeyDown(KeyCode.F3)) this.AllPlayers[0].GetBody().healthComponent.Networkhealth = 1;
+            if (Input.GetKeyDown(KeyCode.F4)) this.AllPlayers[1].GetBody().healthComponent.Networkhealth = 1;
+            
+            if (Input.GetKeyDown(KeyCode.F6)) NetworkUser.readOnlyInstancesList.ToList().ForEach(u => u.master.inventory.GiveItem(AddedResources.ReduceHpItemIndex));
+            if (Input.GetKeyDown(KeyCode.F7)) NetworkUser.readOnlyInstancesList.ToList().ForEach(u => u.master.inventory.RemoveItem(AddedResources.ReduceHpItemIndex));
+            
+            if (Input.GetKeyDown(KeyCode.F8)) NetworkUser.readOnlyInstancesList.ToList().ForEach(u => ReduceMaxHpRevivalStrategy.SendObol(u));
 
             if (IsClient()) return;
 
@@ -505,7 +394,7 @@ namespace TeammateRevival
                     if (playerSetupTimer >= 3)
                     {
                         playersSetup = true;
-                        LogError("The " + totalPlayers + " total players were not all setup, falling back. Consider filing an issue on Github.");
+                        Log.Error("The " + TotalPlayers + " total players were not all setup, falling back. Consider filing an issue on Github.");
                     }
                 }
                 return;
@@ -519,111 +408,24 @@ namespace TeammateRevival
             CalculateReviveThreshold();
 
             //interactions between dead and alive players
-            for (int p = 0; p < alivePlayers.Count; p++)
+            foreach (var player in this.AlivePlayers)
             {
-                Player player = alivePlayers[p];
                 if (player.CheckDead()) continue;
 
                 player.groundPosition = GroundPosition(player);
 
-                if (player.deathMark == null)
+                foreach (var dead in DeadPlayers)
                 {
-                    SpawnDeathVisuals(player);
-                }
-                else
-                {
-                    player.deathMark.transform.position = player.groundPosition;
-                }
-
-
-
-                for (int d = 0; d < deadPlayers.Count; d++)
-                {
-                    Player dead = deadPlayers[d];
-                    DeadPlayerSkull skull = dead.deathMark.GetComponent<DeadPlayerSkull>();
-
                     //have they been revived by other means?
                     if (dead.CheckAlive()) 
                     {
                         PlayerAlive(dead);
                         continue;
                     }
-
-                    //if alive player is within the range of the circle
-                    if (Vector3.Distance(player.groundPosition, dead.groundPosition) < totemRange)
-                    {
-                        //add health to dead player
-                        float healAmount = (Time.deltaTime)/reviveTimeSeconds/totalPlayers * 2;
-                        dead.rechargedHealth += healAmount;
-
-                        //damage alive player - down to 1 HP
-                        float damageAmount = (player.GetBody().maxHealth * 0.85f * Time.deltaTime)/reviveTimeSeconds/dead.deathMark.insidePlayerIDs.Count;
-                        player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(damageAmount, 0f, player.GetBody().healthComponent.health - 1f);
-
-                        //set light color and intensity based on ratio
-                        float ratio = dead.rechargedHealth;
-                        if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
-                            skull.insidePlayerIDs.Add(player.GetBody().netId);
-
-                        skull.SetValuesSend(healAmount, new Color(1 - ratio, ratio, 0.6f * ratio), 4 + 15 * ratio);
-                        
-                    }
-                    else
-                    {
-                        //set light to red if no one is inside the circle
-                        if (skull.insidePlayerIDs.Contains(player.GetBody().netId))
-                            skull.insidePlayerIDs.Remove(player.GetBody().netId);
-
-                        skull.SetValuesSend(skull.amount, new Color(1, 0, 0), skull.intensity);
-                    }
-
-                    //if dead player has recharged enough health, respawn
-                    if (dead.rechargedHealth >= 1)
-                    {
-                        RespawnPlayer(dead);
-                    }
+                    
+                    this.RevivalStrategy.Update(player, dead);
                 }
             }
-        }
-
-        private void InitConfig()
-        {
-            consoleLoggingConfig = Config.Bind<bool>(
-                section: "Debugging",
-                key: "Console Logging",
-                description: "Log debugging messages to the console.",
-                defaultValue: true);
-
-            chatLoggingConfig = Config.Bind<bool>(
-                section: "Debugging",
-                key: "Chat Logging",
-                description: "Log debugging messages to the in-game chat.",
-                defaultValue: false);
-
-            fileLoggingConfig = Config.Bind<bool>(
-                section: "Debugging",
-                key: "File Logging",
-                description: "Log debugging messages to log.txt located on the desktop by default (sometimes the path cannot be found, so set a custom path below). If the path cannot be found it will write to \"C:\\log.txt\" instead.",
-                defaultValue: false);
-
-            fileLoggingPath = Config.Bind<string>(
-                section: "Debugging",
-                key: "File Logging Path",
-                description: "This sets the location that the logging file will be created. Leave blank to put log.txt on the desktop. If the log file is not showing up set your path manually here.",
-                defaultValue: "");
-
-            godModeConfig = Config.Bind<bool>(
-                section: "Debugging",
-                key: "God Mode",
-                description: "Super massive base damage, and super speed for the host. For testing purposes only, Makes the game incredibly boring.",
-                defaultValue: false);
-
-            //set variables
-            consoleLogging = consoleLoggingConfig.Value;
-            consoleLogging = true;
-            chatLogging = chatLoggingConfig.Value;
-            fileLogging = fileLoggingConfig.Value;
-            godMode = godModeConfig.Value;
         }
     }
 }

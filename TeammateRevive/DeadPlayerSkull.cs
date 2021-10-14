@@ -3,6 +3,7 @@ using R2API.Networking.Interfaces;
 using RoR2;
 using System.Collections.Generic;
 using TeammateRevival;
+using TeammateRevival.Logging;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -70,7 +71,7 @@ public class SyncSkull : INetMessage
     }
 }
 
-public class DeadPlayerSkull : MonoBehaviour
+public class DeadPlayerSkull : NetworkBehaviour
 {
     public float amount = 1;
     public Color color = Color.red;
@@ -78,7 +79,12 @@ public class DeadPlayerSkull : MonoBehaviour
     public List<NetworkInstanceId> insidePlayerIDs = new List<NetworkInstanceId>();
     public float lastSyncTime = 0;
     public MeshRenderer radiusSphere;
-    
+
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        MainTeammateRevival.instance.RevivalStrategy.OnClientSkullSpawned(this);
+    }
 
     void Awake()
     {
@@ -119,7 +125,7 @@ public class DeadPlayerSkull : MonoBehaviour
         for (int i = 0; i < insidePlayerIDs.Count; i++)
         {
             NetworkInstanceId ID = insidePlayerIDs[i];
-            Player p = MainTeammateRevival.FindPlayerFromBodyInstanceID(ID);
+            Player p = MainTeammateRevival.instance.FindPlayerFromBodyInstanceID(ID);
             if (p != null)
             {
                 if (p.CheckDead()) 
@@ -139,7 +145,7 @@ public class DeadPlayerSkull : MonoBehaviour
             RemoveDeadIDs();
             new SyncSkull(GetComponent<NetworkIdentity>().netId, insidePlayerIDs.Count, insidePlayerIDs, amount, color, intensity, radiusSphere.transform.localScale.x).Send(NetworkDestination.Clients);
             lastSyncTime = Time.realtimeSinceStartup;
-            MainTeammateRevival.LogInfo("Rad: " + radiusSphere.transform.localScale.x);
+            Log.Info("Rad: " + radiusSphere.transform.localScale.x);
         }
     }
 

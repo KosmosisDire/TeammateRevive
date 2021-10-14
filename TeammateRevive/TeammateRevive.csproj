@@ -13,7 +13,7 @@
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\</OutputPath>
+    <OutputPath>C:\Users\amada\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\TeammateRevive testing\BepInEx\plugins\KosmosisDire-TeammateRevival\</OutputPath>
     <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <Optimize>false</Optimize>
@@ -24,6 +24,12 @@
     <Compile Remove="libs\**" />
     <EmbeddedResource Remove="libs\**" />
     <None Remove="libs\**" />
+    <None Remove="Resources\obol.png" />
+    <EmbeddedResource Include="Resources\obol.png" />
+    <None Remove="Resources\curse.png" />
+    <EmbeddedResource Include="Resources\curse.png" />
+    <None Remove="Resources\reducehp" />
+    <EmbeddedResource Include="Resources\reducehp" />
   </ItemGroup>
   
 
