@@ -22,26 +22,27 @@ namespace TeammateRevival.RevivalStrategies
 
         public DeadPlayerSkull ServerSpawnSkull(Player player)
         {
-            player.deathMark = Object.Instantiate(this.Plugin.DeathMarker).GetComponent<DeadPlayerSkull>();
+            player.skull = Object.Instantiate(this.Plugin.DeathMarker).GetComponent<DeadPlayerSkull>();
+            player.skull.deadPlayerId = player.networkUser.netId;
 
-            player.deathMark.transform.position = player.groundPosition;
-            player.deathMark.transform.rotation = Quaternion.identity;
+            player.skull.transform.position = player.groundPosition;
+            player.skull.transform.rotation = Quaternion.identity;
 
             if (this.Config.IncreaseRangeWithPlayers)
             {
-                player.deathMark.radiusSphere.transform.localScale = Vector3.one * (this.Config.TotemRange * 2 + 0.5f * this.Plugin.TotalPlayers);
+                player.skull.radiusSphere.transform.localScale = Vector3.one * (this.Config.TotemRange * 2 + 0.5f * this.Plugin.TotalPlayers);
                 Log.Info(this.Config.TotemRange * 2 + 0.5f * this.Plugin.TotalPlayers);
             }
             else
             {
-                player.deathMark.radiusSphere.transform.localScale = Vector3.one * (this.Config.TotemRange);
+                player.skull.radiusSphere.transform.localScale = Vector3.one * (this.Config.TotemRange);
             }
             
-            NetworkServer.Spawn(player.deathMark.gameObject);
-            this.Plugin.StartCoroutine(SendValuesDelay(0.2f, player.deathMark));
+            NetworkServer.Spawn(player.skull.gameObject);
+            this.Plugin.StartCoroutine(SendValuesDelay(0.2f, player.skull));
 
             Log.Info("Skull spawned on Server and Client");
-            return player.deathMark;
+            return player.skull;
         }
 
         public void OnClientSkullSpawned(DeadPlayerSkull skull)
@@ -51,7 +52,7 @@ namespace TeammateRevival.RevivalStrategies
 
         public void Update(Player player, Player dead)
         {
-            var skull = dead.deathMark.GetComponent<DeadPlayerSkull>();
+            var skull = dead.skull.GetComponent<DeadPlayerSkull>();
             
             //if alive player is within the range of the circle
             if (Vector3.Distance(player.groundPosition, dead.groundPosition) < Config.TotemRange)
@@ -61,7 +62,7 @@ namespace TeammateRevival.RevivalStrategies
                 dead.rechargedHealth += healAmount;
 
                 //damage alive player - down to 1 HP
-                float damageAmount = (player.GetBody().maxHealth * 0.85f * Time.deltaTime)/Config.ReviveTimeSeconds/dead.deathMark.insidePlayerIDs.Count;
+                float damageAmount = (player.GetBody().maxHealth * 0.85f * Time.deltaTime)/Config.ReviveTimeSeconds/dead.skull.insidePlayerIDs.Count;
                 player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(damageAmount, 0f, player.GetBody().healthComponent.health - 1f);
 
                 //set light color and intensity based on ratio
@@ -77,7 +78,7 @@ namespace TeammateRevival.RevivalStrategies
                 if (skull.insidePlayerIDs.Contains(player.GetBody().netId))
                     skull.insidePlayerIDs.Remove(player.GetBody().netId);
 
-                skull.SetValuesSend(skull.amount, new Color(1, 0, 0), skull.intensity);
+                skull.SetValuesSend(skull.Amount, new Color(1, 0, 0), skull.intensity);
             }
 
             //if dead player has recharged enough health, respawn
@@ -86,11 +87,41 @@ namespace TeammateRevival.RevivalStrategies
                 Plugin.RespawnPlayer(dead);
             }
         }
-        
+
+        public void Update()
+        {
+            //interactions between dead and alive players
+            for (var aliveIdx = 0; aliveIdx < this.Plugin.AlivePlayers.Count; aliveIdx++)
+            {
+                var player = this.Plugin.AlivePlayers[aliveIdx];
+                if (player.CheckDead()) continue;
+
+                player.groundPosition = MainTeammateRevival.GroundPosition(player);
+
+                for (var deadIdx = 0; deadIdx < this.Plugin.DeadPlayers.Count; deadIdx++)
+                {
+                    var dead = this.Plugin.DeadPlayers[deadIdx];
+                    //have they been revived by other means?
+                    if (dead.CheckAlive()) 
+                    {
+                        Plugin.PlayerAlive(dead);
+                        continue;
+                    }
+                    
+                    this.Update(player, dead);
+                }
+            }
+        }
+
+        public void Revive(Player dead)
+        {
+            MainTeammateRevival.instance.RespawnPlayer(dead);
+        }
+
         private IEnumerator SendValuesDelay(float delay, DeadPlayerSkull skull) 
         {
             yield return new WaitForSecondsRealtime(delay);
-            skull.SetValuesSend(skull.amount, new Color(1, 0, 0), skull.intensity);
+            skull.SetValuesSend(skull.Amount, new Color(1, 0, 0), skull.intensity);
         }
     }
 }

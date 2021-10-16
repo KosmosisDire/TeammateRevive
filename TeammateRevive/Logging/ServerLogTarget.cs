@@ -108,11 +108,15 @@ namespace TeammateRevival.Logging
         private JSONArray GroupEntries()
         {
             var entries = new JSONArray();
-            // group all pending entries but not more that 25
+            
+            var maxCount = this.logsQueue.Count / 2;
+            maxCount = maxCount > 100 ? 100 : maxCount;
+            
+            // group all pending entries but not more that specific amount
             while (this.logsQueue.TryDequeue(out var entry))
             {
                 entries.Add(entry);
-                if (entries.Count == 25)
+                if (entries.Count == maxCount)
                 {
                     break;
                 }

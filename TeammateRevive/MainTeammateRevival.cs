@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using BepInEx;
 using R2API;
 using R2API.Networking;
@@ -7,7 +8,6 @@ using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using RoR2.Orbs;
 using TeammateRevival.Logging;
 using TeammateRevival.RevivalStrategies;
 using TeammateRevive.RevivalStrategies.ReduceMaxHp;
@@ -74,6 +74,7 @@ namespace TeammateRevival
 
             Log.Debug("Awake.RegisterMessageType");
             NetworkingAPI.RegisterMessageType<SyncSkull>();
+            NetworkingAPI.RegisterMessageType<DebugNetworkMessage>();
             Log.Debug("Setup Teammate Revival");
         }
 
@@ -209,6 +210,11 @@ namespace TeammateRevival
                 p.GetBody().baseAttackSpeed = 200;
             }
 
+            if (p.networkUser.isLocalPlayer)
+            {
+                CurrentPlayer = p;
+            }
+
             this.AlivePlayers.Add(p);
             AllPlayers.Add(p);
             p.isDead = false;
@@ -216,7 +222,7 @@ namespace TeammateRevival
             numPlayersSetup++;
             Log.Info(self.networkUser.userName + " Setup");
             TotalPlayers = NetworkManager.singleton.numPlayers;
-            if (DamageNumberManager.instance == null) TotalPlayers--;
+            // if (DamageNumberManager.instance == null) TotalPlayers--;
             playerSetupTimer = 0;
 
             if (numPlayersSetup == TotalPlayers)
@@ -225,6 +231,11 @@ namespace TeammateRevival
                 Log.Info("All " + TotalPlayers + " Players Setup Successfully");
             }
         }
+
+        public NetworkInstanceId? CurrentPlayerBodyId => NetworkUser.readOnlyInstancesList
+            .FirstOrDefault(p => p.isLocalPlayer)?.GetCurrentBody()?.netId;
+
+        public Player CurrentPlayer { get; set; }
 
         void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
         {
@@ -300,7 +311,7 @@ namespace TeammateRevival
             if (DeadPlayers.Contains(p)) DeadPlayers.Remove(p);
             p.isDead = false;
             p.rechargedHealth = 0;
-            NetworkServer.Destroy(p.deathMark.gameObject);
+            NetworkServer.Destroy(p.skull.gameObject);
         }
 
         public void RespawnPlayer(Player player)
@@ -318,27 +329,10 @@ namespace TeammateRevival
             Log.Info("Player Respawned");
         }
 
-        void CalculateReviveThreshold()
-        {
-            //find smallest max health out of all the players
-            smallestMax = Mathf.Infinity;
-            for (int i = 0; i < this.AlivePlayers.Count; i++)
-            {
-                Player player = this.AlivePlayers[i];
-
-                if (player.CheckDead()) continue;
-
-                if (this.AlivePlayers[i].GetBody().maxHealth < smallestMax)
-                    smallestMax = (int)this.AlivePlayers[i].GetBody().maxHealth;
-            }
-            //the player must give this much health to revive the other player
-            threshold = (smallestMax * 0.9f);
-        }
-
         public static Vector3 GroundPosition(Player player)
         {
             RaycastHit hit;
-            if (Physics.Raycast(player.GetBody().transform.position, Vector3.down, out hit, 1000, LayerMask.GetMask(new string[] { "World" })))
+            if (Physics.Raycast(player.GetBody().transform.position, Vector3.down, out hit, 1000, LayerMask.GetMask("World")))
             {
                 if (Vector3.Dot(hit.normal, Vector3.up) > 0.5f && Vector3.Distance(player.GetBody().transform.position, player.groundPosition) > Vector3.Distance(player.GetBody().transform.position, hit.point))
                 {
@@ -378,15 +372,42 @@ namespace TeammateRevival
         {
             if (Input.GetKeyDown(KeyCode.F3)) this.AllPlayers[0].GetBody().healthComponent.Networkhealth = 1;
             if (Input.GetKeyDown(KeyCode.F4)) this.AllPlayers[1].GetBody().healthComponent.Networkhealth = 1;
-            
-            if (Input.GetKeyDown(KeyCode.F6)) NetworkUser.readOnlyInstancesList.ToList().ForEach(u => u.master.inventory.GiveItem(AddedResources.ReduceHpItemIndex));
-            if (Input.GetKeyDown(KeyCode.F7)) NetworkUser.readOnlyInstancesList.ToList().ForEach(u => u.master.inventory.RemoveItem(AddedResources.ReduceHpItemIndex));
-            
-            if (Input.GetKeyDown(KeyCode.F8)) NetworkUser.readOnlyInstancesList.ToList().ForEach(u => ReduceMaxHpRevivalStrategy.SendObol(u));
+            if (Input.GetKeyDown(KeyCode.F5)) this.AllPlayers[1].GetBody().healthComponent.TakeDamage(new DamageInfo
+            {
+                attacker = this.AllPlayers[0].GetBody().gameObject,
+                damage = 10000,
+                damageType = DamageType.Generic
+            });
 
-            if (IsClient()) return;
+            if (Input.GetKeyDown(KeyCode.F6))
+                NetworkUser.readOnlyInstancesList.ToList()
+                    .ForEach(u => u.master.inventory.GiveItem(AddedResources.ReduceHpItemIndex));
+            if (Input.GetKeyDown(KeyCode.F7))
+                NetworkUser.readOnlyInstancesList.ToList()
+                    .ForEach(u => u.master.inventory.RemoveItem(AddedResources.ReduceHpItemIndex));
+            
+            if (Input.GetKeyDown(KeyCode.F8))
+                NetworkUser.readOnlyInstancesList.ToList()
+                    .ForEach(u => u.master.inventory.GiveItem(AddedResources.ResurrectItemIndex));
 
-            if (!playersSetup) 
+            if (Input.GetKeyDown(KeyCode.F10))
+            {
+                if (IsClient())
+                {
+                    DebugNetworkMessage.SendToServer("SpawnSkull");
+                }
+                else
+                {
+                    if (!this.DeadPlayers.Contains(this.AlivePlayers[0]))
+                    {
+                        this.DeadPlayers.Add(this.AlivePlayers[0]);
+                    }
+
+                    this.RevivalStrategy.ServerSpawnSkull(this.AllPlayers[0]);
+                }
+            }
+
+            if (IsServer && !playersSetup)
             {
                 if (numPlayersSetup > 0)
                 {
@@ -397,35 +418,13 @@ namespace TeammateRevival
                         Log.Error("The " + TotalPlayers + " total players were not all setup, falling back. Consider filing an issue on Github.");
                     }
                 }
+
                 return;
             }
 
-            //if (Input.GetKeyDown(KeyCode.F2)) 
-            //{
-            //    SpawnDeathVisuals(alivePlayers[0]);
-            //}
-
-            CalculateReviveThreshold();
-
-            //interactions between dead and alive players
-            foreach (var player in this.AlivePlayers)
-            {
-                if (player.CheckDead()) continue;
-
-                player.groundPosition = GroundPosition(player);
-
-                foreach (var dead in DeadPlayers)
-                {
-                    //have they been revived by other means?
-                    if (dead.CheckAlive()) 
-                    {
-                        PlayerAlive(dead);
-                        continue;
-                    }
-                    
-                    this.RevivalStrategy.Update(player, dead);
-                }
-            }
+            this.RevivalStrategy.Update();
         }
+
+        public Func<IEnumerator, Coroutine> DoCoroutine => StartCoroutine;
     }
 }

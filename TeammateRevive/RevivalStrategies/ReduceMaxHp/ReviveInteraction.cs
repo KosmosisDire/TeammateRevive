@@ -11,10 +11,12 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
 {
     public class ReviveInteraction : MonoBehaviour, IInteractable, IDisplayNameProvider
     {
-        private static string DisplayString = "Revive (Reduce Max Hp/Shield)";
+        private static readonly string DisplayString = 
+            $"Use {AddedResources.WrapColor("Charon's Obol", PluginColors.Green)} to revive ({AddedResources.WrapColor("Reduces Max Hp/Shield", PluginColors.Red)})";
 
         public string GetContextString(Interactor activator) => DisplayString;
 
+        // TODO: Interactability check
         public Interactability GetInteractability(Interactor activator) => Interactability.Available;
 
         public void OnInteractionBegin(Interactor interactor)
@@ -33,7 +35,7 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
 
             var skullComp = Util.FindNetworkObject(skullId).GetComponent<DeadPlayerSkull>();
             Log.DebugMethod($"Skull component " + skullId);
-            var dead = MainTeammateRevival.instance.AllPlayers.FirstOrDefault(dp => dp.deathMark == skullComp);
+            var dead = MainTeammateRevival.instance.AllPlayers.FirstOrDefault(dp => dp.skull == skullComp);
             Log.DebugMethod($"Dead " + dead);
                 
             if (dead == null || player == null)
@@ -42,58 +44,16 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
                 return;
             }
 
-            var playerHasRespawnItem = player.GetBody().inventory.GetItemCount(AddedResources.RespawnItemIndex) > 0;
-            var deadHasRespawnItem = dead.networkUser.master.inventory.GetItemCount(AddedResources.RespawnItemIndex) > 0;
+            var playerHasRespawnItem = player.GetBody().inventory.GetItemCount(AddedResources.ResurrectItemIndex) > 0;
 
-            if (!playerHasRespawnItem && !deadHasRespawnItem)
+            if (!playerHasRespawnItem)
             {
-                ChatMessage.SendColored("One of player's must have Charon's Obol to respawn", Color.red);
+                ChatMessage.SendColored("Cannot instantly resurrect without Charon's Obol!", Color.red);
                 return;
             }
 
-            MainTeammateRevival.instance.RespawnPlayer(dead);
-            Task.Delay(1000)
-                .ContinueWith(_ =>
-                {
-                    var deadCharBody = dead.master.master.GetBody();
-
-                    if (deadCharBody == null)
-                    {
-                        Log.DebugMethod($"deadCharBody is null!");
-                    }
-                    
-                    Log.DebugMethod("Respawn");
-                    deadCharBody.inventory.GiveItem(AddedResources.ReduceHpItemIndex);
-                    // removing consumed Dio's Best Friend
-                    deadCharBody.inventory.RemoveItem(RoR2Content.Items.ExtraLifeConsumed);
-                    Log.Debug("Reducing HP for previously dead player done!");
-                    
-                    Log.DebugMethod("Reducing HP for alive player");
-                    if (deadHasRespawnItem)
-                    {
-                        deadCharBody.inventory.RemoveItem(AddedResources.RespawnItemIndex);
-                    }
-                    else
-                    {
-                        player.GetBody().inventory.RemoveItem(AddedResources.RespawnItemIndex);
-                    }
-
-                    player.GetBody().inventory.GiveItem(AddedResources.ReduceHpItemIndex);
-                });
-                
-            // Log.DebugMethod("Waiting to reduce...");
-            // Task.Delay(1000)
-            //     .ContinueWith(_ =>
-            //     {
-            //         // TODO: find reference for dead player properly
-            //         Log.Debug("Reducing HP for previously dead player...");
-            //         var deadCharBody = dead.GetBody();
-            //         deadCharBody.inventory.GiveItem(AddedResources.ReduceHpItemIndex);
-            //         // removing consumed Dio's Best Friend
-            //         deadCharBody.inventory.RemoveItem(RoR2Content.Items.ExtraLifeConsumed);
-            //         Log.Debug("Reducing HP for previously dead player done!");
-            //     });
-            
+            MainTeammateRevival.instance.RevivalStrategy.Revive(dead);
+            player.master.master.inventory.RemoveItem(AddedResources.ResurrectItemIndex);
         }
 
         public bool ShouldIgnoreSpherecastForInteractibility(Interactor activator)

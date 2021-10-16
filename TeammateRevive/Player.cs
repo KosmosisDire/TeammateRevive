@@ -10,7 +10,7 @@ namespace TeammateRevival
         public NetworkUser networkUser;
         public PlayerCharacterMasterController master;
 
-        public DeadPlayerSkull deathMark = null;
+        public DeadPlayerSkull skull = null;
 
         public Vector3 groundPosition = Vector3.zero;
         public float rechargedHealth = 0;
@@ -26,19 +26,6 @@ namespace TeammateRevival
                 this.bodyID = this.master.master.GetBody().netId;
 
             this.rechargedHealth = 0;
-        }
-
-
-        public ReduceMaxHpBehavior GetReduceHpBehavior()
-        {
-            var body = GetBody();
-            var component = body.GetComponent<ReduceMaxHpBehavior>();
-            if (component)
-            {
-                return component;
-            }
-            
-            return  body.gameObject.AddComponent<ReduceMaxHpBehavior>();
         }
 
         public CharacterBody GetBody()

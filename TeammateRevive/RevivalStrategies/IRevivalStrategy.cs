@@ -8,6 +8,8 @@
 
         void OnClientSkullSpawned(DeadPlayerSkull skull);
 
-        void Update(Player player, Player dead);
+        void Update();
+
+        void Revive(Player dead);
     }
 }

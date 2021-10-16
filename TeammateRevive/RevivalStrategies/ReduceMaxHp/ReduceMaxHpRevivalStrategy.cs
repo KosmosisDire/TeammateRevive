@@ -1,20 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using On.RoR2.UI;
-using R2API.Networking;
-using R2API.Networking.Interfaces;
+﻿using System.Linq;
 using RoR2;
-using RoR2.Orbs;
 using TeammateRevival;
 using TeammateRevival.Logging;
 using TeammateRevival.RevivalStrategies;
+using TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar;
 using UnityEngine;
 using UnityEngine.Networking;
 using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
-using SceneExitController = On.RoR2.SceneExitController;
-using Stage = On.RoR2.Stage;
 
 namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
 {
@@ -26,27 +18,30 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
         public ReduceMaxHpRevivalStrategy(MainTeammateRevival plugin)
         {
             this.Plugin = plugin;
+            reduceReviveProgressSpeed = -(1f / Config.ReviveTimeSeconds * ReduceReviveProgressFactor); 
         }
 
-        private float ReduceHpFactor = 1 + 1 / 3f;
-        private static float FactorToGetReviveItem = 1.6f;
+        private static float ReduceHpFactor = 1.2f;
+        private static float ObolReviveFactor = 1.125f;
+        private static float ReduceReviveProgressFactor = .33f;
+        private static readonly string[] IgnoredStages = { "arena", "bazaar" };
+
+        private readonly float reduceReviveProgressSpeed;
+
+        private ProgressBarController progressBar;
+        private ClientResurrectionTracker resurrectionTracker;
 
         public void Init()
         {
             Log.DebugMethod("start");
-            // TODO: debug, remove
-            NetworkingAPI.RegisterMessageType<DebugNetworkMessage>();
+            this.resurrectionTracker = new ClientResurrectionTracker();
+            this.progressBar = new ProgressBarController();
 
             AddedResources.Init();
 
-            On.RoR2.UI.BuffIcon.UpdateIcon += BuffIconOnUpdateIcon;
             On.RoR2.CharacterBody.RecalculateStats += CharacterBodyOnRecalculateStats;
             On.RoR2.Stage.Start += StageOnStart;
             On.RoR2.Run.BuildDropTable += OnBuildDropTable;
-            // On.RoR2.TeleporterInteraction.Awake += TeleporterInteractionOnAwake;
-
-            // RoR2.TeleporterInteraction.onTeleporterChargedGlobal
-            // On.RoR2.SceneExitController.SetState += SceneExitControllerOnSetState;
 
             Log.DebugMethod("end");
         }
@@ -55,9 +50,10 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
         {
             orig(self);
 
+            // Remove Obol from drop list if single player
             if (NetworkUser.readOnlyInstancesList.Count < 2)
             {
-                var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == AddedResources.RespawnItemIndex);
+                var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == AddedResources.ResurrectItemIndex);
                 if (respawnItemIdx >= 0)
                 {
                     Log.DebugMethod("Removing respawn item from drop list");
@@ -66,29 +62,7 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
             }
         }
 
-        private void SceneExitControllerOnSetState(SceneExitController.orig_SetState orig,
-            RoR2.SceneExitController self, RoR2.SceneExitController.ExitState newstate)
-        {
-            orig(self, newstate);
-            if (MainTeammateRevival.IsClient()) return;
-
-            // TODO!: client RPC!
-            if (newstate == RoR2.SceneExitController.ExitState.ExtractExp)
-            {
-                NetworkUser.readOnlyInstancesList.ToList().ForEach(SendObol);
-            }
-        }
-
-        // private void TeleporterInteractionOnAwake(TeleporterInteraction.orig_Awake orig, RoR2.TeleporterInteraction self)
-        // {
-        //     orig(self);
-        //     teleporterPosition = self.modelChildLocator.transform.position;
-        //     Debug.Log($"Teleporter position: {teleporterPosition}");
-        // }
-
-        private static string[] IgnoredStages = { "arena", "bazaar" };
-
-        private void StageOnStart(Stage.orig_Start orig, RoR2.Stage self)
+        private void StageOnStart(On.RoR2.Stage.orig_Start orig, Stage self)
         {
             orig(self);
             var sceneName = self.sceneDef.cachedName;
@@ -99,53 +73,12 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
 
             foreach (var networkUser in NetworkUser.readOnlyInstancesList)
             {
-                if (NetworkUser.readOnlyInstancesList.Count >= 2) AddObol(networkUser);
-                RemoveItemInv(networkUser);
+                RemoveReduceHpItem(networkUser);
             }
+            this.resurrectionTracker.Clear();
         }
 
-        private void AddObol(NetworkUser networkUser)
-        {
-            if (MainTeammateRevival.IsClient()) return;
-
-            Log.DebugMethod();
-            // TODO!: name check
-            var userName = networkUser.userName;
-            var inventory = networkUser.master?.inventory;
-
-            if (inventory == null)
-            {
-                Log.Warn($"Player has no inventory! {userName}");
-                return;
-            }
-
-            if (inventory.GetItemCount(AddedResources.ReduceHpItemIndex) > 0)
-            {
-                Log.Debug($"Didn't add obol since user {networkUser.name} have curse");
-                return;
-            }
-
-            var count = inventory.GetItemCount(AddedResources.RespawnItemIndex);
-
-            if (!ShouldGiveObol(count))
-            {
-                Log.Debug($"Didn't add obol for user user {userName}");
-                return;
-            }
-
-            inventory.GiveItem(AddedResources.RespawnItemIndex);
-            Chat.AddMessage($"{userName} received Charon's Obol!");
-            Log.Debug(
-                $"Added RespawnItemIndex for ({userName}). Was {count}. Now: {inventory.GetItemCount(AddedResources.RespawnItemIndex)}");
-        }
-
-        private bool ShouldGiveObol(int count)
-        {
-            var threshold = FactorToGetReviveItem / (float)count;
-            return Random.Range(0, 1f) <= threshold;
-        }
-
-        private void RemoveItemInv(NetworkUser networkUser)
+        private void RemoveReduceHpItem(NetworkUser networkUser)
         {
             if (MainTeammateRevival.IsClient()) return;
 
@@ -160,32 +93,10 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
             }
 
             var reduceHpItemCount = inventory.GetItemCount(AddedResources.ReduceHpItemIndex);
-            inventory.RemoveItem(AddedResources.ReduceHpItemIndex);
+            inventory.RemoveItem(AddedResources.ReduceHpItemIndex, inventory.GetItemCount(AddedResources.ResurrectItemIndex) + 1);
             Log.Debug(
                 $"Removed reduce HP item for ({userName}). Was {reduceHpItemCount}. Now: {inventory.GetItemCount(AddedResources.ReduceHpItemIndex)}");
         }
-
-        private void BuffIconOnUpdateIcon(BuffIcon.orig_UpdateIcon orig, RoR2.UI.BuffIcon self)
-        {
-            orig(self);
-
-            if (self.buffDef == null)
-                return;
-
-            return;
-            // TODO: remove if custom formatting is no longer needed
-
-            // format buff text into "-<reduced_hp>" form
-            var buffIndex = self.buffDef.buffIndex;
-            if (buffIndex == AddedResources.ReduceHpBuffIndex || buffIndex == AddedResources.ReduceShieldBuffIndex)
-            {
-                self.stackCount.SetText(RoR2.UI.BuffIcon.sharedStringBuilder
-                    .Clear()
-                    .AppendInt(self.buffCount)
-                );
-            }
-        }
-
 
         private void CharacterBodyOnRecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig,
             RoR2.CharacterBody self)
@@ -211,9 +122,6 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
             var hpReduce = self.maxHealth - self.maxHealth / Mathf.Pow(ReduceHpFactor, reducesCount);
             var shieldReduce = self.maxShield - self.maxShield / Mathf.Pow(ReduceHpFactor, reducesCount);
 
-            Log.DebugMethod(
-                $"{self.name} {self.GetDisplayName()} {reducesCount} {self.maxHealth} {self.healthComponent.health} (was {health}) | HP reduce {hpReduce} | curse {self.cursePenalty}");
-
             self.maxHealth -= hpReduce;
             self.maxShield -= shieldReduce;
             // original logic: maxHP = current max HP / cursePenalty
@@ -234,19 +142,19 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
 
         public DeadPlayerSkull ServerSpawnSkull(Player player)
         {
-            var deathMark = Object.Instantiate(this.Plugin.DeathMarker).GetComponent<DeadPlayerSkull>();
+            var skull = Object.Instantiate(this.Plugin.DeathMarker).GetComponent<DeadPlayerSkull>();
 
-            deathMark.transform.position = player.groundPosition;
-            deathMark.transform.rotation = Quaternion.identity;
-            deathMark.radiusSphere.transform.localScale = Vector3.one * 3;
-            CreateInteraction(deathMark.gameObject);
+            skull.transform.position = player.groundPosition;
+            skull.transform.rotation = Quaternion.identity;
+            skull.radiusSphere.transform.localScale = Vector3.one * (this.Config.TotemRange);
+            CreateInteraction(skull.gameObject);
 
-            player.deathMark = deathMark;
+            player.skull = skull;
 
-            NetworkServer.Spawn(deathMark.gameObject);
+            NetworkServer.Spawn(skull.gameObject);
             Log.Info("Skull spawned on Server and Client");
 
-            return deathMark;
+            return skull;
         }
 
         public void OnClientSkullSpawned(DeadPlayerSkull skull)
@@ -254,16 +162,194 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
             CreateInteraction(skull.gameObject);
         }
 
-        public void Update(Player player, Player dead)
+        public void Update()
         {
-            // nothing here
+            if (MainTeammateRevival.IsClient())
+            {
+                UpdateProgressBar();
+                return;
+            }
+            
+            // update ground positions
+            foreach (var player in Plugin.AlivePlayers)
+            {
+                if (player.GetBody() == null)
+                {
+                    continue;
+                }
+                player.groundPosition = MainTeammateRevival.GroundPosition(player);
+            }
+
+            Player localUserInteractibleSkull = null;
+
+            // interactions between dead and alive players
+            // NOTE: using for is necessary, since these collections can be modified during iteration
+            for (var deadIdx = 0; deadIdx < this.Plugin.DeadPlayers.Count; deadIdx++)
+            {
+                var dead = this.Plugin.DeadPlayers[deadIdx];
+                var skull = dead.skull;
+                
+                //have they been revived by other means?
+                if (dead.CheckAlive()) 
+                {
+                    Plugin.PlayerAlive(dead);
+                    continue;
+                }
+                var totalHealSpeed = 0f;
+                var totalDmgSpeed = 0f;
+                var playersInRange = 0;
+
+                var insidePlayersHash = skull.GetInsidePlayersHash();
+
+                for (var aliveIdx = 0; aliveIdx < this.Plugin.AlivePlayers.Count; aliveIdx++)
+                {
+                    var player = this.Plugin.AlivePlayers[aliveIdx];
+                    if (player.CheckDead()) continue;
+                    
+                    var inRange = Vector3.Distance(player.groundPosition, dead.skull.transform.position) < this.Config.TotemRange;
+                    if (inRange)
+                    {
+                        playersInRange++;
+
+                        if (Plugin.CurrentPlayer == player)
+                        {
+                            localUserInteractibleSkull = dead;
+                        }
+                        
+                        // track players inside circle
+                        if (!skull.insidePlayerIDs.Contains(player.GetBody().netId))
+                            skull.insidePlayerIDs.Add(player.GetBody().netId);
+                        
+                        // resurrect progress
+                        var healSpeed = GetHealSpeed(player, dead, skull.insidePlayerIDs.Count);
+                        totalHealSpeed += healSpeed;
+                        dead.rechargedHealth += healSpeed * Time.deltaTime;
+
+                        // damage alive player - down to 1 HP
+                        var playersCount = dead.skull.insidePlayerIDs.Count;
+                        float damageSpeed = (player.GetBody().maxHealth * 0.85f) / Config.ReviveTimeSeconds / playersCount;
+                        totalDmgSpeed += damageSpeed;
+                        float damageAmount = damageSpeed * Time.deltaTime;
+                        player.GetBody().healthComponent.Networkhealth -= Mathf.Clamp(damageAmount, 0f, player.GetBody().healthComponent.health - 1f);
+                    }
+                    else
+                    {
+                        // track players inside circle
+                        if (skull.insidePlayerIDs.Contains(player.GetBody().netId))
+                            skull.insidePlayerIDs.Remove(player.GetBody().netId);
+                    }
+                }
+                
+                //if dead player has recharged enough health, respawn
+                if (dead.rechargedHealth >= 1)
+                {
+                    var playersToCurse = Plugin.AllPlayers.Where(p => skull.insidePlayerIDs.Contains(p.bodyID))
+                        .Append(dead)
+                        .ToArray();
+                    Revive(dead);
+                    AddCurse(playersToCurse);
+                    continue;
+                }
+                
+                if (playersInRange > 0)
+                {
+                    dead.skull.progress = dead.rechargedHealth;
+                    
+                    // effectively flooring value to reduce sync packages count
+                    var avgDmgAmount = (int)(totalDmgSpeed * Time.deltaTime / playersInRange);
+                    
+                    var data = skull.Data.Clone();
+                    data.Amount = avgDmgAmount;
+                    data.FractionPerSecond = totalHealSpeed.Truncate(4);
+                    var forceUpdate = skull.GetInsidePlayersHash() != insidePlayersHash;
+                    
+                    skull.SetValuesSend(data, forceUpdate);
+                }
+                else
+                {
+                    // if no characters are in range, reduce revive progress
+                    dead.rechargedHealth = Mathf.Clamp01(dead.rechargedHealth - this.reduceReviveProgressSpeed * Time.deltaTime);
+                    dead.skull.progress = dead.rechargedHealth;
+                    
+                    var data = new SkullData
+                    {
+                        Amount = skull.Amount,
+                        Color = new Color(1, 0, 0),
+                        FractionPerSecond = reduceReviveProgressSpeed
+                    };
+                    skull.SetValuesSend(data);
+                }
+            }
+            
+            // progress bar
+            if (localUserInteractibleSkull != null)
+            {
+                this.progressBar.SetFraction(localUserInteractibleSkull.rechargedHealth);
+                this.progressBar.SetUser(localUserInteractibleSkull.networkUser.userName);
+            }
+            else if (Plugin.CurrentPlayer.CheckDead())
+            {
+                UpdateProgressBar();
+            }
+            else
+            {
+                this.progressBar.Hide();
+            }
         }
 
-        public static void SendObol(NetworkUser networkUser)
+        public void Revive(Player dead)
         {
-            Log.Debug($"Sending Obol to {networkUser.userName}");
-            ItemTransferOrb.DispatchItemTransferOrb(teleporterPosition, networkUser.master.inventory,
-                AddedResources.RespawnItemIndex, 1);
+            Log.DebugMethod();
+            MainTeammateRevival.instance.RespawnPlayer(dead);
+            // removing consumed Dio's Best Friend
+            dead.master.master.inventory.RemoveItem(RoR2Content.Items.ExtraLifeConsumed);
+        }
+
+        public void AddCurse(params Player[] players)
+        {
+            foreach (var player in players) player.master.master.inventory.GiveItem(AddedResources.ReduceHpItemIndex);
+        }
+
+        private void UpdateProgressBar()
+        {
+            var trackingBodyId = Plugin.CurrentPlayerBodyId;
+            
+            // trying to get target player in spectator mode
+            if (trackingBodyId == null && MainTeammateRevival.runStarted && this.Plugin.CurrentPlayer != null)
+            {
+                var cameraRig = CameraRigController.instancesList.FirstOrDefault(cr => cr.viewer == this.Plugin.CurrentPlayer.networkUser);
+                if (cameraRig != null)
+                {
+                    var targetBody = cameraRig.targetBody;
+                    if (targetBody != null && targetBody.isPlayerControlled) {
+                        trackingBodyId = targetBody.netId;
+                    }
+                }
+            }
+
+            if (trackingBodyId == null)
+            {
+                return;
+            }
+            
+            var skull = this.resurrectionTracker.GetResurrectingSkull(trackingBodyId.Value);
+            if (skull == null)
+            {
+                this.progressBar.Hide();
+            }
+            else
+            {
+                this.progressBar.SetFraction(skull.progress);
+                this.progressBar.SetUser(skull.PlayerName);
+            }
+        }
+
+        public float GetHealSpeed(Player player, Player dead, int playersInRange)
+        {
+            var obolsCount = player.master.master.inventory.GetItemCount(AddedResources.ResurrectItemIndex);
+            var reviveItemMod = Config.ReviveTimeSeconds / (Config.ReviveTimeSeconds / Mathf.Pow(ObolReviveFactor, obolsCount));
+            var healPerSecond = (1f / Config.ReviveTimeSeconds / playersInRange) * reviveItemMod;
+            return healPerSecond;
         }
 
         private void CreateInteraction(GameObject gameObject)
@@ -275,64 +361,16 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
                 return;
             }
 
-            Log.Debug($"{nameof(ReduceMaxHpRevivalStrategy)}.{nameof(CreateInteraction)}()");
+            Log.DebugMethod();
+            
+            // game object need's collider in order to be interactible
             var collider = gameObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = CubeMesh;
+            collider.sharedMesh = AddedResources.CubeMesh;
 
             gameObject.AddComponent<ReviveInteraction>();
             var locator = gameObject.AddComponent<EntityLocator>();
             locator.entity = gameObject;
-            Log.Debug($"{nameof(ReduceMaxHpRevivalStrategy)}.{nameof(CreateInteraction)}() done");
-        }
-
-        private static readonly Mesh CubeMesh = new()
-        {
-            vertices = new Vector3[]
-            {
-                new(0, 0, 0),
-                new(1, 0, 0),
-                new(1, 1, 0),
-                new(0, 1, 0),
-                new(0, 1, 1),
-                new(1, 1, 1),
-                new(1, 0, 1),
-                new(0, 0, 1),
-            },
-            triangles = new[]
-            {
-                0, 2, 1, //face front
-                0, 3, 2,
-                2, 3, 4, //face top
-                2, 4, 5,
-                1, 2, 5, //face right
-                1, 5, 6,
-                0, 7, 4, //face left
-                0, 4, 3,
-                5, 4, 7, //face back
-                5, 7, 6,
-                0, 6, 7, //face bottom
-                0, 1, 6
-            }
-        };
-
-        private static Vector3 teleporterPosition =>
-            RoR2.TeleporterInteraction.instance.modelChildLocator.transform.position;
-    }
-
-    public class DebugNetworkMessage : INetMessage
-    {
-        public void Serialize(NetworkWriter writer)
-        {
-        }
-
-        public void Deserialize(NetworkReader reader)
-        {
-        }
-
-        public void OnReceived()
-        {
-            MainTeammateRevival.instance.RevivalStrategy.ServerSpawnSkull(MainTeammateRevival.instance.AlivePlayers
-                .First());
+            Log.DebugMethod("done");
         }
     }
 }

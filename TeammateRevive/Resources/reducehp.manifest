@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 3066819205
+CRC: 2536965998
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: b723b62080185bee832ae5650b92b582
+    Hash: 6b54bc992c344ee3dc38b8d6571e8e9e
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 21747e4ee48f36c7a65f9afbfd77f392
+    Hash: da8d4e8549cd12c38af25e148084ab12
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -25,11 +25,26 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 48
   Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
 - Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
   Script: {instanceID: 0}
 Assets:
 - Assets/Obol.prefab
 - Assets/Icons/obol.png
 - Assets/obolModel.blend
+- Assets/ProgressBar/ProgressBar.prefab
 - Assets/Icons/curse.png
 Dependencies: []

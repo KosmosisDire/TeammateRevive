@@ -13,7 +13,7 @@ namespace TeammateRevival
         public string FileLoggingPath { get; set; }
         public bool GodMode { get; set; }
 
-        public float TotemRange { get; set; } = 3;
+        public float TotemRange { get; set; } = 10;
         public bool IncreaseRangeWithPlayers { get; set; } = false;
         public int ReviveTimeSeconds { get; set; } = 5;
 
