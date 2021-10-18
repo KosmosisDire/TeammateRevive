@@ -1,23 +1,33 @@
 ﻿using System.Linq;
-using System.Threading.Tasks;
 using R2API.Utils;
 using RoR2;
-using TeammateRevival;
-using TeammateRevival.Logging;
+using TeammateRevive.Logging;
+using TeammateRevive.Players;
+using TeammateRevive.Resources;
+using TeammateRevive.Skull;
 using UnityEngine;
 using UnityEngine.Networking;
+using static TeammateRevive.Common.TextFormatter;
 
-namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
+namespace TeammateRevive.Revive
 {
     public class ReviveInteraction : MonoBehaviour, IInteractable, IDisplayNameProvider
     {
         private static readonly string DisplayString = 
-            $"Use {AddedResources.WrapColor("Charon's Obol", PluginColors.Green)} to revive ({AddedResources.WrapColor("Reduces Max Hp/Shield", PluginColors.Red)})";
+            $"Use {Green("Charon's Obol")} to revive ({Red("Reduces Max Hp/Shield")})";
 
         public string GetContextString(Interactor activator) => DisplayString;
 
-        // TODO: Interactability check
-        public Interactability GetInteractability(Interactor activator) => Interactability.Available;
+        public Interactability GetInteractability(Interactor activator)
+        {
+            var networkUser = Util.LookUpBodyNetworkUser(activator.gameObject);
+            if (networkUser && networkUser.master.inventory.GetItemCount(AddedResources.ReviveItemIndex) > 0)
+            {
+                return Interactability.Available;
+            }
+
+            return Interactability.ConditionsNotMet;
+        }
 
         public void OnInteractionBegin(Interactor interactor)
         {
@@ -30,12 +40,12 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
         public static void HandleInteraction(NetworkInstanceId playerNetId, NetworkInstanceId skullId)
         {
             Log.DebugMethod("Server respawn!");
-            var player = MainTeammateRevival.instance.FindPlayerFromBodyInstanceID(playerNetId);
+            var player = PlayersTracker.instance.FindByBodyId(playerNetId);
             Log.DebugMethod($"Player " + player);
 
             var skullComp = Util.FindNetworkObject(skullId).GetComponent<DeadPlayerSkull>();
             Log.DebugMethod($"Skull component " + skullId);
-            var dead = MainTeammateRevival.instance.AllPlayers.FirstOrDefault(dp => dp.skull == skullComp);
+            var dead = PlayersTracker.instance.All.FirstOrDefault(dp => dp.skull == skullComp);
             Log.DebugMethod($"Dead " + dead);
                 
             if (dead == null || player == null)
@@ -44,7 +54,7 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
                 return;
             }
 
-            var playerHasRespawnItem = player.GetBody().inventory.GetItemCount(AddedResources.ResurrectItemIndex) > 0;
+            var playerHasRespawnItem = player.GetBody().inventory.GetItemCount(AddedResources.ReviveItemIndex) > 0;
 
             if (!playerHasRespawnItem)
             {
@@ -52,8 +62,8 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
                 return;
             }
 
-            MainTeammateRevival.instance.RevivalStrategy.Revive(dead);
-            player.master.master.inventory.RemoveItem(AddedResources.ResurrectItemIndex);
+            RevivalTracker.instance.Revive(dead);
+            player.master.master.inventory.RemoveItem(AddedResources.ReviveItemIndex);
         }
 
         public bool ShouldIgnoreSpherecastForInteractibility(Interactor activator)

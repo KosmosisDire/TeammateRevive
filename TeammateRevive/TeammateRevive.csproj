@@ -23,12 +23,11 @@
   <ItemGroup>
     <Compile Remove="libs\**" />
     <EmbeddedResource Remove="libs\**" />
+    <EmbeddedResource Include="Resources\TeammateRevive.manifest" />
     <None Remove="libs\**" />
-    <None Remove="Resources\obol.png" />
-    <EmbeddedResource Include="Resources\obol.png" />
-    <None Remove="Resources\curse.png" />
-    <EmbeddedResource Include="Resources\curse.png" />
     <None Remove="Resources\reducehp" />
+    <EmbeddedResource Include="Resources\customprefabs" />
+    <EmbeddedResource Include="Resources\customprefabs.manifest" />
     <EmbeddedResource Include="Resources\reducehp" />
   </ItemGroup>
   
@@ -43,10 +42,7 @@
   
 
   <ItemGroup>
-    <EmbeddedResource Include="customprefabs" />
-    <EmbeddedResource Include="customprefabs.manifest" />
-    <EmbeddedResource Include="TeammateRevive" />
-    <EmbeddedResource Include="TeammateRevive.manifest" />
+    <EmbeddedResource Include="Resources\TeammateRevive" />
   </ItemGroup>
 
   <ItemGroup>
@@ -396,6 +392,10 @@
     </Reference>
     <Reference Include="Zio">
       <HintPath>libs\Zio.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Zio">
+      <HintPath>libs\ItemStats.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

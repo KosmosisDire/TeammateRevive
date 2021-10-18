@@ -1,18 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using TeammateRevival.Logging;
+using TeammateRevive.Logging;
+using TeammateRevive.Skull;
+using UnityEngine;
 using UnityEngine.Networking;
 
-namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
+namespace TeammateRevive.Revive
 {
-    public class ClientResurrectionTracker
+    public class SkullTracker
     {
         private readonly HashSet<DeadPlayerSkull> skulls = new();
 
-        public ClientResurrectionTracker()
+        public bool HasAnySkulls => this.skulls.Count > 0;
+
+        public SkullTracker()
         {
             DeadPlayerSkull.GlobalOnDestroy += OnSkullDestroy;
-            DeadPlayerSkull.GlobalOnCreated += OnSkullDestroy;
+            DeadPlayerSkull.GlobalOnCreated += OnSkullUpdate;
             DeadPlayerSkull.GlobalOnValuesReceived += OnSkullUpdate;
         }
 
@@ -33,9 +37,10 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
             this.skulls.Remove(obj);
         }
 
-        public DeadPlayerSkull GetResurrectingSkull(NetworkInstanceId userBodyId)
+        public DeadPlayerSkull GetSkullInRange(NetworkInstanceId userBodyId)
         {
-            return this.skulls.FirstOrDefault(s => s.insidePlayerIDs.Contains(userBodyId));
+            var skull = this.skulls.FirstOrDefault(s => s.insidePlayerIDs.Contains(userBodyId));
+            return skull;
         }
     }
 }

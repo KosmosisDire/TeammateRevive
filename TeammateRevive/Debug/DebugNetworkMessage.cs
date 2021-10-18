@@ -2,12 +2,11 @@
 using R2API.Networking.Interfaces;
 using UnityEngine.Networking;
 
-namespace TeammateRevival.RevivalStrategies
+namespace TeammateRevive.Debug
 {
     public class DebugNetworkMessage : INetMessage
     {
         private string messageType;
-        private MainTeammateRevival Plugin => MainTeammateRevival.instance;
 
         public DebugNetworkMessage()
         {
@@ -46,12 +45,7 @@ namespace TeammateRevival.RevivalStrategies
 
         public void SpawnSkull()
         {
-            if (!Plugin.DeadPlayers.Contains(Plugin.AlivePlayers[0]))
-            {
-                Plugin.DeadPlayers.Add(Plugin.AlivePlayers[0]);
-            }
-
-            Plugin.RevivalStrategy.ServerSpawnSkull(Plugin.AllPlayers[0]);
+            DebugHelper.SpawnSkullForFirstPlayer();
         }
     }
 }

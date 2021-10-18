@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace TeammateRevival.Logging
+namespace TeammateRevive.Logging
 {
     public interface ILogTarget
     {

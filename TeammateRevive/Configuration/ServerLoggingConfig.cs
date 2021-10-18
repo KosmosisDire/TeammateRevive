@@ -1,4 +1,4 @@
-namespace TeammateRevive.ServerLogging
+namespace TeammateRevive.Configuration
 {
     public class ServerLoggingConfig
     {

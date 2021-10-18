@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using BepInEx.Logging;
 using SimpleJSON;
-using TeammateRevive.ServerLogging;
+using TeammateRevive.Configuration;
 using LogLevel = BepInEx.Logging.LogLevel;
 
-namespace TeammateRevival.Logging
+namespace TeammateRevive.Logging
 {
     public class ServerLogTarget : ILogTarget, ILogListener
     {
@@ -47,7 +47,7 @@ namespace TeammateRevival.Logging
                 // TODO: debug, remove
                 ["msg"] =  (MainTeammateRevival.IsClient() ? "C " : "S ") + message?.ToString(),
                 ["text"] = $"{DateTime.Now:HH:mm:ss:fff} [{level:G}] {message}",
-                ["user"] = this.config.UserName,
+                ["user"] = (MainTeammateRevival.IsClient() ? "C " : "S ") + this.config.UserName,
                 ["room"] = this.config.RoomName
             });
             ShipLogs();
@@ -131,7 +131,7 @@ namespace TeammateRevival.Logging
 
         void ILogListener.LogEvent(object sender, LogEventArgs eventArgs)
         {
-            if (this.config.LogAll)
+            if (this.config.LogAll || eventArgs.Level.HasFlag(LogLevel.Error))
             {
                 InternalWrite(eventArgs.Level, eventArgs.Data.ToString(), true);
             }

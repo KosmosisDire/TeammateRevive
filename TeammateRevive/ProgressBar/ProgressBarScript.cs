@@ -1,23 +1,30 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
-namespace TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar
+namespace TeammateRevive.ProgressBar
 {
     public class ProgressBarScript : MonoBehaviour
     {
         private RectTransform rectTransform;
         private RectTransform barTransform;
+        public Image barImage;
 
         public float Fraction;
-
-        public float mod = 0.007f;
-        public bool ShouldMock = false;
         private TextMeshProUGUI text;
+
+        private bool isDestroyed;
 
         public bool IsShown
         {
-            get => this.gameObject.activeSelf;
-            set => this.gameObject.SetActive(value);
+            get => !this.isDestroyed && this.gameObject.activeSelf;
+            set
+            {
+                if (!this.isDestroyed)
+                {
+                    this.gameObject.SetActive(value);
+                }
+            }
         }
 
         public void SetText(string textValue) => this.text.SetText(textValue);
@@ -26,35 +33,21 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar
         {
             this.rectTransform = GetComponent<RectTransform>();
             this.barTransform = (RectTransform)this.rectTransform.Find("Bar").transform;
+            this.barImage = this.barTransform.GetComponent<Image>();
             this.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Screen.width / 3);
             this.text = this.transform.Find("Text").GetComponent<TextMeshProUGUI>();
         }
 
-        // Start is called before the first frame update
-        void Start()
+        private void OnDestroy()
         {
+            this.isDestroyed = true;
         }
 
         // Update is called once per frame
         void Update()
         {
-            if (ShouldMock) {
-                this.Fraction += this.mod;
-            
-                if (this.Fraction < 0)
-                {
-                    this.Fraction = 0;
-                    this.mod = -this.mod;
-                }
-                else if (this.Fraction > 1)
-                {
-                    this.Fraction = 1;
-                    this.mod = -this.mod;
-                }
-            }
-        
             var delta = this.barTransform.sizeDelta;
-            this.barTransform.sizeDelta = new Vector2(this.rectTransform.rect.width * Fraction, delta.y);
+            this.barTransform.sizeDelta = new Vector2(this.rectTransform.rect.width * this.Fraction, delta.y);
         }
     }
 

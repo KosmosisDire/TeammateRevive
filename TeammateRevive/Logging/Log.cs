@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BepInEx.Logging;
+using TeammateRevive.Configuration;
 
-namespace TeammateRevival.Logging
+namespace TeammateRevive.Logging
 {
     public class Log
     {

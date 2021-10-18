@@ -1,17 +1,18 @@
 ﻿using System.Reflection;
-using On.RoR2.UI;
 using R2API;
-using TeammateRevival.Logging;
+using TeammateRevive.Logging;
 using TMPro;
 using UnityEngine;
 
-namespace TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar
+namespace TeammateRevive.ProgressBar
 {
     public class ProgressBarController
     {
         private GameObject progressBarPrefab;
         private ProgressBarScript progressBarScript;
         private TextMeshProUGUI textComponent;
+
+        public bool IsShown => this.progressBarScript is { IsShown: true };
 
         public ProgressBarController()
         {
@@ -22,7 +23,6 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar
 
         private void InitProgressBar()
         {
-            
             using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.reducehp");
             var bundle = AssetBundle.LoadFromStream(stream);
 
@@ -48,6 +48,11 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar
             this.progressBarScript.Fraction = fraction > 1 ? 1 : fraction;
         }
 
+        public void SetColor(Color color)
+        {
+            this.progressBarScript.barImage.color = color;
+        }
+
         public void Hide()
         {
             if (this.progressBarScript == null) return;
@@ -60,7 +65,7 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar
         private void AttachProgressBar(RoR2.UI.HUD hud)
         {
             Log.Debug("AttachProgressBar");
-            var progressBar = PrefabAPI.InstantiateClone( this.progressBarPrefab, "Progress Bar");
+            var progressBar = this.progressBarPrefab.InstantiateClone("Progress Bar");
             this.progressBarScript = progressBar.AddComponent<ProgressBarScript>();
             progressBar.transform.SetParent(hud.mainContainer.transform);
             this.progressBarScript.IsShown = false;
@@ -74,7 +79,7 @@ namespace TeammateRevive.RevivalStrategies.ReduceMaxHp.ProgressBar
             this.textComponent.font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
         }
 
-        private void HUDOnAwake(HUD.orig_Awake orig, RoR2.UI.HUD self)
+        private void HUDOnAwake(On.RoR2.UI.HUD.orig_Awake orig, RoR2.UI.HUD self)
         {
             Log.Debug("HUDOnAwake");
             orig(self);

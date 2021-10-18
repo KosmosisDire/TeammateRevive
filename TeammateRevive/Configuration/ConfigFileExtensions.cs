@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 
-namespace TeammateRevive.ServerLogging
+namespace TeammateRevive.Configuration
 {
     public static class ConfigFileExtensions
     {

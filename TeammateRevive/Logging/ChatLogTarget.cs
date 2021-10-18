@@ -2,13 +2,13 @@
 using R2API.Utils;
 using UnityEngine;
 
-namespace TeammateRevival.Logging
+namespace TeammateRevive.Logging
 {
     public class ChatLogTarget : ILogTarget
     {
         public void Write(LogLevel level, object msg)
         {
-            if (level == LogLevel.Debug || !MainTeammateRevival.runStarted) return;
+            if (level == LogLevel.Debug || !RunTracker.instance.IsStarted) return;
             
             var color = level switch
             {

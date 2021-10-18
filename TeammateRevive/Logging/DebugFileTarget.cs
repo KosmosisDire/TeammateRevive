@@ -2,7 +2,7 @@
 using System.IO;
 using BepInEx.Logging;
 
-namespace TeammateRevival.Logging
+namespace TeammateRevive.Logging
 {
     public class DebugFileTarget : ILogTarget
     {
@@ -55,7 +55,7 @@ namespace TeammateRevival.Logging
 
         public void Write(LogLevel level, object msg)
         {
-            if (!IsEnabled) return;
+            if (!this.IsEnabled) return;
             
             using var writer = new StreamWriter(this.filePath, true);
             writer.WriteLine($"[{level.ToString("G").ToUpper()}] [{DateTime.Now}] {msg} \n");

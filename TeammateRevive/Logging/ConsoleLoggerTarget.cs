@@ -1,7 +1,6 @@
-﻿using System;
-using BepInEx.Logging;
+﻿using BepInEx.Logging;
 
-namespace TeammateRevival.Logging
+namespace TeammateRevive.Logging
 {
     public class ConsoleLoggerTarget : ILogTarget
     {

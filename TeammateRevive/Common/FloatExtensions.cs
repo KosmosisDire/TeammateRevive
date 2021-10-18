@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TeammateRevive.RevivalStrategies.ReduceMaxHp
+namespace TeammateRevive.Common
 {
     public static class FloatExtensions
     {

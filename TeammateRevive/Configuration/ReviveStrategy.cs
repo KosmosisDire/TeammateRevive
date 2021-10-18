@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace TeammateRevival
+namespace TeammateRevive.Configuration
 {
     public enum ReviveStrategy
     {

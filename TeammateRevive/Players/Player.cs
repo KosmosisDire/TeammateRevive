@@ -1,14 +1,14 @@
 ﻿using RoR2;
-using TeammateRevive.RevivalStrategies.ReduceMaxHp;
+using TeammateRevive.Skull;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace TeammateRevival
+namespace TeammateRevive.Players
 {
     public class Player
     {
-        public NetworkUser networkUser;
-        public PlayerCharacterMasterController master;
+        public readonly NetworkUser networkUser;
+        public readonly PlayerCharacterMasterController master;
 
         public DeadPlayerSkull skull = null;
 
@@ -16,22 +16,17 @@ namespace TeammateRevival
         public float rechargedHealth = 0;
         
         public bool isDead = false;
-        public NetworkInstanceId bodyID;
+        public NetworkInstanceId? BodyId => this.master.master.GetBody()?.netId;
 
         public Player(PlayerCharacterMasterController _player)
         {
             if (_player.networkUser) this.networkUser = _player.networkUser;
             this.master = _player;
-            if(this.master.master.GetBody())
-                this.bodyID = this.master.master.GetBody().netId;
-
             this.rechargedHealth = 0;
         }
 
         public CharacterBody GetBody()
         {
-            if (this.master.master.GetBody()) this.bodyID = this.master.master.GetBody().netId;
-
             return this.master.master.GetBody();
         }
 
