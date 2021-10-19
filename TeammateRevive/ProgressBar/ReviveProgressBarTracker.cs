@@ -19,7 +19,7 @@ namespace TeammateRevive.ProgressBar
         private readonly ProgressBarController progressBar;
         private readonly PlayersTracker players;
         private readonly SkullTracker skullTracker;
-        private readonly ReviveRulesCalculator rules;
+        private readonly ReviveRules rules;
 
         public DeadPlayerSkull trackingSkull;
 
@@ -28,7 +28,7 @@ namespace TeammateRevive.ProgressBar
 
         private SpectatorLabel spectatorLabel;
 
-        public ReviveProgressBarTracker(ProgressBarController progressBar, PlayersTracker players, SkullTracker skullTracker, ReviveRulesCalculator rules)
+        public ReviveProgressBarTracker(ProgressBarController progressBar, PlayersTracker players, SkullTracker skullTracker, ReviveRules rules)
         {
             this.progressBar = progressBar;
             this.players = players;
@@ -85,7 +85,7 @@ namespace TeammateRevive.ProgressBar
                 this.progressBar.SetColor(this.trackingSkull.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
             }
 
-            // player is out of skull circle, queuing to hide
+            // player moved out of skull circle, queuing to hide
             if (skull == null && this.trackingSkull != null && !this.IsQueuedToHide)
             {
                 Log.DebugMethod("queue to hide");
@@ -93,14 +93,25 @@ namespace TeammateRevive.ProgressBar
             }
 
             // hiding either if progress become 0 or specified delay elapsed
-            if (this.IsQueuedToHide && (this.trackingSkull == null || this.trackingSkull.progress == 0 || Time.time - this.queuedToHideAt > rules.PostReviveBuffTime))
+            if (this.trackingSkull != null && this.trackingSkull.progress == 0)
             {
-                Log.DebugMethod("removing tracking after delay");
+                Log.DebugMethod("removing due to progress is 0");
+                RemoveTracking();
+            }
+            
+            if (this.IsQueuedToHide && Time.time > this.queuedToHideAt)
+            {
+                Log.DebugMethod($"removing tracking after delay ({Time.time} > {this.queuedToHideAt})");
                 RemoveTracking();
             }
         }
 
-        private void QueueToHide() => this.queuedToHideAt = Time.time;
+        private void QueueToHide()
+        {
+            this.queuedToHideAt = Time.time + this.rules.PostReviveBuffTime;
+            Log.DebugMethod($"Queued to hide at {this.queuedToHideAt} (current time: {Time.time})");
+        }
+
         private void DequeFromHiding() => this.queuedToHideAt = 0;
 
         private void RemoveTracking()

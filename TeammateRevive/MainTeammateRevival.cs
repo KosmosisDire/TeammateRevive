@@ -45,7 +45,7 @@ namespace TeammateRevive
         private ItemsStatsModIntegration itemsStatsModIntegration;
         private BetterUiModIntegration betterUiModIntegration;
         private ConsoleCommands consoleCommands;
-        private ReviveRulesCalculator rules;
+        private ReviveRules rules;
 
         #region Setup
 
@@ -59,7 +59,7 @@ namespace TeammateRevive
             
             this.run = new RunTracker();
             this.players = new PlayersTracker(this.run, this.pluginConfig);
-            this.rules = new ReviveRulesCalculator(this.run);
+            this.rules = new ReviveRules(this.run);
             this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules);
             this.itemsStatsModIntegration = new ItemsStatsModIntegration(this.rules);
             this.betterUiModIntegration = new BetterUiModIntegration();
@@ -95,12 +95,6 @@ namespace TeammateRevive
         void hook_BeginStage(On.RoR2.Run.orig_BeginStage orig, Run self)
         {
             orig(self);
-            
-            if (NetworkHelper.IsServer && !this.run.IsStarted)
-            {
-                this.run.IsStarted = true;
-                this.rules.SendValues();
-            }
             this.run.IsStarted = true;
         }
 

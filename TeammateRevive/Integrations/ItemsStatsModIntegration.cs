@@ -15,9 +15,9 @@ namespace TeammateRevive.Integrations
     /// </summary>
     public class ItemsStatsModIntegration
     {
-        private readonly ReviveRulesCalculator rules;
+        private readonly ReviveRules rules;
 
-        public ItemsStatsModIntegration(ReviveRulesCalculator rules)
+        public ItemsStatsModIntegration(ReviveRules rules)
         {
             this.rules = rules;
             RoR2Application.onLoad += () =>

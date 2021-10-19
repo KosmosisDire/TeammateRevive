@@ -7,9 +7,10 @@ using RoR2;
 using TeammateRevive.Common;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
+using TeammateRevive.Resources;
+using TeammateRevive.Revive.Rules;
 using UnityEngine;
 using UnityEngine.Networking;
-using Random = UnityEngine.Random;
 
 namespace TeammateRevive.Skull
 {
@@ -21,8 +22,10 @@ namespace TeammateRevive.Skull
         public static Action<DeadPlayerSkull> GlobalOnClientCreated;
         public static Action<DeadPlayerSkull> GlobalOnDestroy;
 
+        // dependencies
+        private ReviveRules rules;
+
         // syncable state
-        public float damageAmount;
         public float progress;
         public float fractionPerSecond;
         public List<NetworkInstanceId> insidePlayerIDs = new();
@@ -32,14 +35,9 @@ namespace TeammateRevive.Skull
         public NetworkInstanceId deadPlayerId;
         private Light lighting;
         private ScaleAnimation animation;
-
         private float cachedRadius;
-    
-    
-        public NetworkInstanceId NetworkInstanceId => GetComponent<NetworkIdentity>().netId;
-    
-        private string cachedUserName;
 
+        private string cachedUserName;
         public string PlayerName
         {
             get
@@ -49,8 +47,7 @@ namespace TeammateRevive.Skull
                 return this.cachedUserName;
             }
         }
-    
-    
+
         void Awake()
         {
             Setup();
@@ -101,15 +98,15 @@ namespace TeammateRevive.Skull
             if(!NetworkServer.active)
                 this.gameObject.SetActive(false);
             this.animation = new ScaleAnimation(this.radiusSphere.transform, .2f);
+            this.rules = ReviveRules.instance;
             GlobalOnCreated?.Invoke(this);
         }
 
-        public void SetValuesReceive(NetworkInstanceId deadPlayerId, float amount,
+        public void SetValuesReceive(NetworkInstanceId deadPlayerId,
             List<NetworkInstanceId> _insidePlayerIDs, float scale, float fractionPerSecond)
         {
             Log.Debug($"Received skull values. Rad: {scale}");
             this.deadPlayerId = deadPlayerId;
-            this.damageAmount = amount;
             this.fractionPerSecond = fractionPerSecond;
             this.insidePlayerIDs = _insidePlayerIDs;
             this.cachedRadius = scale;
@@ -117,11 +114,10 @@ namespace TeammateRevive.Skull
             GlobalOnValuesReceived?.Invoke(this);
         }
 
-        public void SetValuesSend(float speed, float damageAmount, float radius, bool forceUpdate = false)
+        public void SetValuesSend(float speed, float radius, bool forceUpdate = false)
         {
             if (!forceUpdate
                 && Mathf.Approximately(speed, this.fractionPerSecond)
-                && Mathf.Approximately(damageAmount, this.damageAmount)
                 && Mathf.Approximately(radius, this.cachedRadius)
             )
             {
@@ -129,7 +125,6 @@ namespace TeammateRevive.Skull
             }
         
             this.fractionPerSecond = speed;
-            this.damageAmount = damageAmount;
             this.cachedRadius = radius;
             this.animation.AnimateTo(Vector3.one * radius);
         
@@ -157,7 +152,7 @@ namespace TeammateRevive.Skull
         {
             Log.Debug($"SyncToClients. Rad: {this.cachedRadius}");
             RemoveDeadIDs();
-            new SyncSkullMessage(this.NetworkInstanceId, this.deadPlayerId, this.insidePlayerIDs, this.damageAmount, this.cachedRadius, this.fractionPerSecond).Send(NetworkDestination.Clients);
+            new SyncSkullMessage(GetComponent<NetworkIdentity>().netId, this.deadPlayerId, this.insidePlayerIDs, this.cachedRadius, this.fractionPerSecond).Send(NetworkDestination.Clients);
             Log.Debug("Rad: " + this.radiusSphere.transform.localScale.x);
         }
 
@@ -183,18 +178,26 @@ namespace TeammateRevive.Skull
 
             foreach (var playerID in this.insidePlayerIDs)
             {
-                GameObject player = Util.FindNetworkObject(playerID);
-            
-                if (!player)
-                {
+                var body = GetBody(playerID);
+                if (!body)
                     continue;
-                }
+                
+                var deadPlayerObolsCount = body.master.inventory.GetItemCount(ItemsAndBuffs.ReviveItemIndex);
+                var damageSpeed = this.rules.GetDamageSpeed(this.insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount);
 
-                DamageNumberManager.instance.SpawnDamageNumber(this.damageAmount * this.damageNumberElapsed, player.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);
+                DamageNumberManager.instance.SpawnDamageNumber(damageSpeed * this.damageNumberElapsed, body.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);
             }
 
-            DamageNumberManager.instance.SpawnDamageNumber(this.damageAmount * this.damageNumberElapsed, this.transform.position, false, TeamIndex.Player, DamageColorIndex.Heal);
+            DamageNumberManager.instance.SpawnDamageNumber(this.fractionPerSecond * this.damageNumberElapsed * 100, this.transform.position, false, TeamIndex.Player, DamageColorIndex.Heal);
             this.damageNumberElapsed = 0;
+        }
+
+        CharacterBody GetBody(NetworkInstanceId playerID)
+        {
+            var player = Util.FindNetworkObject(playerID);
+            if (!player)
+                return null;
+            return player.GetComponent<CharacterBody>();
         }
     }
 }

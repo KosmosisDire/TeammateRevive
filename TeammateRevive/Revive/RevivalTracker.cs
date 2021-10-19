@@ -21,9 +21,9 @@ namespace TeammateRevive.Revive
 
         private readonly PlayersTracker players;
         private readonly RunTracker run;
-        private readonly ReviveRulesCalculator rules;
+        private readonly ReviveRules rules;
 
-        public RevivalTracker(PlayersTracker players, RunTracker run, ReviveRulesCalculator rules)
+        public RevivalTracker(PlayersTracker players, RunTracker run, ReviveRules rules)
         {
             instance = this;
             this.players = players;
@@ -270,7 +270,7 @@ namespace TeammateRevive.Revive
                 var avgDmgAmountPerSecond = (totalDmgSpeed / playersInRange).Truncate(1);
                 var fractionPerSecond = totalReviveSpeed.Truncate(4);
 
-                skull.SetValuesSend(fractionPerSecond, avgDmgAmountPerSecond, actualRange, forceUpdate);
+                skull.SetValuesSend(fractionPerSecond, actualRange, forceUpdate);
             }
             else
             {
@@ -290,7 +290,7 @@ namespace TeammateRevive.Revive
                 }
 
                 skull.progress = dead.reviveProgress;
-                skull.SetValuesSend(this.rules.ReduceReviveProgressSpeed, 0, actualRange, forceUpdate);
+                skull.SetValuesSend(this.rules.ReduceReviveProgressSpeed, actualRange, forceUpdate);
             }
         }
 

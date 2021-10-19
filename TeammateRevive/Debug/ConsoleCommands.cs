@@ -11,12 +11,12 @@ namespace TeammateRevive.Debug
 {
     public class ConsoleCommands
     {
-        private readonly ReviveRulesCalculator rules;
+        private readonly ReviveRules rules;
         private readonly PluginConfig config;
 
         private readonly Dictionary<string, RoR2.Console.ConCommand> conCommands;
 
-        public ConsoleCommands(ReviveRulesCalculator rules, PluginConfig config)
+        public ConsoleCommands(ReviveRules rules, PluginConfig config)
         {
             this.rules = rules;
             this.config = config;
@@ -94,6 +94,8 @@ namespace TeammateRevive.Debug
 
         public void ToggleGodMode(ConCommandArgs args)
         {
+            if (NetworkHelper.IsClient()) return;
+            
             this.config.GodMode = !this.config.GodMode;
             var message = $"GodModeEnabled: {this.config.GodMode}";
             UnityEngine.Debug.Log(message);
@@ -102,6 +104,8 @@ namespace TeammateRevive.Debug
         
         public void PrintRuleValues(ConCommandArgs args)
         {
+            if (NetworkHelper.IsClient()) return;
+            
             foreach (var property in typeof(ReviveRuleValues).GetProperties())
             {
                 var message = $"{property.Name}: {property.GetValue(this.rules.Values):F2}";
@@ -109,7 +113,7 @@ namespace TeammateRevive.Debug
                 Chat.AddMessage(message);
             }
             
-            foreach (var property in typeof(ReviveRulesCalculator).GetProperties().Where(p => p.PropertyType == typeof(float)))
+            foreach (var property in typeof(ReviveRules).GetProperties().Where(p => p.PropertyType == typeof(float)))
             {
                 var message = $"[c] {property.Name}: {property.GetValue(this.rules):F2}";
                 UnityEngine.Debug.Log(message);
@@ -119,6 +123,8 @@ namespace TeammateRevive.Debug
 
         private void SetRuleVariable(ConCommandArgs args)
         {
+            if (NetworkHelper.IsClient()) return;
+            
             var name = args.GetArgString(0);
             var val = args.GetArgFloat(1);
 

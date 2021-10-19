@@ -11,6 +11,7 @@ namespace TeammateRevive.Revive.Rules
 
         public SetRulesMessage()
         {
+            this.ruleValues = new ReviveRuleValues();
         }
 
         public SetRulesMessage(ReviveRuleValues ruleValues)
@@ -52,7 +53,7 @@ namespace TeammateRevive.Revive.Rules
             Log.Info("Received new rule values");
             if (NetworkHelper.IsClient())
             {
-                ReviveRulesCalculator.instance.ApplyValues(this.ruleValues);
+                ReviveRules.instance.ApplyValues(this.ruleValues);
                 Log.Info("Applied new rule values");
             }
         }

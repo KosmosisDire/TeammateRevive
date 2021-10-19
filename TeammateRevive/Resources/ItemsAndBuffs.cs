@@ -18,6 +18,11 @@ namespace TeammateRevive.Resources
             public const string ReviveItem = "CharonsObol";
         }
         
+        public static BuffIndex DeathCurseBuffIndex;
+        public static BuffIndex ReviveInvolvementBuffIndex;
+        public static ItemIndex ReduceHpItemIndex;
+        public static ItemIndex ReviveItemIndex;
+        
         public static bool Loaded { get; private set; }
         public static bool InitedIndexes { get; private set; }
         public static void Init()
@@ -117,9 +122,5 @@ namespace TeammateRevive.Resources
             ReviveInvolvementBuffIndex = BuffCatalog.FindBuffIndex(Keys.ReviveInvolvementBuff);
         }
 
-        public static BuffIndex DeathCurseBuffIndex;
-        public static BuffIndex ReviveInvolvementBuffIndex;
-        public static ItemIndex ReduceHpItemIndex;
-        public static ItemIndex ReviveItemIndex;
     }
 }

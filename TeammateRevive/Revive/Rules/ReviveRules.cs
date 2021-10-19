@@ -1,6 +1,7 @@
 ﻿using System;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
+using TeammateRevive.Common;
 using TeammateRevive.Configuration;
 using TeammateRevive.Players;
 using TeammateRevive.Resources;
@@ -8,12 +9,12 @@ using UnityEngine;
 
 namespace TeammateRevive.Revive.Rules
 {
-    public class ReviveRulesCalculator
+    public class ReviveRules
     {
-        public static ReviveRulesCalculator instance;
+        public static ReviveRules instance;
         
         private readonly RunTracker run;
-        public event Action<ReviveRulesCalculator> ValuesChanged;
+        public event Action<ReviveRules> ValuesChanged;
 
         public ReviveRuleValues Values { get; private set; }
         
@@ -21,10 +22,19 @@ namespace TeammateRevive.Revive.Rules
         public float ReduceReviveProgressSpeed { get; private set; }
         public float PostReviveBuffTime { get; private set; }
 
-        public ReviveRulesCalculator(RunTracker run)
+        public ReviveRules(RunTracker run)
         {
             instance = this;
             this.run = run;
+            this.run.RunStarted += OnRunStarted;
+        }
+
+        private void OnRunStarted(RunTracker sender)
+        {
+            if (NetworkHelper.IsServer)
+            {
+                SendValues();
+            }
         }
 
         public void ApplyConfigValues(PluginConfig pluginConfig)
@@ -46,7 +56,7 @@ namespace TeammateRevive.Revive.Rules
 
         public void SendValues()
         {
-            if (this.run.IsStarted) new SetRulesMessage(this.Values).Send(NetworkDestination.Clients);
+            new SetRulesMessage(this.Values).Send(NetworkDestination.Clients);
         }
 
         public float CalculateSkullRadius(Player dead)
@@ -86,8 +96,12 @@ namespace TeammateRevive.Revive.Rules
             var playersInRange = dead.skull.insidePlayerIDs.Count;
             
             var deadPlayerObolsCount = dead.master.master.inventory.GetItemCount(ItemsAndBuffs.ReviveItemIndex);
-            
-            float damageSpeed = ((player.GetBody().maxHealth * 0.85f) / this.Values.ReviveTimeSeconds / playersInRange) * GetReviveReduceDamageFactor(deadPlayerObolsCount);
+            return GetDamageSpeed(playersInRange, player.GetBody().maxHealth, deadPlayerObolsCount);
+        }
+        
+        public float GetDamageSpeed(int playersInRange, float playerMaxHealth, int deadPlayerObolsCount)
+        {
+            float damageSpeed = ((playerMaxHealth * 0.85f) / this.Values.ReviveTimeSeconds / playersInRange) * GetReviveReduceDamageFactor(deadPlayerObolsCount);
             return damageSpeed;
         }
 

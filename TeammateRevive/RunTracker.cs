@@ -1,20 +1,38 @@
-﻿using RoR2;
+﻿using System;
+using RoR2;
+using TeammateRevive.Logging;
 
 namespace TeammateRevive
 {
     public class RunTracker
     {
         public static RunTracker instance;
-        
-        public bool IsStarted { get; set; }
+
+        public event Action<RunTracker> RunStarted;
+
+        private bool isStarted;
+        public bool IsStarted
+        {
+            get => this.isStarted;
+            set
+            {
+                if (this.IsStarted == value) return;
+                this.isStarted = value;
+                if (value)
+                {
+                    Log.Info("Run started");
+                    this.RunStarted?.Invoke(this);
+                }
+            }
+        }
 
         public RunTracker()
         {
-            Run.onRunStartGlobal += OnRunStarted;
+            Run.onRunStartGlobal += GlobalOnRunStarted;
             instance = this;
         }
 
-        private void OnRunStarted(Run obj)
+        void GlobalOnRunStarted(Run obj)
         {
             this.IsStarted = true;
         }
