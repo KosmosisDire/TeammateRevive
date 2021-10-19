@@ -23,7 +23,6 @@
   <ItemGroup>
     <Compile Remove="libs\**" />
     <EmbeddedResource Remove="libs\**" />
-    <EmbeddedResource Include="Resources\TeammateRevive.manifest" />
     <None Remove="libs\**" />
     <None Remove="Resources\reducehp" />
     <EmbeddedResource Include="Resources\customprefabs" />
@@ -38,11 +37,6 @@
     <None Remove="deathmarker" />
     <None Remove="TeammateRevive" />
     <None Remove="TeammateRevive.manifest" />
-  </ItemGroup>
-  
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\TeammateRevive" />
   </ItemGroup>
 
   <ItemGroup>
@@ -394,8 +388,12 @@
       <HintPath>libs\Zio.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Zio">
+    <Reference Include="ItemStats">
       <HintPath>libs\ItemStats.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BetterUI">
+      <HintPath>libs\BetterUI.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

@@ -4,55 +4,64 @@ using ItemStats;
 using ItemStats.Stat;
 using ItemStats.ValueFormatters;
 using RoR2;
-using TeammateRevive.Configuration;
 using TeammateRevive.Logging;
 using TeammateRevive.Resources;
-using TeammateRevive.Revive;
-using UnityEngine;
+using TeammateRevive.Revive.Rules;
 
 namespace TeammateRevive.Integrations
 {
+    /// <summary>
+    /// Adds description for added items.
+    /// </summary>
     public class ItemsStatsModIntegration
     {
-        private readonly PluginConfig config;
+        private readonly ReviveRulesCalculator rules;
 
-        public ItemsStatsModIntegration(PluginConfig config)
+        public ItemsStatsModIntegration(ReviveRulesCalculator rules)
         {
-            this.config = config;
+            this.rules = rules;
             RoR2Application.onLoad += () =>
             {
                 if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("dev.ontrigger.itemstats"))
                 {
-                    this.AddToItemStats();
+                    AddToItemStats();
                 }
             };
         }
         
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public void AddToItemStats()
+        void AddToItemStats()
         {
-            if (!AddedResources.InitedIndexes || AddedResources.ReviveItemIndex.ToString() == "None")
+            if (!ItemsAndBuffs.InitedIndexes || ItemsAndBuffs.ReviveItemIndex.ToString() == "None")
             {
-                Log.Warn("Cannot add ItemStats integration - items weren't loaded at application start!");
+                Log.Warn("ItemStats integration: Cannot add - items weren't loaded at application start!");
                 return;
             }
 
-            ItemStatsMod.AddCustomItemStatDef(AddedResources.ReviveItemIndex, new ItemStatDef
+            ItemStatsMod.AddCustomItemStatDef(ItemsAndBuffs.ReviveItemIndex, new ItemStatDef
             {
                 Stats = new List<ItemStat>
                 {
                     new(
-                        (itemCount, ctx) => this.config.ReviveTimeSeconds / ( this.config.ReviveTimeSeconds / Mathf.Pow(RevivalTracker.ObolReviveFactor, itemCount)) - 1,
+                        (itemCount, ctx) => this.rules.GetReviveIncrease((int)itemCount),
                         (value, ctx) => $"Revive speed increased by {value.FormatPercentage(signed: true, decimalPlaces: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.config.ReviveTimeSeconds / Mathf.Pow(RevivalTracker.ObolReviveFactor, itemCount),
+                        (itemCount, ctx) => this.rules.GetReviveTime((int)itemCount),
                         (value, ctx) => $"Time to revive alone: {value.FormatInt(postfix: "s", decimals: 1)}"
+                    ),
+                    new(
+                        (itemCount, ctx) => this.rules.CalculateSkullRadius((int)itemCount, 1),
+                        (value, ctx) => $"Revive circle range: {value.FormatInt(postfix: "m", decimals: 1)}"
+                    ),
+                    new(
+                        (itemCount, ctx) => this.rules.GetReviveReduceDamageFactor((int)itemCount) - 1,
+                        (value, ctx) => $"Damage from your circle: {value.FormatPercentage(decimalPlaces: 1, signed: true)}"
                     )
                 }
             });
             
-            Log.Info($"Added ItemStats integration! Idx {AddedResources.ReviveItemIndex}");
+            Log.Info($"ItemStats integration: Added! Idx {ItemsAndBuffs.ReviveItemIndex}");
         }
     }
 }

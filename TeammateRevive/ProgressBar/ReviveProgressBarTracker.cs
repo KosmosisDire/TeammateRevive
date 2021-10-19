@@ -2,41 +2,38 @@
 using RoR2;
 using RoR2.UI;
 using TeammateRevive.Common;
-using TeammateRevive.Configuration;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
-using TeammateRevive.Revive;
+using TeammateRevive.Revive.Rules;
 using TeammateRevive.Skull;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace TeammateRevive.ProgressBar
 {
-    public class ReviveProgressTracker
+    public class ReviveProgressBarTracker
     {
         private static readonly Color NegativeProgressColor = new(1, .35f, .35f);
         private static readonly Color PositiveProgressColor = Color.white;
         
         private readonly ProgressBarController progressBar;
         private readonly PlayersTracker players;
-        private readonly RunTracker run;
         private readonly SkullTracker skullTracker;
+        private readonly ReviveRulesCalculator rules;
 
         public DeadPlayerSkull trackingSkull;
 
         private float queuedToHideAt;
         private bool IsQueuedToHide => this.queuedToHideAt > 0;
-        private readonly float delayBeforeHiding;
 
         private SpectatorLabel spectatorLabel;
 
-        public ReviveProgressTracker(ProgressBarController progressBar, PlayersTracker players, RunTracker run, SkullTracker skullTracker, PluginConfig config)
+        public ReviveProgressBarTracker(ProgressBarController progressBar, PlayersTracker players, SkullTracker skullTracker, ReviveRulesCalculator rules)
         {
             this.progressBar = progressBar;
             this.players = players;
-            this.run = run;
             this.skullTracker = skullTracker;
-            this.delayBeforeHiding = config.ReviveTimeSeconds / RevivalTracker.ReduceReviveProgressFactor;
+            this.rules = rules;
             
             DeadPlayerSkull.GlobalOnDestroy += OnSkullDestroy;
             On.RoR2.UI.SpectatorLabel.Awake += SpectatorLabelAwake;
@@ -96,7 +93,7 @@ namespace TeammateRevive.ProgressBar
             }
 
             // hiding either if progress become 0 or specified delay elapsed
-            if (this.IsQueuedToHide && (this.trackingSkull == null || this.trackingSkull.progress == 0 || Time.time - this.queuedToHideAt > this.delayBeforeHiding))
+            if (this.IsQueuedToHide && (this.trackingSkull == null || this.trackingSkull.progress == 0 || Time.time - this.queuedToHideAt > rules.PostReviveBuffTime))
             {
                 Log.DebugMethod("removing tracking after delay");
                 RemoveTracking();
@@ -127,7 +124,8 @@ namespace TeammateRevive.ProgressBar
 
         private NetworkInstanceId? GetSpectatingBody()
         {
-            if (this.spectatorLabel != null && !this.spectatorLabel.gameObject.IsDestroyed() && !this.spectatorLabel.labelRoot.IsDestroyed() && this.spectatorLabel.labelRoot.activeSelf)
+            var isInSpectatorMode = this.spectatorLabel != null && !this.spectatorLabel.gameObject.IsDestroyed() && !this.spectatorLabel.labelRoot.IsDestroyed() && this.spectatorLabel.labelRoot.activeSelf;
+            if (isInSpectatorMode)
             {
                 var target = this.spectatorLabel.cachedTarget;
                 if (target.IsDestroyed())

@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 2674980192
+CRC: 526918482
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 27112da082d35acb6ded687d822c812b
+    Hash: 1de082c36ce0c15d9eae949d951ca908
   TypeTreeHash:
     serializedVersion: 2
     Hash: da8d4e8549cd12c38af25e148084ab12
@@ -45,6 +45,7 @@ Assets:
 - Assets/Obol.prefab
 - Assets/Icons/obol.png
 - Assets/obolModel.blend
+- Assets/Icons/timed_curse.png
 - Assets/ProgressBar/ProgressBar.prefab
 - Assets/Icons/curse.png
 Dependencies: []

@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using TeammateRevive.Logging;
-using TeammateRevive.Skull;
-using UnityEngine;
 using UnityEngine.Networking;
 
-namespace TeammateRevive.Revive
+namespace TeammateRevive.Skull
 {
     public class SkullTracker
     {

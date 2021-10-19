@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using RoR2;
+using TeammateRevive.Common;
 using TeammateRevive.Configuration;
 using TeammateRevive.Logging;
 using UnityEngine;
@@ -19,13 +22,14 @@ namespace TeammateRevive.Players
         float playerSetupTimer = 3;
 
         public event Action<Player> OnPlayerDead;
+        public event Action<Player> OnPlayerAlive;
 
         public PlayerCharacterMasterController CurrentUserPlayerCharacterMasterController { get; set; }
         public NetworkInstanceId? CurrentUserBodyId => this.CurrentUserPlayerCharacterMasterController?.master.GetBody()?.netId;
 
-        public readonly List<Player> Alive = new();
-        public readonly List<Player> Dead = new();
-        public readonly List<Player> All = new();
+        public List<Player> Alive = new();
+        public List<Player> Dead = new();
+        public List<Player> All = new();
         
         public int TotalCount { get; set; }
         public bool Setup { get; set; }
@@ -44,7 +48,7 @@ namespace TeammateRevive.Players
 
         public void Respawn(Player player)
         {
-            if (MainTeammateRevival.IsClient()) return;
+            if (NetworkHelper.IsClient()) return;
 
             if (!this.Dead.Contains(player)) return;
 
@@ -93,7 +97,7 @@ namespace TeammateRevive.Players
         
         void hook_OnUserRemoved(On.RoR2.Run.orig_OnUserRemoved orig, Run self, NetworkUser user)
         {
-            if (MainTeammateRevival.IsClient())
+            if (NetworkHelper.IsClient())
             {
                 orig(self, user);
                 return;
@@ -123,7 +127,7 @@ namespace TeammateRevive.Players
         
         void hook_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, GlobalEventManager self, DamageReport damageReport, NetworkUser victimNetworkUser)
         {
-            if (MainTeammateRevival.IsServer)
+            if (NetworkHelper.IsServer)
             {
                 Player victim = FindByBodyId(victimNetworkUser.GetCurrentBody().netId);
                 if (this.Alive.Contains(victim))
@@ -143,16 +147,20 @@ namespace TeammateRevive.Players
         {
             orig(self);
 
-
             if (self.networkUser.isLocalPlayer)
             {
                 this.CurrentUserPlayerCharacterMasterController = self;
-                // this.CurrentUserBody = self.master.GetBody();
                 Log.Debug($"Set local player body to {this.CurrentUserBodyId} ({this.CurrentUserBodyId})");
             }
 
-            if (MainTeammateRevival.IsClient())
+            if (NetworkHelper.IsClient())
                 return;
+
+            if (this.All.Any(p => p.master == self))
+            {
+                Log.Info($"BodyStart: {self.networkUser.userName} player already exists.");
+                return;
+            }
 
             Player p = new Player(self);
             if (this.config.GodMode)
@@ -169,7 +177,6 @@ namespace TeammateRevive.Players
             this.numPlayersSetup++;
             Log.Info(self.networkUser.userName + " Setup");
             this.TotalCount = NetworkManager.singleton.numPlayers;
-            // if (DamageNumberManager.instance == null) TotalPlayers--;
             this.playerSetupTimer = 0;
 
             if (this.numPlayersSetup == this.TotalCount)
@@ -179,32 +186,49 @@ namespace TeammateRevive.Players
             }
         }
 
-
         private void PlayerDead(Player p)
         {
-            Log.Debug($"Player dead: {p.networkUser.userName}| {this.Alive.Contains(p)} {this.Dead.Contains(p)}");
+            RemoveDuplicates();
+            LogPlayers($"Player dead: {p.networkUser.userName}");
             if (this.Alive.Contains(p)) this.Alive.Remove(p);
             if(!this.Dead.Contains(p)) this.Dead.Add(p);
             p.isDead = true;
-            p.rechargedHealth = 0;
+            p.reviveProgress = 0;
             
-            if (MainTeammateRevival.IsClient()) return;
+            if (NetworkHelper.IsClient()) return;
             this.OnPlayerDead?.Invoke(p);
         }
         
         public void PlayerAlive(Player p)
         {
-            Log.Debug($"Player alive: {p.networkUser.userName}| {this.Alive.Contains(p)} {this.Dead.Contains(p)}");
+            RemoveDuplicates();
+            LogPlayers($"Player alive: {p.networkUser.userName}");
             if (!this.Alive.Contains(p)) this.Alive.Add(p);
             if (this.Dead.Contains(p)) this.Dead.Remove(p);
             p.isDead = false;
-            p.rechargedHealth = 0;
+            p.reviveProgress = 0;
             NetworkServer.Destroy(p.skull.gameObject);
+            this.OnPlayerAlive?.Invoke(p);
         }
 
-        public void UpdateSetup()
+        // this is needed only during debug when reviving self
+        [Conditional("DEBUG")]
+        void RemoveDuplicates()
         {
-            if (MainTeammateRevival.IsServer && !this.Setup)
+            this.Alive = this.Alive.Distinct().ToList();
+            this.Dead = this.Dead.Distinct().ToList();
+        }
+
+        void LogPlayers(string prefix)
+        {
+            var alives = string.Join(", ", this.Alive.Select(p => p.networkUser.userName));
+            var deads = string.Join(", ", this.Dead.Select(p => p.networkUser.userName));
+            Log.Info($"{prefix}; Alive: {alives} | Dead: {deads}");
+        }
+
+        public void Update()
+        {
+            if (NetworkHelper.IsServer && !this.Setup)
             {
                 if (this.numPlayersSetup > 0)
                 {

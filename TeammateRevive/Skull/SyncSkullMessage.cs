@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 namespace TeammateRevive.Skull
 {
-    public class SyncSkull : INetMessage
+    public class SyncSkullMessage : INetMessage
     {
         public NetworkInstanceId skullId;
         public NetworkInstanceId deadPlayerId;
@@ -18,12 +18,12 @@ namespace TeammateRevive.Skull
         public float radius;
         private float fractionPerSecond;
 
-        public SyncSkull() 
+        public SyncSkullMessage() 
         {
 
         }
 
-        public SyncSkull(NetworkInstanceId skullId, NetworkInstanceId deadPlayerId, List<NetworkInstanceId> insideIDs, float amount, float radius, float fractionPerSecond)
+        public SyncSkullMessage(NetworkInstanceId skullId, NetworkInstanceId deadPlayerId, List<NetworkInstanceId> insideIDs, float amount, float radius, float fractionPerSecond)
         {
             this.skullId = skullId;
             this.deadPlayerId = deadPlayerId;

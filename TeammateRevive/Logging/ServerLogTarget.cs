@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BepInEx.Logging;
 using SimpleJSON;
+using TeammateRevive.Common;
 using TeammateRevive.Configuration;
 using LogLevel = BepInEx.Logging.LogLevel;
 
@@ -45,9 +46,9 @@ namespace TeammateRevive.Logging
                 ["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 ["level"] = MapLevel(level),
                 // TODO: debug, remove
-                ["msg"] =  (MainTeammateRevival.IsClient() ? "C " : "S ") + message?.ToString(),
+                ["msg"] =  (NetworkHelper.IsClient() ? "C " : "S ") + message?.ToString(),
                 ["text"] = $"{DateTime.Now:HH:mm:ss:fff} [{level:G}] {message}",
-                ["user"] = (MainTeammateRevival.IsClient() ? "C " : "S ") + this.config.UserName,
+                ["user"] = (NetworkHelper.IsClient() ? "C " : "S ") + this.config.UserName,
                 ["room"] = this.config.RoomName
             });
             ShipLogs();

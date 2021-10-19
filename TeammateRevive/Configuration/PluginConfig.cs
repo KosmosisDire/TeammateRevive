@@ -13,26 +13,14 @@ namespace TeammateRevive.Configuration
         public bool GodMode { get; set; }
 
         public float TotemRange { get; set; } = 20;
-        public bool IncreaseRangeWithPlayers { get; set; } = false;
+        public bool IncreaseRangeWithPlayers { get; set; } = true;
         public int ReviveTimeSeconds { get; set; } = 6;
-
-
-        public ReviveStrategy ReviveStrategy { get; set; }
 
 
         public static PluginConfig Load(ConfigFile config)
         {
             return new PluginConfig
             {
-                ReviveStrategy = config.Bind<ReviveStrategy>(
-                    section: "Revive",
-                    key: "Revive behavior",
-                    defaultValue: ReviveStrategy.DamageInRange,
-                    new ConfigDescription("Select how revive will be done", 
-                        new AcceptableValueRange<ReviveStrategy>(ReviveStrategy.DamageInRange, ReviveStrategy.ReduceMaxHp)
-                    )
-                ).Value,
-                
                 ConsoleLogging = config.Bind<bool>(
                     section: "Debugging",
                     key: "Console Logging",
