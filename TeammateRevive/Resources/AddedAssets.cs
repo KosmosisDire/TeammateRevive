@@ -25,6 +25,9 @@ namespace TeammateRevive.Resources
             ReviveItemIcon = bundle.LoadAsset<Sprite>("Assets/Icons/obol.png");
             RevivePenaltyBuffIcon = bundle.LoadAsset<Sprite>("Assets/Icons/curse.png");
             ReviveInvolvementBuffIcon = bundle.LoadAsset<Sprite>("Assets/Icons/timed_curse.png");
+            
+            DeathCurseArtifactEnabledIcon = bundle.LoadAsset<Sprite>("Assets/Icons/artifactCurseEnabled.png");
+            DeathCurseArtifactDisabledIcon = bundle.LoadAsset<Sprite>("Assets/Icons/artifactCurseDisabled.png");
 
             bundle.Unload(false);
         }
@@ -40,7 +43,7 @@ namespace TeammateRevive.Resources
                 if (material.shader.name.StartsWith("StubbedShader"))
                 {
                     material.shader = UnityEngine.Resources.Load<Shader>("shaders" + material.shader.name.Substring(13));
-                    materials.Add(material);
+                    Materials.Add(material);
                 }
             }
 
@@ -49,7 +52,7 @@ namespace TeammateRevive.Resources
             dm.AddComponent<DeadPlayerSkull>();
             DeathMarker = dm.InstantiateClone("Death Marker");
             dm.GetComponent<DeadPlayerSkull>().Setup();
-            dm.GetComponent<DeadPlayerSkull>().radiusSphere.material = materials[0];
+            dm.GetComponent<DeadPlayerSkull>().radiusSphere.material = Materials[0];
 
             bundle.Unload(false);
         }
@@ -58,7 +61,11 @@ namespace TeammateRevive.Resources
         public static Sprite ReviveItemIcon;
         public static Sprite RevivePenaltyBuffIcon;
         public static Sprite ReviveInvolvementBuffIcon;
-        public static List<Material> materials = new();
+        
+        public static Sprite DeathCurseArtifactEnabledIcon;
+        public static Sprite DeathCurseArtifactDisabledIcon;
+        
+        public static readonly List<Material> Materials = new();
         public static GameObject DeathMarkerPrefab { get; private set; }
         public static GameObject DeathMarker { get; private set; }
         

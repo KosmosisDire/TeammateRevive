@@ -61,7 +61,7 @@ namespace TeammateRevive.Integrations
                 }
             });
             
-            Log.Info($"ItemStats integration: Added! Idx {ItemsAndBuffs.ReviveItemIndex}");
+            Log.Info($"ItemStats integration: OK! Idx {ItemsAndBuffs.ReviveItemIndex}");
         }
     }
 }

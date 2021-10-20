@@ -73,15 +73,24 @@ namespace TeammateRevive.Revive
         void OnBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self)
         {
             orig(self);
+            Log.DebugMethod();
 
-            // Remove Obol from drop list if single player
-            if (NetworkUser.readOnlyInstancesList.Count < 2)
+            // Remove Obol from drop list if single player or if death curse disabled
+            
+            // NOTE: need to check ForceDeathCurseRule rule explicitly because run starts after drop table is built
+            var isDeathCurseEnabled = this.run.IsDeathCurseEnabled || (NetworkHelper.IsServer && this.rules.Values.ForceDeathCurseRule);
+            
+            if (NetworkUser.readOnlyInstancesList.Count < 2 || !isDeathCurseEnabled)
             {
                 var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == ItemsAndBuffs.ReviveItemIndex);
                 if (respawnItemIdx >= 0)
                 {
-                    Log.Info("Only one player in game - removing respawn item from drop list");
+                    Log.Info("Removing Charon's Obol from drop list");
                     self.availableTier2DropList.RemoveAt(respawnItemIdx);
+                }
+                else
+                {
+                    Log.Info("Charon's Obol isn't found in drop list!");
                 }
             }
         }
@@ -93,7 +102,7 @@ namespace TeammateRevive.Revive
             Log.Debug($"Stage start: {self.sceneDef.cachedName}");
             this.skullTracker.Clear();
 
-            if (NetworkHelper.IsClient() || IgnoredStages.Contains(sceneName))
+            if (NetworkHelper.IsClient() || IgnoredStages.Contains(sceneName) || !this.run.IsDeathCurseEnabled)
                 return;
 
             foreach (var networkUser in NetworkUser.readOnlyInstancesList)
@@ -108,12 +117,13 @@ namespace TeammateRevive.Revive
         
         void OnClientSkullSpawned(DeadPlayerSkull skull)
         {
+            if (!this.run.IsDeathCurseEnabled) return;
             CreateInteraction(skull.gameObject);
         }
 
         private void OnCharacterBodyRecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
         {
-            if (self.inventory == null)
+            if (self.inventory == null || !this.run.IsDeathCurseEnabled)
             {
                 orig(self);
                 return;
@@ -229,8 +239,11 @@ namespace TeammateRevive.Revive
                     }
                 }
 
-                UpdateReviveInvolvementBuffs();
-                
+                if (this.run.IsDeathCurseEnabled)
+                {
+                    UpdateReviveInvolvementBuffs();
+                }
+
                 //if dead player has recharged enough health, respawn and give curse for everyone in range
                 if (dead.reviveProgress >= 1)
                 {
@@ -243,7 +256,10 @@ namespace TeammateRevive.Revive
                         .Append(dead)
                         .ToArray();
                     Revive(dead);
-                    AddCurse(playersToCurse);
+                    
+                    if (this.run.IsDeathCurseEnabled)
+                        AddCurse(playersToCurse);
+                    
                     continue;
                 }
 
@@ -266,8 +282,6 @@ namespace TeammateRevive.Revive
             if (playersInRange > 0)
             {
                 skull.progress = dead.reviveProgress;
-
-                var avgDmgAmountPerSecond = (totalDmgSpeed / playersInRange).Truncate(1);
                 var fractionPerSecond = totalReviveSpeed.Truncate(4);
 
                 skull.SetValuesSend(fractionPerSecond, actualRange, forceUpdate);
@@ -334,7 +348,10 @@ namespace TeammateRevive.Revive
             skull.transform.position = player.groundPosition;
             skull.transform.rotation = Quaternion.identity;
             skull.radiusSphere.transform.localScale = Vector3.one * (this.rules.Values.BaseTotemRange);
-            CreateInteraction(skull.gameObject);
+            if (this.run.IsDeathCurseEnabled)
+            {
+                CreateInteraction(skull.gameObject);
+            }
 
             player.skull = skull;
 

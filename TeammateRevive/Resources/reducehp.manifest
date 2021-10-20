@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 526918482
+CRC: 512731479
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 1de082c36ce0c15d9eae949d951ca908
+    Hash: 6b0f8e1e9eec000a6405e859bb88c10d
   TypeTreeHash:
     serializedVersion: 2
     Hash: da8d4e8549cd12c38af25e148084ab12
@@ -43,9 +43,11 @@ ClassTypes:
   Script: {instanceID: 0}
 Assets:
 - Assets/Obol.prefab
+- Assets/Icons/artifactCurseEnabled.png
 - Assets/Icons/obol.png
 - Assets/obolModel.blend
 - Assets/Icons/timed_curse.png
 - Assets/ProgressBar/ProgressBar.prefab
+- Assets/Icons/artifactCurseDisabled.png
 - Assets/Icons/curse.png
 Dependencies: []

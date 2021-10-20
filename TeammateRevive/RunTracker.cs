@@ -1,11 +1,14 @@
 ﻿using System;
 using RoR2;
+using TeammateRevive.Artifact;
 using TeammateRevive.Logging;
+using TeammateRevive.Revive.Rules;
 
 namespace TeammateRevive
 {
     public class RunTracker
     {
+        private readonly DeathCurseArtifact deathCurseArtifact;
         public static RunTracker instance;
 
         public event Action<RunTracker> RunStarted;
@@ -26,8 +29,11 @@ namespace TeammateRevive
             }
         }
 
-        public RunTracker()
+        public bool IsDeathCurseEnabled => this.deathCurseArtifact.ArtifactEnabled || (ReviveRules.instance?.Values.ForceDeathCurseRule ?? false);
+
+        public RunTracker(DeathCurseArtifact deathCurseArtifact)
         {
+            this.deathCurseArtifact = deathCurseArtifact;
             Run.onRunStartGlobal += GlobalOnRunStarted;
             instance = this;
         }

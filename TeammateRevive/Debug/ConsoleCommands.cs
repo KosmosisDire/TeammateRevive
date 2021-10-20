@@ -97,9 +97,7 @@ namespace TeammateRevive.Debug
             if (NetworkHelper.IsClient()) return;
             
             this.config.GodMode = !this.config.GodMode;
-            var message = $"GodModeEnabled: {this.config.GodMode}";
-            UnityEngine.Debug.Log(message);
-            Chat.AddMessage(message);
+            AddLog($"GodModeEnabled: {this.config.GodMode}");
         }
         
         public void PrintRuleValues(ConCommandArgs args)
@@ -108,16 +106,12 @@ namespace TeammateRevive.Debug
             
             foreach (var property in typeof(ReviveRuleValues).GetProperties())
             {
-                var message = $"{property.Name}: {property.GetValue(this.rules.Values):F2}";
-                UnityEngine.Debug.Log(message);
-                Chat.AddMessage(message);
+                AddLog($"{property.Name}: {property.GetValue(this.rules.Values):F2}");
             }
             
             foreach (var property in typeof(ReviveRules).GetProperties().Where(p => p.PropertyType == typeof(float)))
             {
-                var message = $"[c] {property.Name}: {property.GetValue(this.rules):F2}";
-                UnityEngine.Debug.Log(message);
-                Chat.AddMessage(message);
+                AddLog($"[c] {property.Name}: {property.GetValue(this.rules):F2}");
             }
         }
 
@@ -126,20 +120,39 @@ namespace TeammateRevive.Debug
             if (NetworkHelper.IsClient()) return;
             
             var name = args.GetArgString(0);
-            var val = args.GetArgFloat(1);
-
             var propertyInfo = typeof(ReviveRuleValues).GetProperty(name);
+
             if (propertyInfo == null)
             {
-                UnityEngine.Debug.Log($"Cannot find property with name '{name}'");
+                AddLog($"Cannot find property with name '{name}'");
+                return;
+            }
+            
+            object value;
+            if (propertyInfo.PropertyType == typeof(float))
+            {
+                value = args.GetArgFloat(1);
+            } else if (propertyInfo.PropertyType == typeof(bool))
+            {
+                value = args.GetArgBool(1);
+            }
+            else
+            {
+                AddLog($"Cannot set property of type '{propertyInfo.PropertyType.Name}'");
                 return;
             }
 
-            var values = this.rules.Values;
-            propertyInfo.SetValue(values, val);
+            var values = this.rules.Values.Clone();
+            propertyInfo.SetValue(values, value);
             this.rules.ApplyValues(values);
-            UnityEngine.Debug.Log($"Set '{name}' to {val}");
+            AddLog($"Set '{name}' to {value}");
             this.rules.SendValues();
+        }
+        
+        void AddLog(string message)
+        {
+            UnityEngine.Debug.Log(message);
+            Chat.AddMessage(message);
         }
     }
 }

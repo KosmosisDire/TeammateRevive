@@ -14,7 +14,7 @@ namespace TeammateRevive.Revive.Rules
         public static ReviveRules instance;
         
         private readonly RunTracker run;
-        public event Action<ReviveRules> ValuesChanged;
+        public event Action<ReviveRuleValues, ReviveRuleValues> ValuesChanged;
 
         public ReviveRuleValues Values { get; private set; }
         
@@ -39,19 +39,18 @@ namespace TeammateRevive.Revive.Rules
 
         public void ApplyConfigValues(PluginConfig pluginConfig)
         {
-            Values = new ReviveRuleValues();
-            if (!pluginConfig.IncreaseRangeWithPlayers) Values.IncreaseRangeWithPlayersFactor = 0;
-            Values.BaseTotemRange = pluginConfig.TotemRange;
-            Values.ReviveTimeSeconds = pluginConfig.ReviveTimeSeconds;
-            ApplyValues(Values);
+            ApplyValues(pluginConfig.RuleValues.Clone());
         }
 
         public void ApplyValues(ReviveRuleValues newValues)
         {
+            var oldValues = this.Values;
+            
             this.Values = newValues;
             this.ReduceReviveProgressSpeed = -(1f / newValues.ReviveTimeSeconds * newValues.ReduceReviveProgressFactor);
-            this.PostReviveBuffTime = newValues.ReviveTimeSeconds / newValues.ReduceReviveProgressFactor * newValues.PostReviveBuffTimeFactor;
-            this.ValuesChanged?.Invoke(this);
+            this.PostReviveBuffTime = newValues.ReviveTimeSeconds / newValues.ReduceReviveProgressFactor * newValues.ReviveInvolvementBuffTimeFactor;
+            
+            this.ValuesChanged?.Invoke(oldValues, newValues);
         }
 
         public void SendValues()
@@ -68,10 +67,18 @@ namespace TeammateRevive.Revive.Rules
         }
         public float CalculateSkullRadius(int itemCount, int playersCount)
         {
-            var reviveItemBonus = this.Values.BaseTotemRange * itemCount * this.Values.ItemIncreaseRangeFactor;
-            var playersCountBonus = this.Values.BaseTotemRange * this.Values.IncreaseRangeWithPlayersFactor * playersCount;
+            var range = this.Values.BaseTotemRange;
+
+            if (this.run.IsDeathCurseEnabled)
+            {
+                var obolRangeBonus = this.Values.BaseTotemRange * itemCount * this.Values.ItemIncreaseRangeFactor;
+                range += obolRangeBonus;
+            }
             
-            return this.Values.BaseTotemRange + reviveItemBonus + playersCountBonus;
+            var playersCountBonus = this.Values.BaseTotemRange * this.Values.IncreaseRangeWithPlayersFactor * playersCount;
+            range += playersCountBonus;
+            
+            return range;
         }
         
 
@@ -82,8 +89,12 @@ namespace TeammateRevive.Revive.Rules
         }
         public float GetReviveSpeed(int obolsCount, int playersInRange)
         {
-            var obolFactor = this.Values.ReviveTimeSeconds / (this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount));
-            var speed = (1f / this.Values.ReviveTimeSeconds / playersInRange) * obolFactor;
+            var speed = (1f / this.Values.ReviveTimeSeconds / playersInRange);
+            if (this.run.IsDeathCurseEnabled)
+            {
+                var obolFactor = this.Values.ReviveTimeSeconds / (this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount));
+                speed *= obolFactor;
+            }
             
             return speed;
         }
@@ -101,7 +112,11 @@ namespace TeammateRevive.Revive.Rules
         
         public float GetDamageSpeed(int playersInRange, float playerMaxHealth, int deadPlayerObolsCount)
         {
-            float damageSpeed = ((playerMaxHealth * 0.85f) / this.Values.ReviveTimeSeconds / playersInRange) * GetReviveReduceDamageFactor(deadPlayerObolsCount);
+            float damageSpeed = ((playerMaxHealth * 0.85f) / this.Values.ReviveTimeSeconds / playersInRange);
+            if (this.run.IsDeathCurseEnabled)
+            {
+                damageSpeed *= GetReviveReduceDamageFactor(deadPlayerObolsCount);
+            }
             return damageSpeed;
         }
 

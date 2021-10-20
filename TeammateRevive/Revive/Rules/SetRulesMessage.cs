@@ -29,8 +29,9 @@ namespace TeammateRevive.Revive.Rules
             writer.Write(this.ruleValues.ReduceHpFactor);
             writer.Write(this.ruleValues.BaseReduceHpFactor);
             writer.Write(this.ruleValues.ReduceReviveProgressFactor);
-            writer.Write(this.ruleValues.PostReviveBuffTimeFactor);
+            writer.Write(this.ruleValues.ReviveInvolvementBuffTimeFactor);
             writer.Write(this.ruleValues.ObolDamageReduceFactor);
+            writer.Write(this.ruleValues.ForceDeathCurseRule);
             Log.Info("Sending new rule values");
         }
 
@@ -44,8 +45,9 @@ namespace TeammateRevive.Revive.Rules
             this.ruleValues.ReduceHpFactor = reader.ReadSingle();
             this.ruleValues.BaseReduceHpFactor = reader.ReadSingle();
             this.ruleValues.ReduceReviveProgressFactor = reader.ReadSingle();
-            this.ruleValues.PostReviveBuffTimeFactor = reader.ReadSingle();
+            this.ruleValues.ReviveInvolvementBuffTimeFactor = reader.ReadSingle();
             this.ruleValues.ObolDamageReduceFactor = reader.ReadSingle();
+            this.ruleValues.ForceDeathCurseRule = reader.ReadBoolean();
         }
 
         public void OnReceived()
