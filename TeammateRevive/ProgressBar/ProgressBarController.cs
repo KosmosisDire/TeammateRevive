@@ -93,7 +93,7 @@ namespace TeammateRevive.ProgressBar
         {
             name ??= "Player";
             if (this.currentName == name) return;
-            this.textComponent.text = $"Resurrecting {name}...";
+            this.textComponent.text = $"Reviving {name}...";
             this.currentName = name;
         }
     }

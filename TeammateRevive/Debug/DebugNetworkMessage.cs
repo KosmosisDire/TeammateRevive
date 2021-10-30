@@ -37,7 +37,7 @@ namespace TeammateRevive.Debug
         {
             switch (this.messageType)
             {
-                case "SpawnSkull":
+                case nameof(SpawnSkull):
                     SpawnSkull();
                     break;
             }

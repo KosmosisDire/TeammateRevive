@@ -22,7 +22,7 @@ namespace TeammateRevive.Players
         public bool isDead = false;
         public NetworkInstanceId? BodyId => this.master.master.GetBody()?.netId;
 
-        private readonly Dictionary<Player, float> reviveInvolvements = new();
+        public readonly Dictionary<Player, float> reviveInvolvements = new();
 
         public Player(PlayerCharacterMasterController _player)
         {
@@ -66,6 +66,15 @@ namespace TeammateRevive.Players
             return player.groundPosition;
         }
 
+        public void IncreaseInvolvement(Player dead, float increase)
+        {
+            if (!this.reviveInvolvements.TryGetValue(dead, out var elapsingAt))
+            {
+                elapsingAt = Time.time + 1;
+            }
+            this.reviveInvolvements[dead] = elapsingAt + increase;
+        }
+
         public void SetReviveInvolvement(Player dead, float elapsingAt)
         {
             this.reviveInvolvements[dead] = elapsingAt;
@@ -89,7 +98,7 @@ namespace TeammateRevive.Players
                 var elapsingAt = pair.Value;
                 if (time > elapsingAt)
                 {
-                    this.reviveInvolvements.Remove(player);
+                    RemoveReviveInvolvement(player);
                     Log.Debug($"Removed involvement for revive of {player.networkUser.userName} from {this.networkUser.userName}. Left: {this.reviveInvolvements.Count}");
                 }
             }

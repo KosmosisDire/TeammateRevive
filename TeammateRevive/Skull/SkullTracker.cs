@@ -7,12 +7,15 @@ namespace TeammateRevive.Skull
 {
     public class SkullTracker
     {
-        private readonly HashSet<DeadPlayerSkull> skulls = new();
+        public static SkullTracker instance;
+        
+        public readonly HashSet<DeadPlayerSkull> skulls = new();
 
         public bool HasAnySkulls => this.skulls.Count > 0;
 
         public SkullTracker()
         {
+            instance = this;
             DeadPlayerSkull.GlobalOnDestroy += OnSkullDestroy;
             DeadPlayerSkull.GlobalOnCreated += OnSkullUpdate;
             DeadPlayerSkull.GlobalOnValuesReceived += OnSkullUpdate;

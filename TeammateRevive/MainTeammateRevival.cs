@@ -164,7 +164,10 @@ namespace TeammateRevive
                 var message = "Artifact of Death Curse is enforced by server.";
                 RunArtifactManager.instance.SetArtifactEnabledServer(this.deathCurseArtifact.ArtifactDef, true);
                 Log.Info(message);
-                Chat.AddMessage(TextFormatter.Yellow(message));
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                {
+                    baseToken = TextFormatter.Yellow(message)
+                });
             }
         }
 

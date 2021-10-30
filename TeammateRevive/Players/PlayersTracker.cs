@@ -23,6 +23,7 @@ namespace TeammateRevive.Players
 
         public event Action<Player> OnPlayerDead;
         public event Action<Player> OnPlayerAlive;
+        public event Action OnSetupFinished;
 
         public PlayerCharacterMasterController CurrentUserPlayerCharacterMasterController { get; set; }
         public NetworkInstanceId? CurrentUserBodyId => this.CurrentUserPlayerCharacterMasterController?.master.GetBody()?.netId;
@@ -183,6 +184,7 @@ namespace TeammateRevive.Players
             {
                 this.Setup = true;
                 Log.Info("All " + this.TotalCount + " Players Setup Successfully");
+                OnSetupFinished?.Invoke();
             }
         }
 

@@ -21,9 +21,9 @@ namespace TeammateRevive.Resources
             using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.reducehp");
             var bundle = AssetBundle.LoadFromStream(stream);
 
-            ReviveItemPrefab = bundle.LoadAsset<GameObject>("Assets/Obol.prefab");
-            ReviveItemIcon = bundle.LoadAsset<Sprite>("Assets/Icons/obol.png");
-            RevivePenaltyBuffIcon = bundle.LoadAsset<Sprite>("Assets/Icons/curse.png");
+            CharonsObolItemPrefab = bundle.LoadAsset<GameObject>("Assets/Obol.prefab");
+            CharonsObolItemIcon = bundle.LoadAsset<Sprite>("Assets/Icons/obol.png");
+            DeathCurseBuffIcon = bundle.LoadAsset<Sprite>("Assets/Icons/curse.png");
             ReviveInvolvementBuffIcon = bundle.LoadAsset<Sprite>("Assets/Icons/timed_curse.png");
             
             DeathCurseArtifactEnabledIcon = bundle.LoadAsset<Sprite>("Assets/Icons/artifactCurseEnabled.png");
@@ -57,9 +57,9 @@ namespace TeammateRevive.Resources
             bundle.Unload(false);
         }
         
-        public static GameObject ReviveItemPrefab;
-        public static Sprite ReviveItemIcon;
-        public static Sprite RevivePenaltyBuffIcon;
+        public static GameObject CharonsObolItemPrefab;
+        public static Sprite CharonsObolItemIcon;
+        public static Sprite DeathCurseBuffIcon;
         public static Sprite ReviveInvolvementBuffIcon;
         
         public static Sprite DeathCurseArtifactEnabledIcon;

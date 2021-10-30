@@ -20,7 +20,7 @@ namespace TeammateRevive.Revive.Rules
         
 
         public float ReduceReviveProgressSpeed { get; private set; }
-        public float PostReviveBuffTime { get; private set; }
+        public float ReviveInvolvementBuffTime { get; private set; }
 
         public ReviveRules(RunTracker run)
         {
@@ -48,7 +48,7 @@ namespace TeammateRevive.Revive.Rules
             
             this.Values = newValues;
             this.ReduceReviveProgressSpeed = -(1f / newValues.ReviveTimeSeconds * newValues.ReduceReviveProgressFactor);
-            this.PostReviveBuffTime = newValues.ReviveTimeSeconds / newValues.ReduceReviveProgressFactor * newValues.ReviveInvolvementBuffTimeFactor;
+            this.ReviveInvolvementBuffTime = newValues.ReviveTimeSeconds / newValues.ReduceReviveProgressFactor * newValues.ReviveInvolvementBuffTimeFactor;
             
             this.ValuesChanged?.Invoke(oldValues, newValues);
         }
@@ -60,7 +60,7 @@ namespace TeammateRevive.Revive.Rules
 
         public float CalculateSkullRadius(Player dead)
         {
-            var itemCount = dead.master.master.inventory.GetItemCount(ItemsAndBuffs.ReviveItemIndex);
+            var itemCount = dead.master.master.inventory.GetItemCount(ItemsAndBuffs.CharonsObolItemIndex);
             var playersCount = dead.skull.insidePlayerIDs.Count;
 
             return CalculateSkullRadius(itemCount, playersCount);
@@ -84,7 +84,7 @@ namespace TeammateRevive.Revive.Rules
 
         public float GetReviveSpeed(Player player, int playersInRange)
         {
-            var obolsCount = player.master.master.inventory.GetItemCount(ItemsAndBuffs.ReviveItemIndex);
+            var obolsCount = player.master.master.inventory.GetItemCount(ItemsAndBuffs.CharonsObolItemIndex);
             return GetReviveSpeed(obolsCount, playersInRange);
         }
         public float GetReviveSpeed(int obolsCount, int playersInRange)
@@ -106,7 +106,7 @@ namespace TeammateRevive.Revive.Rules
         {
             var playersInRange = dead.skull.insidePlayerIDs.Count;
             
-            var deadPlayerObolsCount = dead.master.master.inventory.GetItemCount(ItemsAndBuffs.ReviveItemIndex);
+            var deadPlayerObolsCount = dead.master.master.inventory.GetItemCount(ItemsAndBuffs.CharonsObolItemIndex);
             return GetDamageSpeed(playersInRange, player.GetBody().maxHealth, deadPlayerObolsCount);
         }
         

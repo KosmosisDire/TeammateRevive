@@ -10,7 +10,7 @@
         // revive
         public float ReviveTimeSeconds { get; set; } = 6;
         public float ReduceReviveProgressFactor { get; set; } = .1f;
-        public float ReviveInvolvementBuffTimeFactor { get; set; } = .7f;
+        public float ReviveInvolvementBuffTimeFactor { get; set; } = 1f;
         public float ObolReviveFactor { get; set; } = 1.125f;
         public float ObolDamageReduceFactor { get; set; } = 1.1f;
         

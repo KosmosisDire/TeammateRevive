@@ -83,6 +83,10 @@ namespace TeammateRevive.ProgressBar
             {
                 this.progressBar.SetFraction(this.trackingSkull.progress);
                 this.progressBar.SetColor(this.trackingSkull.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
+                #if DEBUG
+                // for debug purposes, display speed and percentage
+                this.progressBar.SetUser($"{this.trackingSkull.PlayerName} ({this.trackingSkull.fractionPerSecond:F2} | {this.trackingSkull.progress:P})");
+                #endif
             }
 
             // player moved out of skull circle, queuing to hide
@@ -108,7 +112,8 @@ namespace TeammateRevive.ProgressBar
 
         private void QueueToHide()
         {
-            this.queuedToHideAt = Time.time + this.rules.PostReviveBuffTime;
+            // TODO: make hide time in sync with revive involvement buff
+            this.queuedToHideAt = Time.time + this.rules.ReviveInvolvementBuffTime;
             Log.DebugMethod($"Queued to hide at {this.queuedToHideAt} (current time: {Time.time})");
         }
 
@@ -135,8 +140,7 @@ namespace TeammateRevive.ProgressBar
 
         private NetworkInstanceId? GetSpectatingBody()
         {
-            var isInSpectatorMode = this.spectatorLabel != null && !this.spectatorLabel.gameObject.IsDestroyed() && !this.spectatorLabel.labelRoot.IsDestroyed() && this.spectatorLabel.labelRoot.activeSelf;
-            if (isInSpectatorMode)
+            if (IsInSpectatorMode())
             {
                 var target = this.spectatorLabel.cachedTarget;
                 if (target.IsDestroyed())
@@ -155,5 +159,10 @@ namespace TeammateRevive.ProgressBar
 
             return null;
         }
+
+        private bool IsInSpectatorMode() => this.spectatorLabel != null 
+                                            && !this.spectatorLabel.gameObject.IsDestroyed() 
+                                            && !this.spectatorLabel.labelRoot.IsDestroyed() 
+                                            && this.spectatorLabel.labelRoot.activeSelf;
     }
 }

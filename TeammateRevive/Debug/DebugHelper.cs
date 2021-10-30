@@ -3,6 +3,7 @@ using R2API.Networking;
 using RoR2;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
+using TeammateRevive.Debug.Monitor;
 using TeammateRevive.Players;
 using TeammateRevive.Resources;
 using TeammateRevive.Revive;
@@ -13,13 +14,21 @@ namespace TeammateRevive.Debug
     public static class DebugHelper
     {
         public static PluginConfig Config { get; set; }
+
+        public static DebugMonitorPanelController Monitor;
+
+        public static int DamageTargetIndex = 0;
         
         public static void Init(PluginConfig config)
         {
             NetworkingAPI.RegisterMessageType<DebugNetworkMessage>();
             Config = config;
-        }
 
+            Monitor = new DebugMonitorPanelController();
+            Monitor.AddWatcher<PlayerReviveMonitor>();
+            Monitor.AddWatcher<InsideSkullMonitor>();
+            Monitor.AddWatcher<PlayersCountMonitor>();
+        }
 
         public static void Update()
         {
@@ -32,7 +41,7 @@ namespace TeammateRevive.Debug
             if (Input.GetKeyDown(KeyCode.F4)) players.All[1].GetBody().healthComponent.Networkhealth = 1;
             
             // damage 2nd player
-            if (Input.GetKeyDown(KeyCode.F5)) players.All[1].GetBody().healthComponent.TakeDamage(new DamageInfo
+            if (Input.GetKeyDown(KeyCode.F5)) players.All[DamageTargetIndex].GetBody().healthComponent.TakeDamage(new DamageInfo
             {
                 attacker = players.All[0].GetBody().gameObject,
                 damage = 10000,
@@ -42,22 +51,22 @@ namespace TeammateRevive.Debug
             // give curse to all
             if (Input.GetKeyDown(KeyCode.F6))
                 NetworkUser.readOnlyInstancesList.ToList()
-                    .ForEach(u => u.master.inventory.GiveItem(ItemsAndBuffs.ReduceHpItemIndex));
+                    .ForEach(u => u.master.inventory.GiveItem(ItemsAndBuffs.DeathCurseItemIndex));
             
             // remove curse from all
             if (Input.GetKeyDown(KeyCode.F7))
                 NetworkUser.readOnlyInstancesList.ToList()
-                    .ForEach(u => u.master.inventory.RemoveItem(ItemsAndBuffs.ReduceHpItemIndex));
+                    .ForEach(u => u.master.inventory.RemoveItem(ItemsAndBuffs.DeathCurseItemIndex));
             
             // give obol to all
             if (Input.GetKeyDown(KeyCode.F8))
                 NetworkUser.readOnlyInstancesList.ToList()
-                    .ForEach(u => u.master.inventory.GiveItem(ItemsAndBuffs.ReviveItemIndex));
+                    .ForEach(u => u.master.inventory.GiveItem(ItemsAndBuffs.CharonsObolItemIndex));
             
             // remove obol from all
             if (Input.GetKeyDown(KeyCode.F9))
                 NetworkUser.readOnlyInstancesList.ToList()
-                    .ForEach(u => u.master.inventory.RemoveItem(ItemsAndBuffs.ReviveItemIndex));
+                    .ForEach(u => u.master.inventory.RemoveItem(ItemsAndBuffs.CharonsObolItemIndex));
 
             // spawn debug skull for current player
             if (Input.GetKeyDown(KeyCode.F10))
@@ -70,6 +79,12 @@ namespace TeammateRevive.Debug
                 {
                     SpawnSkullForFirstPlayer();
                 }
+            }
+
+            // toggle debug monitor 
+            if (Input.GetKeyDown(KeyCode.F11))
+            {
+                Monitor.script.gameObject.SetActive(!Monitor.script.gameObject.activeSelf);
             }
 
             if (Config.GodMode)

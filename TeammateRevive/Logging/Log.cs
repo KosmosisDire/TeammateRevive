@@ -60,6 +60,11 @@ namespace TeammateRevive.Logging
         [Conditional("DEBUG")]
         public static void Debug(object msg) => Instance?.Write(LogLevel.Debug, msg);
         
+        public static void ChatDebug(object msg) {
+            Instance.Targets.FirstOrDefault(t => t.GetType() == typeof(ChatLogTarget))
+                ?.Write(LogLevel.Debug, msg);
+        }
+        
         [Conditional("DEBUG")]
         public static void DebugMethod(object message = null, [CallerMemberName] string callingMember = null, [CallerLineNumber] int lineNo = 0)
         {

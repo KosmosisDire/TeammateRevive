@@ -20,8 +20,8 @@ namespace TeammateRevive.Resources
         
         public static BuffIndex DeathCurseBuffIndex;
         public static BuffIndex ReviveInvolvementBuffIndex;
-        public static ItemIndex ReduceHpItemIndex;
-        public static ItemIndex ReviveItemIndex;
+        public static ItemIndex DeathCurseItemIndex;
+        public static ItemIndex CharonsObolItemIndex;
         
         public static bool Loaded { get; private set; }
         public static bool InitedIndexes { get; private set; }
@@ -34,9 +34,9 @@ namespace TeammateRevive.Resources
             }
 
             CreateDeathCurseHiddenItem();
-            CreateReviveItem();
+            CreateCharonsObolItem();
             
-            CreateReduceHpBuff();
+            CreateDeathCurseBuff();
             CreateReviveInvolvementBuff();
             
             On.RoR2.BuffCatalog.Init += BuffCatalogOnInit;
@@ -50,7 +50,7 @@ namespace TeammateRevive.Resources
         }
         
 
-        static void CreateReviveItem()
+        static void CreateCharonsObolItem()
         {
             var perStackIncrease = (new ReviveRuleValues().ObolReviveFactor - 1) * 100;
             var description =
@@ -63,7 +63,7 @@ namespace TeammateRevive.Resources
                 new()
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
-                    followerPrefab = AddedAssets.ReviveItemPrefab,
+                    followerPrefab = AddedAssets.CharonsObolItemPrefab,
                     childName = "Pelvis",
                     localPos = new Vector3(-0.22f, 0f, 0f),
                     localAngles = new Vector3(0f, -0.05f, 0f),
@@ -75,13 +75,13 @@ namespace TeammateRevive.Resources
                 full, 
                 full,
                 description, 
-                AddedAssets.ReviveItemIcon,
-                AddedAssets.ReviveItemPrefab, ItemTier.Tier2, new[]
+                AddedAssets.CharonsObolItemIcon,
+                AddedAssets.CharonsObolItemPrefab, ItemTier.Tier2, new[]
                 {
                     ItemTag.Healing,
                     ItemTag.CannotCopy
                 }, 
-                false, false, itemDisplayRules: rules));
+                true, false, itemDisplayRules: rules));
         }
         
         public static void CreateDeathCurseHiddenItem()
@@ -90,8 +90,8 @@ namespace TeammateRevive.Resources
             ItemAPI.Add(new CustomItem(Keys.DeathCurseHiddenItem, "Death curse", 
                 "Reduces your max HP/Shield. Removed on next stage.", "Reduces your max HP/Shield. Removed on next stage.",
                 "ITEM_REDUCEHP_PICK", 
-                AddedAssets.RevivePenaltyBuffIcon,
-                AddedAssets.ReviveItemPrefab, ItemTier.NoTier, new[]
+                AddedAssets.DeathCurseBuffIcon,
+                AddedAssets.CharonsObolItemPrefab, ItemTier.NoTier, new[]
                 {
                     ItemTag.CannotCopy
                 }, 
@@ -99,9 +99,9 @@ namespace TeammateRevive.Resources
             Log.DebugMethod("done");
         }
 
-        public static void CreateReduceHpBuff()
+        public static void CreateDeathCurseBuff()
         {
-            BuffAPI.Add(new CustomBuff(Keys.DeathCurse, AddedAssets.RevivePenaltyBuffIcon, Color.white, true, true));
+            BuffAPI.Add(new CustomBuff(Keys.DeathCurse, AddedAssets.DeathCurseBuffIcon, Color.white, true, true));
         }
 
 
@@ -109,8 +109,8 @@ namespace TeammateRevive.Resources
         {
             orig();
             
-            ReduceHpItemIndex = ItemCatalog.FindItemIndex(Keys.DeathCurseHiddenItem);
-            ReviveItemIndex = ItemCatalog.FindItemIndex(Keys.ReviveItem);
+            DeathCurseItemIndex = ItemCatalog.FindItemIndex(Keys.DeathCurseHiddenItem);
+            CharonsObolItemIndex = ItemCatalog.FindItemIndex(Keys.ReviveItem);
             InitedIndexes = true;
         }
 

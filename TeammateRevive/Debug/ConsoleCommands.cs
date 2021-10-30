@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using RoR2;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
 using TeammateRevive.Logging;
+using TeammateRevive.Players;
 using TeammateRevive.Revive.Rules;
 using Console = On.RoR2.Console;
 
@@ -32,23 +35,30 @@ namespace TeammateRevive.Debug
         {
             const string msgEnd = "</noparse></color>";
             if (NetworkHelper.IsClient()) return;
-            
-            var msg = Chat.readOnlyLog.Last();
-            foreach (var pair in this.conCommands)
+
+            try
             {
-                var cmdIdx = msg.IndexOf(pair.Key);
-                if (cmdIdx >= 0)
+                var msg = Chat.readOnlyLog.LastOrDefault();
+                foreach (var pair in this.conCommands)
                 {
-                    var args = msg.Substring(cmdIdx, msg.Length - msgEnd.Length - cmdIdx).Split().Skip(1).ToList();
-                    Log.Debug($"CMD: {string.Join("|", args)}; Msg: {msg}");
-                    var conArgs = new ConCommandArgs
+                    var cmdIdx = msg.IndexOf(pair.Key);
+                    if (cmdIdx >= 0)
                     {
-                        commandName = pair.Key,
-                        userArgs = args
-                    };
+                        var args = msg.Substring(cmdIdx, msg.Length - msgEnd.Length - cmdIdx).Split().Skip(1).ToList();
+                        Log.Debug($"CMD: {string.Join("|", args)}; Msg: {msg}");
+                        var conArgs = new ConCommandArgs
+                        {
+                            commandName = pair.Key,
+                            userArgs = args
+                        };
                     
-                    pair.Value.action(conArgs);
+                        pair.Value.action(conArgs);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Log.Debug(e);
             }
         }
 
@@ -79,6 +89,16 @@ namespace TeammateRevive.Debug
                         flags = ConVarFlags.SenderMustBeServer,
                         helpText = "trv_god"
                     }
+                },
+                {
+                    "trv_dmgt", new RoR2.Console.ConCommand()
+                    {
+                        action = args =>
+                        {
+                            DebugHelper.DamageTargetIndex = args.GetArgInt(0);
+                            AddLog($"Target set to {PlayersTracker.instance.All[DebugHelper.DamageTargetIndex].networkUser.userName}");
+                        }
+                    }
                 }
             };
         }
@@ -103,16 +123,20 @@ namespace TeammateRevive.Debug
         public void PrintRuleValues(ConCommandArgs args)
         {
             if (NetworkHelper.IsClient()) return;
+            var messages = new List<string>();
             
             foreach (var property in typeof(ReviveRuleValues).GetProperties())
             {
-                AddLog($"{property.Name}: {property.GetValue(this.rules.Values):F2}");
+                messages.Add($"{property.Name}: {property.GetValue(this.rules.Values):F2}");
             }
             
             foreach (var property in typeof(ReviveRules).GetProperties().Where(p => p.PropertyType == typeof(float)))
             {
-                AddLog($"[c] {property.Name}: {property.GetValue(this.rules):F2}");
+                messages.Add($"[c] {property.Name}: {property.GetValue(this.rules):F2}");
             }
+            
+            messages.Add($"[c] Death Curse enabled: {RunTracker.instance.IsDeathCurseEnabled}");
+            AddLog(string.Join("; ", messages));
         }
 
         private void SetRuleVariable(ConCommandArgs args)

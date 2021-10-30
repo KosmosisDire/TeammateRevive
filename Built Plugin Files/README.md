@@ -1,13 +1,22 @@
 ## Description:
 Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk :)
 
-## To Do:
-* Add better indicator for how close the player is to revival.
-* Add customizability / config
-* Fix bugs
+If Death Curse option is enabled, on each revive reviving and revived player will receive Death Curse that will decrease  
 
 
 ## Change Notes:
+
+* 4.0.0
+    * Huge refactoring of whole codebase
+    * A lot of bug fixes and general improvements
+    * Added optional Death Curse mechanic and Charon's Obol that adds more depth to revive mechanic (Royalty Free Model from https://www.cgtrader.com/free-3d-models/various/various-models/low-poly-skull-coin)
+      * Added ItemStats & BetterUI mods integration
+    * Added revival progress bar
+    * Changed and tweaked revival formulae 
+    * Network optimization
+    * Every revival aspect is highly configurable
+    * Revival range is now increased depending on players inside
+    * Added some debugging tools
 
 * 3.3.8
     * Fixed bug that caused players to instantly respawn after their first revival.

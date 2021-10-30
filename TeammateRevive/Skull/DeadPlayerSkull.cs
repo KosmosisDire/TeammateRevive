@@ -130,6 +130,13 @@ namespace TeammateRevive.Skull
         
             SyncToClients();
         }
+        
+        public void SetValues(float speed, float radius)
+        {
+            this.fractionPerSecond = speed;
+            this.cachedRadius = radius;
+            this.animation.AnimateTo(Vector3.one * radius);
+        }
 
         public void RemoveDeadIDs()
         {
@@ -150,7 +157,7 @@ namespace TeammateRevive.Skull
 
         public void SyncToClients() 
         {
-            Log.Debug($"SyncToClients. Rad: {this.cachedRadius}");
+            Log.DebugMethod($"Rad: {this.cachedRadius}");
             RemoveDeadIDs();
             new SyncSkullMessage(GetComponent<NetworkIdentity>().netId, this.deadPlayerId, this.insidePlayerIDs, this.cachedRadius, this.fractionPerSecond).Send(NetworkDestination.Clients);
             Log.Debug("Rad: " + this.radiusSphere.transform.localScale.x);
@@ -182,7 +189,7 @@ namespace TeammateRevive.Skull
                 if (!body)
                     continue;
                 
-                var deadPlayerObolsCount = body.master.inventory.GetItemCount(ItemsAndBuffs.ReviveItemIndex);
+                var deadPlayerObolsCount = body.master.inventory.GetItemCount(ItemsAndBuffs.CharonsObolItemIndex);
                 var damageSpeed = this.rules.GetDamageSpeed(this.insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount);
 
                 DamageNumberManager.instance.SpawnDamageNumber(damageSpeed * this.damageNumberElapsed, body.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);

@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using RoR2;
 using TeammateRevive.Common;
-using TeammateRevive.Configuration;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.ProgressBar;
@@ -17,7 +16,7 @@ namespace TeammateRevive.Revive
     public class RevivalTracker
     {
         public static RevivalTracker instance;
-        public static readonly string[] IgnoredStages = { "arena", "bazaar" };
+        public static readonly string[] IgnoredStages = { "bazaar" };
 
         private readonly PlayersTracker players;
         private readonly RunTracker run;
@@ -82,7 +81,7 @@ namespace TeammateRevive.Revive
             
             if (NetworkUser.readOnlyInstancesList.Count < 2 || !isDeathCurseEnabled)
             {
-                var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == ItemsAndBuffs.ReviveItemIndex);
+                var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == ItemsAndBuffs.CharonsObolItemIndex);
                 if (respawnItemIdx >= 0)
                 {
                     Log.Info("Removing Charon's Obol from drop list");
@@ -101,6 +100,11 @@ namespace TeammateRevive.Revive
             var sceneName = self.sceneDef.cachedName;
             Log.Debug($"Stage start: {self.sceneDef.cachedName}");
             this.skullTracker.Clear();
+            
+            foreach (var player in this.players.All)
+            {
+                player.ClearReviveInvolvement();
+            }
 
             if (NetworkHelper.IsClient() || IgnoredStages.Contains(sceneName) || !this.run.IsDeathCurseEnabled)
                 return;
@@ -108,10 +112,6 @@ namespace TeammateRevive.Revive
             foreach (var networkUser in NetworkUser.readOnlyInstancesList)
             {
                 RemoveReduceHpItem(networkUser);
-            }
-            foreach (var player in this.players.All)
-            {
-                player.ClearReviveInvolvement();
             }
         }
         
@@ -135,7 +135,7 @@ namespace TeammateRevive.Revive
 
             orig(self);
 
-            var reducesCount = self.inventory.GetItemCount(ItemsAndBuffs.ReduceHpItemIndex);
+            var reducesCount = self.inventory.GetItemCount(ItemsAndBuffs.DeathCurseItemIndex);
             self.SetBuffCount(ItemsAndBuffs.DeathCurseBuffIndex, reducesCount);
             if (reducesCount == 0)
                 return;
@@ -182,22 +182,26 @@ namespace TeammateRevive.Revive
             // TODO: do we really need to recalculate ground position on every update?
             UpdatePlayersGroundPosition();
 
-            var time = Time.time;
             // interactions between dead and alive players
             for (var deadIdx = 0; deadIdx < this.players.Dead.Count; deadIdx++)
             {
                 var dead = this.players.Dead[deadIdx];
                 var skull = dead.skull;
+
+                if (skull == null)
+                {
+                    Log.DebugMethod($"Skull is missing {deadIdx}");
+                    continue;
+                }
                 
                 //have they been revived by other means?
                 // TODO: uncomment
-                // if (dead.CheckAlive()) 
+                // if (dead.CheckAlive())
                 // {
                 //     this.players.PlayerAlive(dead);
                 //     continue;
                 // }
                 var totalReviveSpeed = 0f;
-                var totalDmgSpeed = 0f;
                 var playersInRange = 0;
 
                 var insidePlayersHash = skull.GetInsidePlayersHash();
@@ -209,25 +213,29 @@ namespace TeammateRevive.Revive
                     if (player.CheckDead()) continue;
 
                     var playerBody = player.GetBody();
-                    var inRange = Vector3.Distance(playerBody.transform.position, dead.skull.transform.position) < (actualRange * .5);
+                    var inRange = Vector3.Distance(playerBody.transform.position, skull.transform.position) < (actualRange * .5);
                     if (inRange)
                     {
                         playersInRange++;
-                        player.SetReviveInvolvement(dead, time + this.rules.PostReviveBuffTime);
                         
-                        // player entered range
+                        // player entered range, update players in range list
                         if (!skull.insidePlayerIDs.Contains(playerBody.netId))
                             skull.insidePlayerIDs.Add(playerBody.netId);
-
+                        
                         // revive progress
                         var reviveSpeed = this.rules.GetReviveSpeed(player, skull.insidePlayerIDs.Count);
                         totalReviveSpeed += reviveSpeed;
                         dead.reviveProgress += reviveSpeed * Time.deltaTime;
                         dead.reviveProgress = Mathf.Clamp01(dead.reviveProgress);
+                        
+                        // if player in range, update revive involvement
+                        if (this.run.IsDeathCurseEnabled)
+                        {
+                            player.IncreaseInvolvement(dead, Time.deltaTime + Time.deltaTime  / this.rules.Values.ReduceReviveProgressFactor * this.rules.Values.ReviveInvolvementBuffTimeFactor);
+                        }
 
                         // damage alive player - down to 1 HP
                         float damageSpeed = this.rules.GetDamageSpeed(player, dead);
-                        totalDmgSpeed += damageSpeed;
                         float damageAmount = damageSpeed * Time.deltaTime;
                         playerBody.healthComponent.Networkhealth -= Mathf.Clamp(damageAmount, 0f, playerBody.healthComponent.health - 1f);
                     }
@@ -239,11 +247,6 @@ namespace TeammateRevive.Revive
                     }
                 }
 
-                if (this.run.IsDeathCurseEnabled)
-                {
-                    UpdateReviveInvolvementBuffs();
-                }
-
                 //if dead player has recharged enough health, respawn and give curse for everyone in range
                 if (dead.reviveProgress >= 1)
                 {
@@ -251,8 +254,9 @@ namespace TeammateRevive.Revive
                     // var playersToCurse = this.players.All.Where(p => skull.insidePlayerIDs.Any(id => id.Equals(p.BodyId)))
                     //     .Append(dead)
                     //     .ToArray();
-                    
-                    var playersToCurse = this.players.Alive.Where(p => p.IsInvolvedInReviveOf(dead))
+
+                    var playersToCurse = this.players.Alive
+                        .Where(p => p.IsInvolvedInReviveOf(dead))
                         .Append(dead)
                         .ToArray();
                     Revive(dead);
@@ -260,17 +264,25 @@ namespace TeammateRevive.Revive
                     if (this.run.IsDeathCurseEnabled)
                         AddCurse(playersToCurse);
                     
+                    // remove involvement from all players
+                    foreach (var player in this.players.All) 
+                        player.RemoveReviveInvolvement(dead);
+                    
                     continue;
                 }
 
-                UpdateSkull(dead, insidePlayersHash, playersInRange, totalDmgSpeed, totalReviveSpeed);
+                UpdateSkull(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
             }
+            
+            // update revive involvement
+            if (this.run.IsDeathCurseEnabled) 
+                UpdateReviveInvolvementBuffs();
             
             // progress bar
             this.reviveProgressBarTracker.Update();
         }
 
-        private void UpdateSkull(Player dead, int insidePlayersBefore, int playersInRange,  float totalDmgSpeed, float totalReviveSpeed)
+        private void UpdateSkull(Player dead, int insidePlayersBefore, int playersInRange, float totalReviveSpeed)
         {
             var skull = dead.skull;
             
@@ -334,10 +346,10 @@ namespace TeammateRevive.Revive
                 return;
             }
 
-            var reduceHpItemCount = inventory.GetItemCount(ItemsAndBuffs.ReduceHpItemIndex);
-            inventory.RemoveItem(ItemsAndBuffs.ReduceHpItemIndex, inventory.GetItemCount(ItemsAndBuffs.ReviveItemIndex) + 1);
+            var reduceHpItemCount = inventory.GetItemCount(ItemsAndBuffs.DeathCurseItemIndex);
+            inventory.RemoveItem(ItemsAndBuffs.DeathCurseItemIndex, inventory.GetItemCount(ItemsAndBuffs.CharonsObolItemIndex) + 1);
             Log.Info(
-                $"Removed reduce HP item for ({userName}). Was {reduceHpItemCount}. Now: {inventory.GetItemCount(ItemsAndBuffs.ReduceHpItemIndex)}");
+                $"Removed reduce HP item for ({userName}). Was {reduceHpItemCount}. Now: {inventory.GetItemCount(ItemsAndBuffs.DeathCurseItemIndex)}");
         }
 
         public DeadPlayerSkull ServerSpawnSkull(Player player)
@@ -347,7 +359,7 @@ namespace TeammateRevive.Revive
             skull.deadPlayerId = player.networkUser.netId;
             skull.transform.position = player.groundPosition;
             skull.transform.rotation = Quaternion.identity;
-            skull.radiusSphere.transform.localScale = Vector3.one * (this.rules.Values.BaseTotemRange);
+            
             if (this.run.IsDeathCurseEnabled)
             {
                 CreateInteraction(skull.gameObject);
@@ -381,14 +393,18 @@ namespace TeammateRevive.Revive
 
         void AddCurse(params Player[] players)
         {
-            foreach (var player in players) player.master.master.inventory.GiveItem(ItemsAndBuffs.ReduceHpItemIndex);
+            foreach (var player in players) player.master.master.inventory.GiveItem(ItemsAndBuffs.DeathCurseItemIndex);
         }
         
         void CreateInteraction(GameObject gameObject)
         {
             if (gameObject.GetComponent<EntityLocator>() != null)
             {
-                Log.DebugMethod("EntityLocator was null for skull");
+                Log.DebugMethod("EntityLocator wasn't null for skull!");
+                if (!gameObject.GetComponent<ReviveInteraction>())
+                {
+                    gameObject.AddComponent<ReviveInteraction>();
+                }
                 return;
             }
 

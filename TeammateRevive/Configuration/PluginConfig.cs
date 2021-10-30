@@ -1,4 +1,6 @@
-﻿using BepInEx.Configuration;
+﻿using System;
+using BepInEx.Configuration;
+using BepInEx.Logging;
 using TeammateRevive.Revive.Rules;
 
 namespace TeammateRevive.Configuration
@@ -7,6 +9,8 @@ namespace TeammateRevive.Configuration
     {
         public bool ConsoleLogging { get; set; }
         public bool ChatLogging { get; set; }
+
+        public LogLevel LogLevel { get; set; }
 
         public ServerLoggingConfig ServerLogging { get; set; } = new();
         public bool FileLogging { get; set; }
@@ -18,6 +22,13 @@ namespace TeammateRevive.Configuration
 
         public static PluginConfig Load(ConfigFile config)
         {
+            var logLevel = config.Bind(
+                section: "Debugging",
+                key: "Log Level",
+                configDescription: new ConfigDescription("How much logs to display", new AcceptableValueList<string>(Enum.GetNames(typeof(LogLevel)))),
+                defaultValue: LogLevel.Info.ToString("G")
+            );
+            
             return new PluginConfig
             {
                 ConsoleLogging = config.Bind<bool>(
@@ -25,6 +36,8 @@ namespace TeammateRevive.Configuration
                     key: "Console Logging",
                     description: "Log debugging messages to the console.",
                     defaultValue: true).Value,
+                
+                LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), logLevel.Value),
 
                 ChatLogging = config.Bind<bool>(
                     section: "Debugging",
@@ -110,14 +123,14 @@ namespace TeammateRevive.Configuration
                     key: "Increase range per player factor",
                     description: "How much to increase revive circle range per player. Set to 0 to disable. " +
                                  "\nRangeIncrease = BaseRange * IncreasePerPlayerFactor",
-                    set: v => values.BaseTotemRange = v,
+                    set: v => values.IncreaseRangeWithPlayersFactor = v,
                     defaultValue: values.IncreaseRangeWithPlayersFactor)
                 .Bind(
                     key: "Increase range per Obol",
                     description: "[Only with Death Curse enabled] How much to increase revive circle range per dead character's Obol. " +
                                  "\nnRangeIncrease = BaseRange * ItemsCount * IncreasePerPlayerFactor",
-                    set: v => values.BaseTotemRange = v,
-                    defaultValue: values.IncreaseRangeWithPlayersFactor)
+                    set: v => values.ItemIncreaseRangeFactor = v,
+                    defaultValue: values.ItemIncreaseRangeFactor)
                 .Bind(
                     key: "Revive time",
                     description: "[Only with Death Curse enabled] How much time one player will need to revive one dead character.",
@@ -132,7 +145,9 @@ namespace TeammateRevive.Configuration
                 .Bind(
                     key: "Revive involvement buff duration factor",
                     description: "[Only with Death Curse enabled] How long Revive Involvement buff will stay after player leave revive range. " +
-                                 "\nTime = ReviveTime / ReduceProgressFactor * ReviveInvolvementBuffTimeFactor",
+                                 "\nBuffTime = TimeInCircle / ReduceReviveProgressFactor * ReviveInvolvementBuffTimeFactor + 1 second" +
+                                 "\nBasically, when 1 - buff will be applied for exactly as long as it will take to remove all added revive progress (+1 second)." +
+                                 "\nSo, when 0.5 - only half of that.",
                     set: v => values.ReviveInvolvementBuffTimeFactor = v,
                     defaultValue: values.ReviveInvolvementBuffTimeFactor)
                 .Bind(
