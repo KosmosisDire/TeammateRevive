@@ -189,7 +189,7 @@ namespace TeammateRevive.Skull
                 if (!body)
                     continue;
                 
-                var deadPlayerObolsCount = body.master.inventory.GetItemCount(ItemsAndBuffs.CharonsObolItemIndex);
+                var deadPlayerObolsCount = body.master.inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex);
                 var damageSpeed = this.rules.GetDamageSpeed(this.insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount);
 
                 DamageNumberManager.instance.SpawnDamageNumber(damageSpeed * this.damageNumberElapsed, body.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);

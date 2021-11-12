@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using On.RoR2.UI;
 using TeammateRevive.Common;
 using TeammateRevive.Logging;
@@ -25,7 +26,7 @@ namespace TeammateRevive.Debug.Monitor
         private void InitIfReady()
         {
             // we need both player and hun initialization to be finished
-            if (++this.counter == 2 || (this.counter == 1 && NetworkHelper.IsClient()))
+            if (++this.counter == 2)
             {
                 Init();
             }

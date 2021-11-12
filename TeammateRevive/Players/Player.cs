@@ -22,7 +22,7 @@ namespace TeammateRevive.Players
         public bool isDead = false;
         public NetworkInstanceId? BodyId => this.master.master.GetBody()?.netId;
 
-        public readonly Dictionary<Player, float> reviveInvolvements = new();
+        public readonly Dictionary<Player, float> reviveLinks = new();
 
         public Player(PlayerCharacterMasterController _player)
         {
@@ -66,47 +66,42 @@ namespace TeammateRevive.Players
             return player.groundPosition;
         }
 
-        public void IncreaseInvolvement(Player dead, float increase)
+        public void IncreaseReviveLinkDuration(Player dead, float increase)
         {
-            if (!this.reviveInvolvements.TryGetValue(dead, out var elapsingAt))
+            if (!this.reviveLinks.TryGetValue(dead, out var elapsingAt))
             {
                 elapsingAt = Time.time + 1;
             }
-            this.reviveInvolvements[dead] = elapsingAt + increase;
-        }
-
-        public void SetReviveInvolvement(Player dead, float elapsingAt)
-        {
-            this.reviveInvolvements[dead] = elapsingAt;
+            this.reviveLinks[dead] = elapsingAt + increase;
         }
         
-        public int RemoveReviveInvolvement(Player dead)
+        public int RemoveReviveLink(Player dead)
         {
-            this.reviveInvolvements.Remove(dead);
-            return this.reviveInvolvements.Count;
+            this.reviveLinks.Remove(dead);
+            return this.reviveLinks.Count;
         }
         
-        public void ClearReviveInvolvement() => this.reviveInvolvements.Clear();
+        public void ClearReviveLinks() => this.reviveLinks.Clear();
 
-        public int GetRevivingPlayersInvolvement()
+        public int GetPlayersReviveLinks()
         {
             var time = Time.time;
             
-            foreach (var pair in this.reviveInvolvements.ToArray())
+            foreach (var pair in this.reviveLinks.ToArray())
             {
                 var player = pair.Key;
                 var elapsingAt = pair.Value;
                 if (time > elapsingAt)
                 {
-                    RemoveReviveInvolvement(player);
-                    Log.Debug($"Removed involvement for revive of {player.networkUser.userName} from {this.networkUser.userName}. Left: {this.reviveInvolvements.Count}");
+                    RemoveReviveLink(player);
+                    Log.Debug($"Removed revive link for revive of {player.networkUser.userName} from {this.networkUser.userName}. Left: {this.reviveLinks.Count}");
                 }
             }
 
-            return this.reviveInvolvements.Count;
+            return this.reviveLinks.Count;
         }
 
-        public bool IsInvolvedInReviveOf(Player player) => this.reviveInvolvements.ContainsKey(player);
+        public bool IsInvolvedInReviveOf(Player player) => this.reviveLinks.ContainsKey(player);
 
     }
 }

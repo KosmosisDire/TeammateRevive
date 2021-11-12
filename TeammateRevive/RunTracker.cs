@@ -29,18 +29,26 @@ namespace TeammateRevive
             }
         }
 
-        public bool IsDeathCurseEnabled => this.deathCurseArtifact.ArtifactEnabled || (ReviveRules.instance?.Values.ForceDeathCurseRule ?? false);
+        public bool IsDeathCurseEnabled => (this.deathCurseArtifact.ArtifactEnabled ||
+                                           (ReviveRules.instance?.Values.ForceDeathCurseRule ?? false))
+                                           && Run.instance?.participatingPlayerCount != 1;
 
         public RunTracker(DeathCurseArtifact deathCurseArtifact)
         {
             this.deathCurseArtifact = deathCurseArtifact;
             Run.onRunStartGlobal += GlobalOnRunStarted;
+            Run.onRunDestroyGlobal += GlobalOnRunDestroy;
             instance = this;
         }
 
         void GlobalOnRunStarted(Run obj)
         {
             this.IsStarted = true;
+        }
+
+        private void GlobalOnRunDestroy(Run obj)
+        {
+            this.IsStarted = false;
         }
     }
 }

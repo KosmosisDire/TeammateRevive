@@ -34,7 +34,11 @@ namespace TeammateRevive.ProgressBar
             this.rectTransform = GetComponent<RectTransform>();
             this.barTransform = (RectTransform)this.rectTransform.Find("Bar").transform;
             this.barImage = this.barTransform.GetComponent<Image>();
-            this.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Screen.width / 3);
+            
+            // it works, don't ask me how - layout is working weirdly in RoR2...
+            rectTransform.anchorMin = new Vector2(0.55f, .58f);
+            rectTransform.anchorMax = new Vector2(0.53f, .6f);
+            this.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Screen.width / 3f);
             this.text = this.transform.Find("Text").GetComponent<TextMeshProUGUI>();
         }
 

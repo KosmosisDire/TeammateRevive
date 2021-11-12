@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 512731479
+CRC: 4082831635
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 6b0f8e1e9eec000a6405e859bb88c10d
+    Hash: 9363edf7f488a3309a73763dc0404766
   TypeTreeHash:
     serializedVersion: 2
-    Hash: da8d4e8549cd12c38af25e148084ab12
+    Hash: bf9721b8de65ec1649d4f4e7c3983396
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -25,15 +25,21 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 48
   Script: {instanceID: 0}
+- Class: 65
+  Script: {instanceID: 0}
 - Class: 114
   Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
 - Class: 114
-  Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
+  Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
 - Class: 115
   Script: {instanceID: 0}
-- Class: 128
+- Class: 135
+  Script: {instanceID: 0}
+- Class: 136
+  Script: {instanceID: 0}
+- Class: 208
   Script: {instanceID: 0}
 - Class: 213
   Script: {instanceID: 0}
@@ -42,12 +48,19 @@ ClassTypes:
 - Class: 224
   Script: {instanceID: 0}
 Assets:
-- Assets/Obol.prefab
-- Assets/Icons/artifactCurseEnabled.png
-- Assets/Icons/obol.png
-- Assets/obolModel.blend
-- Assets/Icons/timed_curse.png
+- Assets/materials/shrine_material.mat
+- Assets/textures/texCloudDifferenceBW2.png
+- Assets/materials/silver_material.mat
+- Assets/materials/revive_shrine.mat
+- Assets/models/Obol.prefab
+- Assets/icons/artifactCurseEnabled.png
+- Assets/textures/skulltexRGB.png
+- Assets/models/obolModel.blend
+- Assets/icons/timed_curse.png
 - Assets/ProgressBar/ProgressBar.prefab
-- Assets/Icons/artifactCurseDisabled.png
-- Assets/Icons/curse.png
+- Assets/icons/obol.png
+- Assets/icons/artifactCurseDisabled.png
+- Assets/textures/skulltex.png
+- Assets/models/shrine.prefab
+- Assets/icons/curse.png
 Dependencies: []

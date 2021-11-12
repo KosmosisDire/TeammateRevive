@@ -1,5 +1,7 @@
-﻿using R2API.Networking;
+﻿using System;
+using R2API.Networking;
 using R2API.Networking.Interfaces;
+using R2API.Utils;
 using UnityEngine.Networking;
 
 namespace TeammateRevive.Debug
@@ -10,7 +12,6 @@ namespace TeammateRevive.Debug
 
         public DebugNetworkMessage()
         {
-            
         }
 
         public static void SendToServer(string type)
@@ -35,12 +36,7 @@ namespace TeammateRevive.Debug
 
         public void OnReceived()
         {
-            switch (this.messageType)
-            {
-                case nameof(SpawnSkull):
-                    SpawnSkull();
-                    break;
-            }
+            typeof(DebugHelper).GetMethod(this.messageType)?.Invoke(null, Array.Empty<object>());
         }
 
         public void SpawnSkull()

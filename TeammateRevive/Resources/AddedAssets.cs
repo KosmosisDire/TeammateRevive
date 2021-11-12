@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using R2API;
+using RoR2;
 using TeammateRevive.Logging;
+using TeammateRevive.Revive.Shrine;
 using TeammateRevive.Skull;
 using UnityEngine;
 
@@ -12,8 +14,8 @@ namespace TeammateRevive.Resources
         public static void Init()
         {
             Log.Debug("Loading assets...");
-            ReadCurseAssets();
             LoadSkullPrefab();
+            ReadCurseAssets();
         }
         
         static void ReadCurseAssets()
@@ -21,22 +23,29 @@ namespace TeammateRevive.Resources
             using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.reducehp");
             var bundle = AssetBundle.LoadFromStream(stream);
 
-            CharonsObolItemPrefab = bundle.LoadAsset<GameObject>("Assets/Obol.prefab");
-            CharonsObolItemIcon = bundle.LoadAsset<Sprite>("Assets/Icons/obol.png");
-            DeathCurseBuffIcon = bundle.LoadAsset<Sprite>("Assets/Icons/curse.png");
-            ReviveInvolvementBuffIcon = bundle.LoadAsset<Sprite>("Assets/Icons/timed_curse.png");
+            CharonsObolItemPrefab = bundle.LoadAsset<GameObject>("Assets/models/Obol.prefab");
+            InitShrinePrefab(bundle);
+            CharonsObolItemIcon = bundle.LoadAsset<Sprite>("Assets/icons/obol.png");
+            DeathCurseBuffIcon = bundle.LoadAsset<Sprite>("Assets/icons/curse.png");
+            ReviveLinkBuffIcon = bundle.LoadAsset<Sprite>("Assets/icons/timed_curse.png");
             
-            DeathCurseArtifactEnabledIcon = bundle.LoadAsset<Sprite>("Assets/Icons/artifactCurseEnabled.png");
-            DeathCurseArtifactDisabledIcon = bundle.LoadAsset<Sprite>("Assets/Icons/artifactCurseDisabled.png");
+            DeathCurseArtifactEnabledIcon = bundle.LoadAsset<Sprite>("Assets/icons/artifactCurseEnabled.png");
+            DeathCurseArtifactDisabledIcon = bundle.LoadAsset<Sprite>("Assets/icons/artifactCurseDisabled.png");
+
+            ReplaceStubbedShaders(bundle);
 
             bundle.Unload(false);
         }
-        static void LoadSkullPrefab()
+
+        static void InitShrinePrefab(AssetBundle bundle)
         {
-            Log.DebugMethod();
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.customprefabs");
-            
-            var bundle = AssetBundle.LoadFromStream(stream);
+            ShrinePrefab = bundle.LoadAsset<GameObject>("Assets/models/shrine.prefab");
+            ShrinePrefab.AddComponent<ShrineBehaviour>().Setup();
+            ShrinePrefab.transform.Find("Symbol").gameObject.AddComponent<Billboard>();
+        }
+
+        static void ReplaceStubbedShaders(AssetBundle bundle)
+        {
             var materialsL = bundle.LoadAllAssets<Material>();
             foreach (Material material in materialsL)
             {
@@ -46,6 +55,16 @@ namespace TeammateRevive.Resources
                     Materials.Add(material);
                 }
             }
+        }
+
+
+        static void LoadSkullPrefab()
+        {
+            Log.DebugMethod();
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.customprefabs");
+            
+            var bundle = AssetBundle.LoadFromStream(stream);
+            ReplaceStubbedShaders(bundle);
 
             var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
             DeathMarkerPrefab = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
@@ -58,9 +77,10 @@ namespace TeammateRevive.Resources
         }
         
         public static GameObject CharonsObolItemPrefab;
+        public static GameObject ShrinePrefab;
         public static Sprite CharonsObolItemIcon;
         public static Sprite DeathCurseBuffIcon;
-        public static Sprite ReviveInvolvementBuffIcon;
+        public static Sprite ReviveLinkBuffIcon;
         
         public static Sprite DeathCurseArtifactEnabledIcon;
         public static Sprite DeathCurseArtifactDisabledIcon;

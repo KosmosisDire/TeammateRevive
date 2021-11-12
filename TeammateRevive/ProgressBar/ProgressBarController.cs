@@ -8,9 +8,14 @@ namespace TeammateRevive.ProgressBar
 {
     public class ProgressBarController
     {
+        private const string DefaultName = "Player";
+        
         private GameObject progressBarPrefab;
         private ProgressBarScript progressBarScript;
         private TextMeshProUGUI textComponent;
+
+        private string currentName = DefaultName;
+        private readonly CharArrayBuilder charArrayBuilder;
 
         public bool IsShown => this.progressBarScript is { IsShown: true };
 
@@ -19,6 +24,9 @@ namespace TeammateRevive.ProgressBar
             Log.Debug("Init ResurrectController");
             InitProgressBar();
             On.RoR2.UI.HUD.Awake += HUDOnAwake;
+            
+            // NOTE: this string splitting is required so class can internally keep track of individual parts and update them efficiently
+            this.charArrayBuilder = new CharArrayBuilder("Reviving ", DefaultName, " (", "000.0", "%)...");
         }
 
         private void InitProgressBar()
@@ -66,13 +74,9 @@ namespace TeammateRevive.ProgressBar
         {
             Log.Debug("AttachProgressBar");
             var progressBar = this.progressBarPrefab.InstantiateClone("Progress Bar");
-            this.progressBarScript = progressBar.AddComponent<ProgressBarScript>();
             progressBar.transform.SetParent(hud.mainContainer.transform);
+            this.progressBarScript = progressBar.AddComponent<ProgressBarScript>();
             this.progressBarScript.IsShown = false;
-            
-            var transform = progressBar.GetComponent<RectTransform>();
-            transform.anchorMax = new Vector2(.9f, .68f);
-            transform.anchorMin = new Vector2(.6f, .66f);
 
             var textObj = progressBar.transform.Find("Text");
             this.textComponent = textObj.GetComponent<TextMeshProUGUI>();
@@ -87,14 +91,16 @@ namespace TeammateRevive.ProgressBar
             AttachProgressBar(self);
         }
 
-        private string currentName = "Player";
-
-        public void SetUser(string name)
+        public void UpdateText(string name, float progress = 0)
         {
-            name ??= "Player";
-            if (this.currentName == name) return;
-            this.textComponent.text = $"Reviving {name}...";
-            this.currentName = name;
+            name = string.IsNullOrEmpty(name) ? DefaultName : name;
+            if (this.currentName != name)
+            {
+                this.charArrayBuilder.UpdatePart(1, name);
+                this.currentName = name;
+            }
+            this.charArrayBuilder.SetPaddedPercentagePart(3, progress);
+            this.textComponent.SetCharArray(this.charArrayBuilder.Buffer, 0, this.charArrayBuilder.Length);
         }
     }
 }

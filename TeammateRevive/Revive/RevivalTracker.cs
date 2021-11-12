@@ -58,14 +58,14 @@ namespace TeammateRevive.Revive
         void OnPlayerDead(Player player)
         {
             ServerSpawnSkull(player);
-            player.ClearReviveInvolvement();
+            player.ClearReviveLinks();
         }
         
         void OnPlayerAlive(Player player)
         {
             foreach (var otherPlayer in this.players.All)
             {
-                otherPlayer.RemoveReviveInvolvement(player);
+                otherPlayer.RemoveReviveLink(player);
             }
         }
 
@@ -81,7 +81,7 @@ namespace TeammateRevive.Revive
             
             if (NetworkUser.readOnlyInstancesList.Count < 2 || !isDeathCurseEnabled)
             {
-                var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == ItemsAndBuffs.CharonsObolItemIndex);
+                var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == AssetsIndexes.CharonsObolItemIndex);
                 if (respawnItemIdx >= 0)
                 {
                     Log.Info("Removing Charon's Obol from drop list");
@@ -103,7 +103,7 @@ namespace TeammateRevive.Revive
             
             foreach (var player in this.players.All)
             {
-                player.ClearReviveInvolvement();
+                player.ClearReviveLinks();
             }
 
             if (NetworkHelper.IsClient() || IgnoredStages.Contains(sceneName) || !this.run.IsDeathCurseEnabled)
@@ -135,8 +135,8 @@ namespace TeammateRevive.Revive
 
             orig(self);
 
-            var reducesCount = self.inventory.GetItemCount(ItemsAndBuffs.DeathCurseItemIndex);
-            self.SetBuffCount(ItemsAndBuffs.DeathCurseBuffIndex, reducesCount);
+            var reducesCount = self.inventory.GetItemCount(AssetsIndexes.DeathCurseItemIndex);
+            self.SetBuffCount(AssetsIndexes.DeathCurseBuffIndex, reducesCount);
             if (reducesCount == 0)
                 return;
 
@@ -194,13 +194,13 @@ namespace TeammateRevive.Revive
                     continue;
                 }
                 
-                //have they been revived by other means?
-                // TODO: uncomment
-                // if (dead.CheckAlive())
-                // {
-                //     this.players.PlayerAlive(dead);
-                //     continue;
-                // }
+                //have they been revived by other means? (can be disabled for debugging purposes)
+                if (dead.CheckAlive() && !this.rules.Values.DebugKeepSkulls)
+                {
+                    Log.Debug("Removing skull revived by other means");
+                    this.players.PlayerAlive(dead);
+                    continue;
+                }
                 var totalReviveSpeed = 0f;
                 var playersInRange = 0;
 
@@ -228,10 +228,10 @@ namespace TeammateRevive.Revive
                         dead.reviveProgress += reviveSpeed * Time.deltaTime;
                         dead.reviveProgress = Mathf.Clamp01(dead.reviveProgress);
                         
-                        // if player in range, update revive involvement
+                        // if player in range, update revive revive links
                         if (this.run.IsDeathCurseEnabled)
                         {
-                            player.IncreaseInvolvement(dead, Time.deltaTime + Time.deltaTime  / this.rules.Values.ReduceReviveProgressFactor * this.rules.Values.ReviveInvolvementBuffTimeFactor);
+                            player.IncreaseReviveLinkDuration(dead, Time.deltaTime + Time.deltaTime  / this.rules.Values.ReduceReviveProgressFactor * this.rules.Values.ReviveLinkBuffTimeFactor);
                         }
 
                         // damage alive player - down to 1 HP
@@ -264,9 +264,9 @@ namespace TeammateRevive.Revive
                     if (this.run.IsDeathCurseEnabled)
                         AddCurse(playersToCurse);
                     
-                    // remove involvement from all players
+                    // remove revive links from all players
                     foreach (var player in this.players.All) 
-                        player.RemoveReviveInvolvement(dead);
+                        player.RemoveReviveLink(dead);
                     
                     continue;
                 }
@@ -274,9 +274,9 @@ namespace TeammateRevive.Revive
                 UpdateSkull(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
             }
             
-            // update revive involvement
+            // update revive links
             if (this.run.IsDeathCurseEnabled) 
-                UpdateReviveInvolvementBuffs();
+                UpdateReviveLinkBuffs();
             
             // progress bar
             this.reviveProgressBarTracker.Update();
@@ -306,12 +306,12 @@ namespace TeammateRevive.Revive
                 dead.reviveProgress =
                     Mathf.Clamp01(dead.reviveProgress + this.rules.ReduceReviveProgressSpeed * Time.deltaTime);
 
-                // if reviving progress become 0, remove involvement from all players
+                // if reviving progress become 0, remove revive links from all players
                 if (prevReviveProgress != 0 && dead.reviveProgress == 0)
                 {
                     foreach (var player in this.players.All)
                     {
-                        player.RemoveReviveInvolvement(dead);
+                        player.RemoveReviveLink(dead);
                     }
                 }
 
@@ -346,10 +346,10 @@ namespace TeammateRevive.Revive
                 return;
             }
 
-            var reduceHpItemCount = inventory.GetItemCount(ItemsAndBuffs.DeathCurseItemIndex);
-            inventory.RemoveItem(ItemsAndBuffs.DeathCurseItemIndex, inventory.GetItemCount(ItemsAndBuffs.CharonsObolItemIndex) + 1);
+            var reduceHpItemCount = inventory.GetItemCount(AssetsIndexes.DeathCurseItemIndex);
+            inventory.RemoveItem(AssetsIndexes.DeathCurseItemIndex, inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex) + 1);
             Log.Info(
-                $"Removed reduce HP item for ({userName}). Was {reduceHpItemCount}. Now: {inventory.GetItemCount(ItemsAndBuffs.DeathCurseItemIndex)}");
+                $"Removed reduce HP item for ({userName}). Was {reduceHpItemCount}. Now: {inventory.GetItemCount(AssetsIndexes.DeathCurseItemIndex)}");
         }
 
         public DeadPlayerSkull ServerSpawnSkull(Player player)
@@ -373,13 +373,13 @@ namespace TeammateRevive.Revive
             return skull;
         }
 
-        void UpdateReviveInvolvementBuffs()
+        void UpdateReviveLinkBuffs()
         {
             foreach (var player in this.players.Alive)
             {
                 var characterBody = player.GetBody();
                 if (characterBody == null) continue;
-                characterBody.SetBuffCount(ItemsAndBuffs.ReviveInvolvementBuffIndex, player.GetRevivingPlayersInvolvement());
+                characterBody.SetBuffCount(AssetsIndexes.ReviveLinkBuffIndex, player.GetPlayersReviveLinks());
             }
         }
 
@@ -393,7 +393,7 @@ namespace TeammateRevive.Revive
 
         void AddCurse(params Player[] players)
         {
-            foreach (var player in players) player.master.master.inventory.GiveItem(ItemsAndBuffs.DeathCurseItemIndex);
+            foreach (var player in players) player.master.master.inventory.GiveItem(AssetsIndexes.DeathCurseItemIndex);
         }
         
         void CreateInteraction(GameObject gameObject)

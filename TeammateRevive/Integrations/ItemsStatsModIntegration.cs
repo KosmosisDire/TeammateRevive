@@ -32,13 +32,13 @@ namespace TeammateRevive.Integrations
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         void AddToItemStats()
         {
-            if (!ItemsAndBuffs.InitedIndexes || ItemsAndBuffs.CharonsObolItemIndex.ToString() == "None")
+            if (!AssetsIndexes.InitedIndexes || AssetsIndexes.CharonsObolItemIndex.ToString() == "None")
             {
                 Log.Warn("ItemStats integration: Cannot add - items weren't loaded at application start!");
                 return;
             }
 
-            ItemStatsMod.AddCustomItemStatDef(ItemsAndBuffs.CharonsObolItemIndex, new ItemStatDef
+            ItemStatsMod.AddCustomItemStatDef(AssetsIndexes.CharonsObolItemIndex, new ItemStatDef
             {
                 Stats = new List<ItemStat>
                 {
@@ -61,7 +61,7 @@ namespace TeammateRevive.Integrations
                 }
             });
             
-            Log.Info($"ItemStats integration: OK! Idx {ItemsAndBuffs.CharonsObolItemIndex}");
+            Log.Info($"ItemStats integration: OK! Idx {AssetsIndexes.CharonsObolItemIndex}");
         }
     }
 }

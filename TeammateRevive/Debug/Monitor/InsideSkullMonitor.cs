@@ -11,9 +11,9 @@ namespace TeammateRevive.Debug.Monitor
         protected override void InitData()
         {
             DeadPlayerSkull.GlobalOnDestroy += OnSkullDestroy;
-            foreach (var player in PlayersTracker.instance.All)
+            foreach (var player in NetworkUser.readOnlyInstancesList)
             {
-                UpdateOrCreateRow(player.networkUser.userName);
+                UpdateOrCreateRow(player.userName);
             }
         }
 

@@ -29,9 +29,11 @@ namespace TeammateRevive.Revive.Rules
             writer.Write(this.ruleValues.ReduceHpFactor);
             writer.Write(this.ruleValues.BaseReduceHpFactor);
             writer.Write(this.ruleValues.ReduceReviveProgressFactor);
-            writer.Write(this.ruleValues.ReviveInvolvementBuffTimeFactor);
+            writer.Write(this.ruleValues.ReviveLinkBuffTimeFactor);
             writer.Write(this.ruleValues.ObolDamageReduceFactor);
             writer.Write(this.ruleValues.ForceDeathCurseRule);
+            writer.Write(this.ruleValues.DebugKeepSkulls);
+            writer.Write(this.ruleValues.ShawnCharonShrine);
             Log.Info("Sending new rule values");
         }
 
@@ -45,9 +47,11 @@ namespace TeammateRevive.Revive.Rules
             this.ruleValues.ReduceHpFactor = reader.ReadSingle();
             this.ruleValues.BaseReduceHpFactor = reader.ReadSingle();
             this.ruleValues.ReduceReviveProgressFactor = reader.ReadSingle();
-            this.ruleValues.ReviveInvolvementBuffTimeFactor = reader.ReadSingle();
+            this.ruleValues.ReviveLinkBuffTimeFactor = reader.ReadSingle();
             this.ruleValues.ObolDamageReduceFactor = reader.ReadSingle();
             this.ruleValues.ForceDeathCurseRule = reader.ReadBoolean();
+            this.ruleValues.DebugKeepSkulls = reader.ReadBoolean();
+            this.ruleValues.ShawnCharonShrine = reader.ReadBoolean();
         }
 
         public void OnReceived()

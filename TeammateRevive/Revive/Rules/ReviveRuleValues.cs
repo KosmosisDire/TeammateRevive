@@ -10,7 +10,7 @@
         // revive
         public float ReviveTimeSeconds { get; set; } = 6;
         public float ReduceReviveProgressFactor { get; set; } = .1f;
-        public float ReviveInvolvementBuffTimeFactor { get; set; } = 1f;
+        public float ReviveLinkBuffTimeFactor { get; set; } = 1f;
         public float ObolReviveFactor { get; set; } = 1.125f;
         public float ObolDamageReduceFactor { get; set; } = 1.1f;
         
@@ -19,6 +19,10 @@
         public float ReduceHpFactor { get; set; } = 1.2f;
 
         public bool ForceDeathCurseRule { get; set; } = false;
+
+        public bool DebugKeepSkulls { get; set; } = false;
+
+        public bool ShawnCharonShrine { get; set; } = true;
 
         public ReviveRuleValues Clone()
         {

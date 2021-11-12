@@ -1,13 +1,31 @@
 ## Description:
 Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk :)
 
-## To Do:
-* Add better indicator for how close the player is to revival.
-* Add customizability / config
-* Fix bugs
+To more balanced and in-depth revive mechanic, you can enable Death Curse artifact. When enabled, following event will occur:
+- each player involved in revival will receive Revive Link status that links them to revivee. This link will be removed shortly, depending on how much time character spent in revive circle
+- when player is revived, he and all players linked to him will receive Death Curse debuff that reduces Max HP/Max Shield like Shaped Glass do
+- Charon's Obol item can spawn which will make revival easier. It can also be consumed to revive teammate instantly without getting Death Curse
+- on stage change, (1 + Charon's Obol count) Death Curses will be removed from each character
+- Charon's Shrine can spawn on stages (but it doesn't spend director's credits). Obol can be consumed on them to remove Death Curses from whole party
 
+## Feedback
+
+Feedback would be greatly appreciated. It you encounter bug or want to discuss new or existing feature in mod, please contact KosmosisDire#4195 or amadare#8308 on Discord.
 
 ## Change Notes:
+
+* 4.0.0
+    * Huge refactoring of whole codebase
+    * A lot of bug fixes and general improvements
+    * Added optional Death Curse mechanic and Charon's Obol that adds more depth to revive mechanic
+        * Added ItemStats & BetterUI mods integration
+        * Added Charon's Shrine
+    * Added revival progress bar
+    * Changed and tweaked revival formulae
+    * Network optimization
+    * Every revival aspect is highly configurable
+    * Revival range is now increased depending on players inside
+    * Added some debugging tools
 
 * 3.3.8
     * Fixed bug that caused players to instantly respawn after their first revival.

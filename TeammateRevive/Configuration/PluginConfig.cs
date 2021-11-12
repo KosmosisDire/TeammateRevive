@@ -28,6 +28,14 @@ namespace TeammateRevive.Configuration
                 configDescription: new ConfigDescription("How much logs to display", new AcceptableValueList<string>(Enum.GetNames(typeof(LogLevel)))),
                 defaultValue: LogLevel.Info.ToString("G")
             );
+
+            var ruleValues = ReadReviveRuleValues(config);
+            ruleValues.DebugKeepSkulls = config.Bind(
+                section: "Debugging",
+                key: "Keep skulls for characters revived by other means",
+                description: "Debug-only function that will ruin your experience when using Dio's Best Friend",
+                defaultValue: false
+            ).Value;
             
             return new PluginConfig
             {
@@ -68,7 +76,7 @@ namespace TeammateRevive.Configuration
                 
                 ServerLogging = ReadServerLoggingConfig(config),
                 
-                RuleValues = ReadReviveRuleValues(config)
+                RuleValues = ruleValues
             };
         }
 
@@ -143,13 +151,13 @@ namespace TeammateRevive.Configuration
                     set: v => values.ReduceReviveProgressFactor = v,
                     defaultValue: values.ReduceReviveProgressFactor)
                 .Bind(
-                    key: "Revive involvement buff duration factor",
-                    description: "[Only with Death Curse enabled] How long Revive Involvement buff will stay after player leave revive range. " +
-                                 "\nBuffTime = TimeInCircle / ReduceReviveProgressFactor * ReviveInvolvementBuffTimeFactor + 1 second" +
+                    key: "Revive Link buff duration factor",
+                    description: "[Only with Death Curse enabled] How long Revive Link buff will stay after player leave revive range. " +
+                                 "\nBuffTime = TimeInCircle / ReduceReviveProgressFactor * ReviveLinkBuffTimeFactor + 1 second" +
                                  "\nBasically, when 1 - buff will be applied for exactly as long as it will take to remove all added revive progress (+1 second)." +
                                  "\nSo, when 0.5 - only half of that.",
-                    set: v => values.ReviveInvolvementBuffTimeFactor = v,
-                    defaultValue: values.ReviveInvolvementBuffTimeFactor)
+                    set: v => values.ReviveLinkBuffTimeFactor = v,
+                    defaultValue: values.ReviveLinkBuffTimeFactor)
                 .Bind(
                     key: "Obol revive factor",
                     description: "[Only with Death Curse enabled] How much revive speed will increase per dead character's Obol. " +
@@ -181,6 +189,11 @@ namespace TeammateRevive.Configuration
                     description: "Force enable Death Curse logic (e.g. Artifact of Death Curse) even when artifact is disabled.",
                     set: v => values.ForceDeathCurseRule = v,
                     defaultValue: values.ForceDeathCurseRule)
+                .Bind(
+                    key: "Spawn Charon Shrines",
+                    description: "[Only with Death Curse enabled] If enabled, Charon's Shrines will appear in run. You can spend Charon's Obol to remove Death Curse from whole party.",
+                    set: v => values.ShawnCharonShrine = v,
+                    defaultValue: values.ShawnCharonShrine)
                 ;
 
             return values;

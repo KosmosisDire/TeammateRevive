@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using RoR2;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
@@ -95,7 +94,13 @@ namespace TeammateRevive.Debug
                     {
                         action = args =>
                         {
-                            DebugHelper.DamageTargetIndex = args.GetArgInt(0);
+                            var idx = args.GetArgInt(0);
+                            if (idx >= PlayersTracker.instance.All.Count)
+                            {
+                                AddLog($"Index {idx} is too large. Player count: {PlayersTracker.instance.All.Count}");
+                                return;
+                            }
+                            DebugHelper.DamageTargetIndex = idx;
                             AddLog($"Target set to {PlayersTracker.instance.All[DebugHelper.DamageTargetIndex].networkUser.userName}");
                         }
                     }

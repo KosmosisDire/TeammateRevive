@@ -75,7 +75,7 @@ namespace TeammateRevive.ProgressBar
                 Log.DebugMethod("new skull");
                 this.trackingSkull = skull;
                 DequeFromHiding();
-                this.progressBar.SetUser(skull.PlayerName);
+                this.progressBar.UpdateText(skull.PlayerName);
             }
             
             // update progress
@@ -85,7 +85,7 @@ namespace TeammateRevive.ProgressBar
                 this.progressBar.SetColor(this.trackingSkull.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
                 #if DEBUG
                 // for debug purposes, display speed and percentage
-                this.progressBar.SetUser($"{this.trackingSkull.PlayerName} ({this.trackingSkull.fractionPerSecond:F2} | {this.trackingSkull.progress:P})");
+                this.progressBar.UpdateText(this.trackingSkull.PlayerName, this.trackingSkull.progress);
                 #endif
             }
 
@@ -112,8 +112,8 @@ namespace TeammateRevive.ProgressBar
 
         private void QueueToHide()
         {
-            // TODO: make hide time in sync with revive involvement buff
-            this.queuedToHideAt = Time.time + this.rules.ReviveInvolvementBuffTime;
+            // TODO: make hide time in sync with revive link buff
+            this.queuedToHideAt = Time.time + this.rules.ReviveLinkBuffTime;
             Log.DebugMethod($"Queued to hide at {this.queuedToHideAt} (current time: {Time.time})");
         }
 

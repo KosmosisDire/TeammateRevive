@@ -42,14 +42,14 @@ namespace TeammateRevive.Debug.Monitor
 
         string FormatPlayer(Player player)
         {
-            if (player.reviveInvolvements.Count == 0)
+            if (player.reviveLinks.Count == 0)
             {
                 return "";
             }
-            var involvements = string.Join(" ",
-                player.reviveInvolvements.Select(kv => $"{kv.Key.networkUser.userName}({(kv.Value - Time.time):F0}s)")
+            var links = string.Join(" ",
+                player.reviveLinks.Select(kv => $"{kv.Key.networkUser.userName}({(kv.Value - Time.time):F0}s)")
             );
-            return $"<indent=5%>{player.networkUser.userName}:: {involvements}";
+            return $"<indent=5%>{player.networkUser.userName}:: {links}";
         }
     }
 }
