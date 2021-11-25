@@ -1,4 +1,5 @@
 ﻿using RoR2.UI;
+using TeammateRevive.Content;
 using TeammateRevive.Resources;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ namespace TeammateRevive.Revive
             
             var image = buffIcon.iconImage;
             var currentColor = image.color;
-            if (buffIcon.buffDef.buffIndex != AssetsIndexes.ReviveLinkBuffIndex)
+            if (buffIcon.buffDef.buffIndex != ReviveLink.Index)
             {
                 if (currentColor.a != 1)
                 {

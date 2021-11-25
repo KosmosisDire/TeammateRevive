@@ -4,8 +4,8 @@ using ItemStats;
 using ItemStats.Stat;
 using ItemStats.ValueFormatters;
 using RoR2;
+using TeammateRevive.Content;
 using TeammateRevive.Logging;
-using TeammateRevive.Resources;
 using TeammateRevive.Revive.Rules;
 
 namespace TeammateRevive.Integrations
@@ -32,13 +32,13 @@ namespace TeammateRevive.Integrations
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         void AddToItemStats()
         {
-            if (!AssetsIndexes.InitedIndexes || AssetsIndexes.CharonsObolItemIndex.ToString() == "None")
+            if (CharonsObol.Index.ToString() == "None")
             {
                 Log.Warn("ItemStats integration: Cannot add - items weren't loaded at application start!");
                 return;
             }
 
-            ItemStatsMod.AddCustomItemStatDef(AssetsIndexes.CharonsObolItemIndex, new ItemStatDef
+            ItemStatsMod.AddCustomItemStatDef(CharonsObol.Index, new ItemStatDef
             {
                 Stats = new List<ItemStat>
                 {
@@ -55,13 +55,13 @@ namespace TeammateRevive.Integrations
                         (value, ctx) => $"Revive circle range: {value.FormatInt(postfix: "m", decimals: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.rules.GetReviveReduceDamageFactor((int)itemCount) - 1,
+                        (itemCount, ctx) => this.rules.GetReviveReduceDamageFactor((int)itemCount, 0) - 1,
                         (value, ctx) => $"Damage from your circle: {value.FormatPercentage(decimalPlaces: 1, signed: true)}"
                     )
                 }
             });
             
-            Log.Info($"ItemStats integration: OK! Idx {AssetsIndexes.CharonsObolItemIndex}");
+            Log.Info($"ItemStats integration: OK! Idx {CharonsObol.Index}");
         }
     }
 }

@@ -101,7 +101,7 @@ namespace TeammateRevive.Players
             return this.reviveLinks.Count;
         }
 
-        public bool IsInvolvedInReviveOf(Player player) => this.reviveLinks.ContainsKey(player);
+        public bool IsLinkedTo(Player player) => this.reviveLinks.ContainsKey(player);
 
     }
 }

@@ -18,5 +18,12 @@ namespace TeammateRevive.Common
             // if we test both we can determine if the object has been destroyed.
             return gameObject == null && !ReferenceEquals(gameObject, null);
         }
+
+        public static T AddIfMissing<T>(this GameObject gameObject) where T : Component
+        {
+            var existing = gameObject.GetComponent<T>();
+            if (existing) return existing;
+            return gameObject.AddComponent<T>();
+        }
     }
 }

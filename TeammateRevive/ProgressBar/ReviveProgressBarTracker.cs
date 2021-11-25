@@ -11,6 +11,9 @@ using UnityEngine.Networking;
 
 namespace TeammateRevive.ProgressBar
 {
+    /// <summary>
+    /// Updates progress bar based on revival status.
+    /// </summary>
     public class ReviveProgressBarTracker
     {
         private static readonly Color NegativeProgressColor = new(1, .35f, .35f);

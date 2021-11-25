@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace TeammateRevive.ProgressBar
 {
+    /// <summary>
+    /// Controls adding and updating progress bar.
+    /// </summary>
     public class ProgressBarController
     {
         private const string DefaultName = "Player";

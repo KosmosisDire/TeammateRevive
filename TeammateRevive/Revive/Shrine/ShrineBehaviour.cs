@@ -11,7 +11,7 @@ namespace TeammateRevive.Revive.Shrine
         public void Setup()
         {
             this.gameObject.AddComponent<ShrineInteraction>();
-            this.gameObject.AddComponent<MeshCollider>().sharedMesh = AddedAssets.CubeMesh;
+            this.gameObject.AddComponent<MeshCollider>().sharedMesh = AddedAssets.ColliderMesh;
         }
 
         private void Start()

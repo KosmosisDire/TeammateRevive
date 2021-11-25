@@ -3,6 +3,7 @@ using R2API.Networking;
 using R2API.Networking.Interfaces;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
+using TeammateRevive.Content;
 using TeammateRevive.Players;
 using TeammateRevive.Resources;
 using UnityEngine;
@@ -60,7 +61,7 @@ namespace TeammateRevive.Revive.Rules
 
         public float CalculateSkullRadius(Player dead)
         {
-            var itemCount = dead.master.master.inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex);
+            var itemCount = dead.master.master.inventory.GetItemCount(CharonsObol.Index);
             var playersCount = dead.skull.insidePlayerIDs.Count;
 
             return CalculateSkullRadius(itemCount, playersCount);
@@ -82,17 +83,21 @@ namespace TeammateRevive.Revive.Rules
         }
         
 
-        public float GetReviveSpeed(Player player, int playersInRange)
+        public float GetReviveSpeed(Player reviver, int playersInRange)
         {
-            var obolsCount = player.master.master.inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex);
-            return GetReviveSpeed(obolsCount, playersInRange);
+            var obolsCount = reviver.master.master.inventory.GetItemCount(CharonsObol.Index);
+            var reviveEverywhereCount = reviver.master.master.inventory.GetItemCount(ReviveEverywhereItem.Index);
+            return GetReviveSpeed(obolsCount, reviveEverywhereCount, playersInRange);
         }
-        public float GetReviveSpeed(int obolsCount, int playersInRange)
+        
+        public float GetReviveSpeed(int obolsCount, int reviveEverywhereCount, int playersInRange)
         {
             var speed = (1f / this.Values.ReviveTimeSeconds / playersInRange);
+            if (reviveEverywhereCount > 0) speed /= 2;
+
             if (this.run.IsDeathCurseEnabled)
             {
-                var obolFactor = this.Values.ReviveTimeSeconds / (this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount));
+                var obolFactor = this.Values.ReviveTimeSeconds / (this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount + reviveEverywhereCount));
                 speed *= obolFactor;
             }
             
@@ -102,25 +107,29 @@ namespace TeammateRevive.Revive.Rules
 
         public float GetReviveTime(int obolsCount) => this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount);
 
-        public float GetDamageSpeed(Player player, Player dead)
+        public float GetDamageSpeed(float playerMaxHealth, Player dead, int reviverEverywhereObolCount)
         {
             var playersInRange = dead.skull.insidePlayerIDs.Count;
             
-            var deadPlayerObolsCount = dead.master.master.inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex);
-            return GetDamageSpeed(playersInRange, player.GetBody().maxHealth, deadPlayerObolsCount);
+            var deadPlayerObolsCount = dead.master.master.inventory.GetItemCount(CharonsObol.Index);
+            return GetDamageSpeed(playersInRange, playerMaxHealth, deadPlayerObolsCount, reviverEverywhereObolCount);
         }
         
-        public float GetDamageSpeed(int playersInRange, float playerMaxHealth, int deadPlayerObolsCount)
+        public float GetDamageSpeed(int playersInRange, float playerMaxHealth, int deadPlayerObolsCount, int reviverEverywhereObolCount)
         {
+            // aim to leave 15% max HP
             float damageSpeed = ((playerMaxHealth * 0.85f) / this.Values.ReviveTimeSeconds / playersInRange);
             if (this.run.IsDeathCurseEnabled)
             {
-                damageSpeed *= GetReviveReduceDamageFactor(deadPlayerObolsCount);
+                damageSpeed *= GetReviveReduceDamageFactor(deadPlayerObolsCount, reviverEverywhereObolCount);
             }
             return damageSpeed;
         }
 
-        public float GetReviveReduceDamageFactor(int deadPlayerObolsCount) => 1 / Mathf.Pow(Values.ObolDamageReduceFactor, deadPlayerObolsCount);
+        public float GetReviveReduceDamageFactor(int deadPlayerObolsCount, int reviverEverywhereObolCount)
+        {
+            return 1 / Mathf.Pow(this.Values.ObolDamageReduceFactor, deadPlayerObolsCount);
+        }
 
         public float GetCurseReduceHpFactor(int reducesCount) =>
             Mathf.Pow(this.Values.ReduceHpFactor, reducesCount) + this.Values.BaseReduceHpFactor;

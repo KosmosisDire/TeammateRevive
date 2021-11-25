@@ -5,6 +5,7 @@ using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RoR2;
 using TeammateRevive.Common;
+using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.Resources;
@@ -35,7 +36,7 @@ namespace TeammateRevive.Skull
         public NetworkInstanceId deadPlayerId;
         private Light lighting;
         private ScaleAnimation animation;
-        private float cachedRadius;
+        public float cachedRadius;
 
         private string cachedUserName;
         public string PlayerName
@@ -189,8 +190,9 @@ namespace TeammateRevive.Skull
                 if (!body)
                     continue;
                 
-                var deadPlayerObolsCount = body.master.inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex);
-                var damageSpeed = this.rules.GetDamageSpeed(this.insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount);
+                var deadPlayerObolsCount = body.master.inventory.GetItemCount(CharonsObol.Index);
+                var reviverReviveEverywhereItemCount = body.master.inventory.GetItemCount(ReviveEverywhereItem.Index);
+                var damageSpeed = this.rules.GetDamageSpeed(this.insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount, reviverReviveEverywhereItemCount);
 
                 DamageNumberManager.instance.SpawnDamageNumber(damageSpeed * this.damageNumberElapsed, body.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);
             }

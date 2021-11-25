@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace TeammateRevive.ProgressBar
 {
+    /// <summary>
+    /// Progress bar attached behavior. Lifetime = progress bar lifetime.
+    /// </summary>
     public class ProgressBarScript : MonoBehaviour
     {
         private RectTransform rectTransform;

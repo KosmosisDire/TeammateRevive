@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using R2API.Utils;
 using RoR2;
+using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.Resources;
@@ -21,7 +22,7 @@ namespace TeammateRevive.Revive
         public Interactability GetInteractability(Interactor activator)
         {
             var networkUser = Util.LookUpBodyNetworkUser(activator.gameObject);
-            if (networkUser && networkUser.master.inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex) > 0)
+            if (networkUser && networkUser.master.inventory.GetItemCount(CharonsObol.Index) > 0)
             {
                 return Interactability.Available;
             }
@@ -54,7 +55,7 @@ namespace TeammateRevive.Revive
                 return;
             }
 
-            var playerHasRespawnItem = player.GetBody().inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex) > 0;
+            var playerHasRespawnItem = player.GetBody().inventory.GetItemCount(CharonsObol.Index) > 0;
 
             if (!playerHasRespawnItem)
             {
@@ -63,7 +64,7 @@ namespace TeammateRevive.Revive
             }
 
             RevivalTracker.instance.Revive(dead);
-            player.master.master.inventory.RemoveItem(AssetsIndexes.CharonsObolItemIndex);
+            player.master.master.inventory.RemoveItem(CharonsObol.Index);
         }
 
         public bool ShouldIgnoreSpherecastForInteractibility(Interactor activator)

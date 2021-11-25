@@ -4,7 +4,7 @@ using R2API.Networking.Interfaces;
 using RoR2;
 using RoR2.Orbs;
 using TeammateRevive.Common;
-using TeammateRevive.Resources;
+using TeammateRevive.Content;
 using UnityEngine;
 using UnityEngine.Networking;
 using static TeammateRevive.Common.TextFormatter;
@@ -24,9 +24,9 @@ namespace TeammateRevive.Revive.Shrine
         public Interactability GetInteractability(Interactor activator)
         {
             var networkUser = Util.LookUpBodyNetworkUser(activator.gameObject);
-            var hasObol = networkUser && networkUser.master.inventory.GetItemCount(AssetsIndexes.CharonsObolItemIndex) > 0;
+            var hasObol = networkUser && networkUser.master.inventory.GetItemCount(CharonsObol.Index) > 0;
             var anyoneHaveCurse = PlayerCharacterMasterController.instances.Any(c =>
-                c.master.inventory.GetItemCount(AssetsIndexes.DeathCurseItemIndex) > 0);
+                c.master.inventory.GetItemCount(DeathCurse.ItemIndex) > 0);
 
             if (hasObol && anyoneHaveCurse)
             {
@@ -56,21 +56,21 @@ namespace TeammateRevive.Revive.Shrine
         public static void PerformInteraction(GameObject activator, GameObject shrine)
         {
             var user = Util.LookUpBodyNetworkUser(activator.gameObject);
-            user.master.inventory.RemoveItem(AssetsIndexes.CharonsObolItemIndex);
+            user.master.inventory.RemoveItem(CharonsObol.Index);
 
             var orb = new ItemTransferOrb
             {
                 origin = activator.gameObject.transform.position,
-                itemIndex = AssetsIndexes.CharonsObolItemIndex,
+                itemIndex = CharonsObol.Index,
                 stack = 1,
                 onArrival = _ =>
                 {
                     var obolUsed = false;
                     foreach (var otherMaster in PlayerCharacterMasterController.instances)
                     {
-                        if (otherMaster.master.inventory.GetItemCount(AssetsIndexes.DeathCurseItemIndex) > 0)
+                        if (otherMaster.master.inventory.GetItemCount(DeathCurse.ItemIndex) > 0)
                         {
-                            otherMaster.master.inventory.RemoveItem(AssetsIndexes.DeathCurseItemIndex);
+                            otherMaster.master.inventory.RemoveItem(DeathCurse.ItemIndex);
                             obolUsed = true;
                         }
                     }
@@ -98,7 +98,7 @@ namespace TeammateRevive.Revive.Shrine
             var orb = new ItemTransferOrb
             {
                 origin = shrine.transform.position,
-                itemIndex = AssetsIndexes.CharonsObolItemIndex,
+                itemIndex = CharonsObol.Index,
                 stack = 1,
                 inventoryToGrantTo = Util.LookUpBodyNetworkUser(activator).master.inventory,
                 orbEffectTargetObjectOverride = activator.GetComponent<NetworkIdentity>()

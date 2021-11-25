@@ -47,7 +47,6 @@ namespace TeammateRevive.Logging
                 ["level"] = MapLevel(level),
                 // TODO: debug, remove
                 ["msg"] =  (NetworkHelper.IsClient() ? "C " : "S ") + message?.ToString(),
-                ["text"] = $"{DateTime.Now:HH:mm:ss:fff} [{level:G}] {message}",
                 ["user"] = (NetworkHelper.IsClient() ? "C " : "S ") + this.config.UserName,
                 ["room"] = this.config.RoomName
             });
@@ -110,8 +109,7 @@ namespace TeammateRevive.Logging
         {
             var entries = new JSONArray();
             
-            var maxCount = this.logsQueue.Count / 2;
-            maxCount = maxCount > 100 ? 100 : maxCount;
+            var maxCount = 50;
             
             // group all pending entries but not more that specific amount
             while (this.logsQueue.TryDequeue(out var entry))

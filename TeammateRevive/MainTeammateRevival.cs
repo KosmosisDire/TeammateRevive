@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using BepInEx;
 using On.RoR2.Networking;
 using R2API;
@@ -9,10 +11,12 @@ using RoR2;
 using TeammateRevive.Artifact;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
+using TeammateRevive.Content;
 using TeammateRevive.Debug;
 using TeammateRevive.Integrations;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
+using TeammateRevive.ProgressBar;
 using TeammateRevive.Resources;
 using TeammateRevive.Revive;
 using TeammateRevive.Revive.Rules;
@@ -53,6 +57,11 @@ namespace TeammateRevive
         private ReviveRules rules;
         private ShrineManager shrineMan;
         private ReviveLinkBuffIconManager linkBuffIconManager;
+        private SkullLongRangeActivationManager skullLongRangeActivationManager;
+        private SkullTracker skullTracker;
+        private ReviveProgressBarTracker progressBarTracker;
+
+        private List<ContentBase> AddedContent = new();
 
         #region Setup
 
@@ -68,18 +77,22 @@ namespace TeammateRevive
             this.run = new RunTracker(this.deathCurseArtifact);
             this.players = new PlayersTracker(this.run, this.pluginConfig);
             this.rules = new ReviveRules(this.run);
-            this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules);
+            this.skullTracker = new SkullTracker();
+            this.progressBarTracker = new ReviveProgressBarTracker(new ProgressBarController(), this.players,
+                this.skullTracker, this.rules);
+            this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules, this.skullTracker, this.progressBarTracker);
+            
             this.itemsStatsModIntegration = new ItemsStatsModIntegration(this.rules);
             this.betterUiModIntegration = new BetterUiModIntegration();
             this.consoleCommands = new ConsoleCommands(this.rules, this.pluginConfig);
             this.shrineMan = new ShrineManager(this.run, this.rules);
             this.linkBuffIconManager = new ReviveLinkBuffIconManager();
+            this.skullLongRangeActivationManager = new SkullLongRangeActivationManager(this.run, this.skullTracker);
             
             Log.Init(this.pluginConfig, this.Logger);
             AddedAssets.Init();
-            AssetsIndexes.Init();
+            LoadAddedContent();
             this.deathCurseArtifact.Init(this.Config);
-            this.revivalTracker.Init();
             this.rules.ApplyConfigValues(this.pluginConfig);
 #if DEBUG
             DebugHelper.Init(this.pluginConfig);
@@ -89,6 +102,25 @@ namespace TeammateRevive
             SetupHooks();
 
             Log.Debug("Setup Teammate Revival");
+        }
+
+        public void LoadAddedContent()
+        {
+            this.AddedContent = new List<ContentBase>
+            {
+                new CharonsObol(),
+                new DeathCurse(this.rules, this.run),
+                new ReviveEverywhereItem(),
+                new ReviveLink(),
+                new ReviveRegen(this.rules)
+            };
+            
+            foreach (var content in this.AddedContent)
+            {
+                content.Init();
+                content.GetType().GetField("instance")
+                    ?.SetValue(null, content);
+            }
         }
 
         void SetupHooks()

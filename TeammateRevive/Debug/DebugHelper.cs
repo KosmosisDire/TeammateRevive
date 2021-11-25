@@ -4,6 +4,7 @@ using R2API.Networking;
 using RoR2;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
+using TeammateRevive.Content;
 using TeammateRevive.Debug.Monitor;
 using TeammateRevive.Players;
 using TeammateRevive.Resources;
@@ -25,10 +26,10 @@ namespace TeammateRevive.Debug
             NetworkingAPI.RegisterMessageType<DebugNetworkMessage>();
             Config = config;
 
-            Monitor = new DebugMonitorPanelController();
-            Monitor.AddWatcher<PlayerReviveMonitor>();
-            Monitor.AddWatcher<InsideSkullMonitor>();
-            Monitor.AddWatcher<PlayersCountMonitor>();
+            // Monitor = new DebugMonitorPanelController();
+            // Monitor.AddWatcher<PlayerReviveMonitor>();
+            // Monitor.AddWatcher<InsideSkullMonitor>();
+            // Monitor.AddWatcher<PlayersCountMonitor>();
         }
 
         public static void Update()
@@ -92,25 +93,25 @@ namespace TeammateRevive.Debug
         public static void GiveObol()
         {
             NetworkUser.readOnlyInstancesList.ToList()
-                .ForEach(u => u.master.inventory.GiveItem(AssetsIndexes.CharonsObolItemIndex));
+                .ForEach(u => u.master.inventory.GiveItem(CharonsObol.Index));
         }
         
         public static void RemoveObol()
         {
             NetworkUser.readOnlyInstancesList.ToList()
-                .ForEach(u => u.master.inventory.RemoveItem(AssetsIndexes.CharonsObolItemIndex));
+                .ForEach(u => u.master.inventory.RemoveItem(CharonsObol.Index));
         }
 
         public static void GiveCurse()
         {
             NetworkUser.readOnlyInstancesList.ToList()
-                .ForEach(u => u.master.inventory.GiveItem(AssetsIndexes.DeathCurseItemIndex));
+                .ForEach(u => u.master.inventory.GiveItem(DeathCurse.ItemIndex));
         }
         
         public static void RemoveCurse()
         {
             NetworkUser.readOnlyInstancesList.ToList()
-                .ForEach(u => u.master.inventory.RemoveItem(AssetsIndexes.DeathCurseItemIndex));
+                .ForEach(u => u.master.inventory.RemoveItem(DeathCurse.ItemIndex));
         }
 
         public static void DamageSelectedPlayer()

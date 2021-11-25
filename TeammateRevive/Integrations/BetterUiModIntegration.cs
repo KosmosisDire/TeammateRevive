@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using RoR2;
+using TeammateRevive.Content;
 using TeammateRevive.Logging;
-using TeammateRevive.Resources;
 
 namespace TeammateRevive.Integrations
 {
@@ -27,8 +27,8 @@ namespace TeammateRevive.Integrations
         {
             try
             {
-                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(AssetsIndexes.DeathCurseBuffIndex), "Death Curse", "Reduces your max HP/Shield.");
-                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(AssetsIndexes.ReviveLinkBuffIndex), "Revive Link", "Marks that character will receive Death curse when dead character is revived. Removed after some time.");
+                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(DeathCurse.BuffIndex), "Death Curse", "Reduces your max HP/Shield.");
+                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(ReviveLink.Index), "Revive Link", "Marks that character will receive Death curse when dead character is revived. Removed after some time.");
                 Log.Info($"Better UI integration: OK!");
             }
             catch (Exception e)
