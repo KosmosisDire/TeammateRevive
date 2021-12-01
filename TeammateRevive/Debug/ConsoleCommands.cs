@@ -104,6 +104,24 @@ namespace TeammateRevive.Debug
                             AddLog($"Target set to {PlayersTracker.instance.All[DebugHelper.DamageTargetIndex].networkUser.userName}");
                         }
                     }
+                },
+                {
+                    "trv_tglbuff", new RoR2.Console.ConCommand()
+                    {
+                        action = args => DebugHelper.ToggleRegenBuff()
+                    }
+                },
+                {
+                    "trv_give_item", new RoR2.Console.ConCommand()
+                    {
+                        action = args => PlayersTracker.instance.All.ForEach(p => p.GiveItem(ItemCatalog.FindItemIndex(args.GetArgString(0)))) 
+                    }
+                },
+                {
+                    "trv_remove_item", new RoR2.Console.ConCommand()
+                    {
+                        action = args => PlayersTracker.instance.All.ForEach(p => p.master.master.inventory.RemoveItem(ItemCatalog.FindItemIndex(args.GetArgString(0)))) 
+                    }
                 }
             };
         }

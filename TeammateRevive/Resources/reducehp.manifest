@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 2312380772
+CRC: 3066729493
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: ee62c563239e8ab37b4c9336df751577
+    Hash: 33dc1bff9c6647e336933ce18c8b8835
   TypeTreeHash:
     serializedVersion: 2
     Hash: bf9721b8de65ec1649d4f4e7c3983396
@@ -58,10 +58,12 @@ Assets:
 - Assets/icons/lunar_obol.png
 - Assets/models/obolModel.blend
 - Assets/icons/timed_curse.png
+- Assets/models/hand_item.prefab
 - Assets/ProgressBar/ProgressBar.prefab
 - Assets/icons/obol.png
 - Assets/icons/artifactCurseDisabled.png
 - Assets/textures/skulltex.png
 - Assets/models/shrine.prefab
 - Assets/icons/curse.png
+- Assets/icons/lunar_hand.png
 Dependencies: []

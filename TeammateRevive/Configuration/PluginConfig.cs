@@ -36,6 +36,12 @@ namespace TeammateRevive.Configuration
                 description: "Debug-only function that will ruin your experience when using Dio's Best Friend",
                 defaultValue: false
             ).Value;
+            ruleValues.ForceEnableDeathCurseForSinglePlayer = config.Bind(
+                section: "Debugging",
+                key: "Force enable Death Curse even for single player",
+                description: "Retain Death Curse and related items even in single player",
+                defaultValue: false
+            ).Value;
             
             return new PluginConfig
             {
@@ -190,10 +196,20 @@ namespace TeammateRevive.Configuration
                     set: v => values.ForceDeathCurseRule = v,
                     defaultValue: values.ForceDeathCurseRule)
                 .Bind(
-                    key: "Spawn Charon Shrines",
-                    description: "[Only with Death Curse enabled] If enabled, Charon's Shrines will appear in run. You can spend Charon's Obol to remove Death Curse from whole party.",
-                    set: v => values.ShawnCharonShrine = v,
-                    defaultValue: values.ShawnCharonShrine)
+                    key: "Enable Revival Token",
+                    description: "[Only with Death Curse enabled] If enabled, player that is revived a lot will be less likely to receive Death Curse later.",
+                    set: v => values.EnableRevivalToken = v,
+                    defaultValue: values.EnableRevivalToken)
+                .Bind(
+                    key: "Cut Revivee HP",
+                    description: "If enabled, revived player will get hp/shield cut to 40%",
+                    set: v => values.CutReviveeHp = v,
+                    defaultValue: values.CutReviveeHp)
+                .Bind(
+                    key: "Death Curse chance",
+                    description: "[Only with Death Curse enabled] Chance to receive Death Curse on revival (Range: 0-100%)",
+                    set: v => values.DeathCurseChance = v,
+                    defaultValue: values.DeathCurseChance)
                 ;
 
             return values;

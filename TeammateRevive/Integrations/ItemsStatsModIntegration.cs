@@ -47,7 +47,7 @@ namespace TeammateRevive.Integrations
                         (value, ctx) => $"Revive speed increased by {value.FormatPercentage(signed: true, decimalPlaces: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.rules.GetReviveTime((int)itemCount),
+                        (itemCount, ctx) => this.rules.GetReviveTime((int)itemCount, ctx.CountItems(ReviveEverywhereItem.Index)),
                         (value, ctx) => $"Time to revive alone: {value.FormatInt(postfix: "s", decimals: 1)}"
                     ),
                     new(
@@ -60,8 +60,19 @@ namespace TeammateRevive.Integrations
                     )
                 }
             });
+
+            ItemStatsMod.AddCustomItemStatDef(ReviveEverywhereItem.Index, new ItemStatDef
+            {
+                Stats = new List<ItemStat>
+                {
+                    new(
+                        (itemCount, ctx) => this.rules.GetReviveTimeIncrease(ctx.CountItems(CharonsObol.Index), (int)itemCount),
+                        (value, ctx) => $"Revive time increase: {value.FormatPercentage(decimalPlaces: 1, signed: true)}"
+                    )
+                }
+            });
             
-            Log.Info($"ItemStats integration: OK! Idx {CharonsObol.Index}");
+            Log.Info($"ItemStats integration: OK!");
         }
     }
 }

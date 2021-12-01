@@ -25,7 +25,13 @@
 
         public bool DebugKeepSkulls { get; set; } = false;
 
-        public bool ShawnCharonShrine { get; set; } = true;
+        public bool ForceEnableDeathCurseForSinglePlayer { get; set; } = false;
+
+        public bool EnableRevivalToken { get; set; } = true;
+        
+        public bool CutReviveeHp { get; set; } = true;
+
+        public float DeathCurseChance { get; set; } = 66f;
 
         public ReviveRuleValues Clone()
         {

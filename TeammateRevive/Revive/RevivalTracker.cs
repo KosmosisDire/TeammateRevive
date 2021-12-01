@@ -1,16 +1,14 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using RoR2;
 using TeammateRevive.Common;
 using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.ProgressBar;
-using TeammateRevive.Resources;
 using TeammateRevive.Revive.Rules;
 using TeammateRevive.Skull;
 using UnityEngine;
-using UnityEngine.Networking;
-using Object = UnityEngine.Object;
 
 namespace TeammateRevive.Revive
 {
@@ -22,7 +20,6 @@ namespace TeammateRevive.Revive
         private readonly PlayersTracker players;
         private readonly RunTracker run;
         private readonly ReviveRules rules;
-        private ProgressBarController progressBar;
         private readonly SkullTracker skullTracker;
         private readonly ReviveProgressBarTracker reviveProgressBarTracker;
 
@@ -38,16 +35,13 @@ namespace TeammateRevive.Revive
             this.players.OnPlayerDead += OnPlayerDead;
             this.players.OnPlayerAlive += OnPlayerAlive;
             
-            DeadPlayerSkull.GlobalOnClientCreated += OnClientSkullSpawned;
             On.RoR2.Stage.Start += OnStageStart;
-            On.RoR2.Run.BuildDropTable += OnBuildDropTable;
         }
 
         #region Event handlers
 
         void OnPlayerDead(Player player)
         {
-            ServerSpawnSkull(player);
             player.ClearReviveLinks();
         }
         
@@ -56,31 +50,6 @@ namespace TeammateRevive.Revive
             foreach (var otherPlayer in this.players.All)
             {
                 otherPlayer.RemoveReviveLink(player);
-            }
-        }
-
-        void OnBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self)
-        {
-            orig(self);
-            Log.DebugMethod();
-
-            // Remove Obol from drop list if single player or if death curse disabled
-            
-            // NOTE: need to check ForceDeathCurseRule rule explicitly because run starts after drop table is built
-            var isDeathCurseEnabled = this.run.IsDeathCurseEnabled || (NetworkHelper.IsServer && this.rules.Values.ForceDeathCurseRule);
-            
-            if (NetworkUser.readOnlyInstancesList.Count < 2 || !isDeathCurseEnabled)
-            {
-                var respawnItemIdx = self.availableTier2DropList.FindIndex(pi => pi.pickupDef.itemIndex == CharonsObol.Index);
-                if (respawnItemIdx >= 0)
-                {
-                    Log.Info("Removing Charon's Obol from drop list");
-                    self.availableTier2DropList.RemoveAt(respawnItemIdx);
-                }
-                else
-                {
-                    Log.Info("Charon's Obol isn't found in drop list!");
-                }
             }
         }
 
@@ -102,13 +71,8 @@ namespace TeammateRevive.Revive
             foreach (var networkUser in NetworkUser.readOnlyInstancesList)
             {
                 RemoveReduceHpItem(networkUser);
+                networkUser.master.inventory?.RemoveItem(RevivalToken.Index);
             }
-        }
-        
-        void OnClientSkullSpawned(DeadPlayerSkull skull)
-        {
-            if (!this.run.IsDeathCurseEnabled) return;
-            CreateInteraction(skull.gameObject);
         }
 
         
@@ -128,9 +92,6 @@ namespace TeammateRevive.Revive
 
             // if players didn't finish setup yet, we cannot do any updates
             if (!this.players.Setup) return;
-            
-            // TODO: do we really need to recalculate ground position on every update?
-            UpdatePlayersGroundPosition();
 
             // interactions between dead and alive players
             for (var deadIdx = 0; deadIdx < this.players.Dead.Count; deadIdx++)
@@ -140,14 +101,14 @@ namespace TeammateRevive.Revive
 
                 if (skull == null)
                 {
-                    Log.DebugMethod($"Skull is missing {deadIdx}");
+                    Log.Warn($"Skull is missing {deadIdx}");
                     continue;
                 }
                 
-                //have they been revived by other means? (can be disabled for debugging purposes)
+                //have they been revived by other means?
                 if (dead.CheckAlive() && !this.rules.Values.DebugKeepSkulls)
                 {
-                    Log.Debug("Removing skull revived by other means");
+                    Log.Info("Removing skull revived by other means");
                     this.players.PlayerAlive(dead);
                     continue;
                 }
@@ -157,6 +118,7 @@ namespace TeammateRevive.Revive
                 var insidePlayersHash = skull.GetInsidePlayersHash();
                 var actualRange = this.rules.CalculateSkullRadius(dead);
 
+                // ReSharper disable once ForCanBeConvertedToForeach - array can be changed during iteration
                 for (var aliveIdx = 0; aliveIdx < this.players.Alive.Count; aliveIdx++)
                 {
                     var reviver = this.players.Alive[aliveIdx];
@@ -194,39 +156,14 @@ namespace TeammateRevive.Revive
                             skull.insidePlayerIDs.Remove(playerBody.netId);
                     }
                 }
-
-                //if dead player has recharged enough health, respawn and give curse for everyone in range
+                
                 if (dead.reviveProgress >= 1)
                 {
-                    var linkedPlayers = this.players.Alive
-                        .Where(p => p.IsLinkedTo(dead))
-                        .ToArray();
-                    
                     Revive(dead);
-
-                    // add Death Curse to every linked character
-                    if (this.run.IsDeathCurseEnabled)
-                    {
-                        foreach (var player in linkedPlayers)
-                            player.master.master.inventory.GiveItem(DeathCurse.ItemIndex);
-                        dead.master.master.inventory.GiveItem(DeathCurse.ItemIndex);
-                    }
-                    
-                    // remove revive links from all players
-                    foreach (var player in this.players.All) 
-                        player.RemoveReviveLink(dead);
-                    
-                    // cut revived character HP after revival
-                    CutReviveeHp(dead);
-                    
-                    // add post-revive regeneration to revivers
-                    foreach (var player in linkedPlayers)
-                        player.GetBody().AddTimedBuff(ReviveRegen.Index, this.rules.Values.PostReviveRegenDurationSec);
-
                     continue;
                 }
 
-                UpdateSkull(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
+                this.skullTracker.UpdateSkull(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
             }
             
             // update revive links
@@ -235,6 +172,82 @@ namespace TeammateRevive.Revive
             
             // progress bar
             this.reviveProgressBarTracker.Update();
+        }
+
+        void Revive(Player dead)
+        {
+            var linkedPlayers = this.players.Alive
+                .Where(p => p.IsLinkedTo(dead))
+                .ToArray();
+
+            ScheduleCutReviveeHp(dead);
+            this.players.Respawn(dead);
+
+            // add Death Curse to every linked character
+            if (this.run.IsDeathCurseEnabled)
+            {
+                ApplyDeathCurses(dead, linkedPlayers);
+            }
+                    
+            // remove revive links from all players
+            foreach (var player in this.players.All) 
+                player.RemoveReviveLink(dead);
+                    
+            // add post-revive regeneration to revivers
+            foreach (var player in linkedPlayers)
+                player.GetBody().AddTimedBuff(ReviveRegen.Index, this.rules.Values.PostReviveRegenDurationSec);
+        }
+
+        private void ApplyDeathCurses(Player dead, Player[] linkedPlayers)
+        {
+            // invert - from "chance to get curse" to "chance to avoid curse"
+            var percentChance = Mathf.Clamp(100 - this.rules.Values.DeathCurseChance, 0, 100);
+            
+            void RollCurse(Player player, float extraLuck)
+            {
+                // negative luck - take largest roll value
+                // if value > chance - roll is failed
+                // therefore positive luck - outcome is more likely
+                // using inverted roll, so clover sound effect will be triggered if clover is present
+                var luckTotal = extraLuck + player.master.master.luck;
+                var curseAvoided = Util.CheckRoll(percentChance, luckTotal, player.master.master.luck > 0 ? player.master.master : null);
+                if (!curseAvoided)
+                {
+                    player.GiveItem(DeathCurse.ItemIndex);
+                }
+
+                Log.Info($"Rolled curse for {player.networkUser.userName}: {luckTotal:F1}% (+{extraLuck:F1}%). Success: {curseAvoided}");
+            }
+            
+            RollCurse(dead, dead.ItemCount(RevivalToken.Index));
+            
+            // the more time spent reviving this player - the greater chance to receive a curse
+            var array = SortByLinkDuration(linkedPlayers, dead).ToArray();
+            for (var index = 0; index < array.Length; index++)
+            {
+                var player = array[index];
+                RollCurse(player, index);
+            }
+
+            if (this.rules.Values.EnableRevivalToken)
+            {
+                dead.GiveItem(RevivalToken.Index);
+            }
+        }
+
+        IEnumerable<Player> SortByLinkDuration(Player[] linkedPlayers, Player dead)
+        {
+            var totalTime = linkedPlayers.Sum(p => p.GetReviveLinkDuration(dead));
+            var p = 0f;
+            return linkedPlayers
+                .Select(player =>
+                {
+                    var fraction = p + player.GetReviveLinkDuration(dead) / totalTime;
+                    p = fraction;
+                    return new { player, fraction };
+                })
+                .OrderBy(t => t.fraction)
+                .Select(t => t.player);
         }
 
         private void DamageReviver(CharacterBody playerBody, Player dead)
@@ -281,56 +294,6 @@ namespace TeammateRevive.Revive
             );
         }
 
-        private void UpdateSkull(Player dead, int insidePlayersBefore, int playersInRange, float totalReviveSpeed)
-        {
-            var skull = dead.skull;
-            
-            // recalculating range, since it could have been changed after alive/dead interactions
-            var actualRange = this.rules.CalculateSkullRadius(dead);
-            
-            // if players inside changed, forcing update
-            var forceUpdate = skull.GetInsidePlayersHash() != insidePlayersBefore;
-            if (playersInRange > 0)
-            {
-                skull.progress = dead.reviveProgress;
-                var fractionPerSecond = totalReviveSpeed.Truncate(4);
-
-                skull.SetValuesSend(fractionPerSecond, actualRange, forceUpdate);
-            }
-            else
-            {
-                var prevReviveProgress = dead.reviveProgress;
-
-                // if no characters are in range, reduce revive progress
-                dead.reviveProgress =
-                    Mathf.Clamp01(dead.reviveProgress + this.rules.ReduceReviveProgressSpeed * Time.deltaTime);
-
-                // if reviving progress become 0, remove revive links from all players
-                if (prevReviveProgress != 0 && dead.reviveProgress == 0)
-                {
-                    foreach (var player in this.players.All)
-                    {
-                        player.RemoveReviveLink(dead);
-                    }
-                }
-
-                skull.progress = dead.reviveProgress;
-                skull.SetValuesSend(this.rules.ReduceReviveProgressSpeed, actualRange, forceUpdate);
-            }
-        }
-
-        void UpdatePlayersGroundPosition()
-        {
-            foreach (var player in this.players.Alive)
-            {
-                if (player.GetBody() == null)
-                {
-                    continue;
-                }
-                player.UpdateGroundPosition();
-            }
-        }
-        
         void RemoveReduceHpItem(NetworkUser networkUser)
         {
             if (NetworkHelper.IsClient()) return;
@@ -351,27 +314,6 @@ namespace TeammateRevive.Revive
                 $"Removed reduce HP item for ({userName}). Was {reduceHpItemCount}. Now: {inventory.GetItemCount(DeathCurse.ItemIndex)}");
         }
 
-        public DeadPlayerSkull ServerSpawnSkull(Player player)
-        {
-            var skull = Object.Instantiate(AddedAssets.DeathMarker).GetComponent<DeadPlayerSkull>();
-
-            skull.deadPlayerId = player.networkUser.netId;
-            skull.transform.position = player.groundPosition;
-            skull.transform.rotation = Quaternion.identity;
-            
-            if (this.run.IsDeathCurseEnabled)
-            {
-                CreateInteraction(skull.gameObject);
-            }
-
-            player.skull = skull;
-
-            NetworkServer.Spawn(skull.gameObject);
-            Log.Info("Skull spawned on Server and Client");
-
-            return skull;
-        }
-
         void UpdateReviveLinkBuffs()
         {
             foreach (var player in this.players.Alive)
@@ -382,38 +324,25 @@ namespace TeammateRevive.Revive
             }
         }
 
-        public void Revive(Player dead)
+        void ScheduleCutReviveeHp(Player player)
         {
-            Log.DebugMethod();
-            this.players.Respawn(dead);
-            // removing consumed Dio's Best Friend
-            dead.master.master.inventory.RemoveItem(RoR2Content.Items.ExtraLifeConsumed);
+            void Callback(CharacterBody body)
+            {
+                if (player.BodyId != body.netId) return;
+                
+                CutReviveeHp(body);
+                CharacterBody.onBodyStartGlobal -= Callback;
+            }
+            CharacterBody.onBodyStartGlobal += Callback;
         }
 
-        void CutReviveeHp(Player revivee)
+        void CutReviveeHp(CharacterBody body)
         {
-            var body = revivee.GetBody();
-            body.RecalculateStats();
-            var effectiveHp = (body.maxHealth + body.maxShield) * .3f;
+            var hpWas = body.healthComponent.Networkhealth;
+            var effectiveHp = (body.maxHealth + body.maxShield) * .4f;
             body.healthComponent.Networkhealth = Mathf.Clamp(effectiveHp, 1, body.maxHealth);
             body.healthComponent.Networkshield = Mathf.Clamp(body.maxHealth - effectiveHp, 0, body.maxShield);
-        }
-        
-        void CreateInteraction(GameObject gameObject)
-        {
-            gameObject.AddIfMissing<EntityLocator>().entity = gameObject;
-            gameObject.AddIfMissing<ReviveInteraction>();
-            
-            var meshGo = gameObject.GetComponentInChildren<MeshFilter>().gameObject;
-            var collider = meshGo.AddIfMissing<MeshCollider>();
-            collider.isTrigger = true;
-            collider.convex = true;
-            
-            meshGo.AddIfMissing<EntityLocator>().entity = gameObject;
-            
-            // game object need's collider in order to be interactible
-            // gameObject.AddIfMissing<MeshCollider>().sharedMesh = AddedAssets.CubeMesh;
-            Log.DebugMethod("done");
+            Log.DebugMethod($"Prev hp: {hpWas}; Now: {body.healthComponent.health}");
         }
     }
 }

@@ -3,7 +3,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 To more balanced and in-depth revive mechanic, you can enable Death Curse artifact. When enabled, following event will occur:
 - each player involved in revival will receive Revive Link status that links them to revivee. This link will be removed shortly, depending on how much time character spent in revive circle
-- when player is revived, he and all players linked to him will receive Death Curse debuff that reduces Max HP/Max Shield like Shaped Glass do
+- when player is revived, he and random linked player (based on time spent reviving) will receive Death Curse debuff that reduces Max HP/Max Shield like Shaped Glass do
 - Charon's Obol item can spawn which will make revival easier. It can also be consumed to revive teammate instantly without getting Death Curse
 - on stage change, (1 + Charon's Obol count) Death Curses will be removed from each character
 - Charon's Shrine can spawn on stages (but it doesn't spend director's credits). Obol can be consumed on them to remove Death Curses from whole party

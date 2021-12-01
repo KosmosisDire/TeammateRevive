@@ -20,7 +20,6 @@ using TeammateRevive.ProgressBar;
 using TeammateRevive.Resources;
 using TeammateRevive.Revive;
 using TeammateRevive.Revive.Rules;
-using TeammateRevive.Revive.Shrine;
 using TeammateRevive.Skull;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -47,7 +46,7 @@ namespace TeammateRevive
 
         private DeathCurseArtifact deathCurseArtifact;
 
-        private PluginConfig pluginConfig;
+        public PluginConfig pluginConfig;
         private PlayersTracker players;
         private RunTracker run;
         private RevivalTracker revivalTracker;
@@ -55,13 +54,12 @@ namespace TeammateRevive
         private BetterUiModIntegration betterUiModIntegration;
         private ConsoleCommands consoleCommands;
         private ReviveRules rules;
-        private ShrineManager shrineMan;
         private ReviveLinkBuffIconManager linkBuffIconManager;
         private SkullLongRangeActivationManager skullLongRangeActivationManager;
         private SkullTracker skullTracker;
         private ReviveProgressBarTracker progressBarTracker;
-
-        private List<ContentBase> AddedContent = new();
+        private ItemDropManager itemDropManager;
+        private ContentManager contentManager;
 
         #region Setup
 
@@ -77,7 +75,7 @@ namespace TeammateRevive
             this.run = new RunTracker(this.deathCurseArtifact);
             this.players = new PlayersTracker(this.run, this.pluginConfig);
             this.rules = new ReviveRules(this.run);
-            this.skullTracker = new SkullTracker();
+            this.skullTracker = new SkullTracker(this.players, this.run, this.rules);
             this.progressBarTracker = new ReviveProgressBarTracker(new ProgressBarController(), this.players,
                 this.skullTracker, this.rules);
             this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules, this.skullTracker, this.progressBarTracker);
@@ -85,14 +83,13 @@ namespace TeammateRevive
             this.itemsStatsModIntegration = new ItemsStatsModIntegration(this.rules);
             this.betterUiModIntegration = new BetterUiModIntegration();
             this.consoleCommands = new ConsoleCommands(this.rules, this.pluginConfig);
-            this.shrineMan = new ShrineManager(this.run, this.rules);
             this.linkBuffIconManager = new ReviveLinkBuffIconManager();
             this.skullLongRangeActivationManager = new SkullLongRangeActivationManager(this.run, this.skullTracker);
+            this.itemDropManager = new ItemDropManager(this.run, this.rules);
+            this.contentManager = new ContentManager(this.rules, this.run, this.deathCurseArtifact);
             
             Log.Init(this.pluginConfig, this.Logger);
-            AddedAssets.Init();
-            LoadAddedContent();
-            this.deathCurseArtifact.Init(this.Config);
+            this.contentManager.Init();
             this.rules.ApplyConfigValues(this.pluginConfig);
 #if DEBUG
             DebugHelper.Init(this.pluginConfig);
@@ -104,40 +101,12 @@ namespace TeammateRevive
             Log.Debug("Setup Teammate Revival");
         }
 
-        public void LoadAddedContent()
-        {
-            this.AddedContent = new List<ContentBase>
-            {
-                new CharonsObol(),
-                new DeathCurse(this.rules, this.run),
-                new ReviveEverywhereItem(),
-                new ReviveLink(),
-                new ReviveRegen(this.rules)
-            };
-            
-            foreach (var content in this.AddedContent)
-            {
-                content.Init();
-                content.GetType().GetField("instance")
-                    ?.SetValue(null, content);
-            }
-        }
-
         void SetupHooks()
         {
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
-            On.RoR2.Networking.GameNetworkManager.OnStartClient += OnStartClient;
             On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
             On.RoR2.Run.BeginStage += hook_BeginStage;
-        }
-
-        private void OnStartClient(GameNetworkManager.orig_OnStartClient orig, RoR2.Networking.GameNetworkManager self, NetworkClient newclient)
-        {
-            ClientScene.RegisterPrefab(AddedAssets.ShrinePrefab);
-            FindObjectOfType<NetworkManager>().spawnPrefabs.Add(AddedAssets.ShrinePrefab);
-            
-            orig(self, newclient);
         }
 
         #endregion

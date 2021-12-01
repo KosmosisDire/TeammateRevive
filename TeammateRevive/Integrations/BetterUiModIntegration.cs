@@ -29,6 +29,7 @@ namespace TeammateRevive.Integrations
             {
                 BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(DeathCurse.BuffIndex), "Death Curse", "Reduces your max HP/Shield.");
                 BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(ReviveLink.Index), "Revive Link", "Marks that character will receive Death curse when dead character is revived. Removed after some time.");
+                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(ReviveRegen.Index), "Revive Regeneration", "Rapidly regenerates 40% of your HP after revival.");
                 Log.Info($"Better UI integration: OK!");
             }
             catch (Exception e)

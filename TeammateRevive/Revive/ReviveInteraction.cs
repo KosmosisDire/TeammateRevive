@@ -4,7 +4,6 @@ using RoR2;
 using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
-using TeammateRevive.Resources;
 using TeammateRevive.Skull;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -63,7 +62,7 @@ namespace TeammateRevive.Revive
                 return;
             }
 
-            RevivalTracker.instance.Revive(dead);
+            PlayersTracker.instance.Respawn(dead);
             player.master.master.inventory.RemoveItem(CharonsObol.Index);
         }
 

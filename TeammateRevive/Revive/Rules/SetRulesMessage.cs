@@ -33,7 +33,8 @@ namespace TeammateRevive.Revive.Rules
             writer.Write(this.ruleValues.ObolDamageReduceFactor);
             writer.Write(this.ruleValues.ForceDeathCurseRule);
             writer.Write(this.ruleValues.DebugKeepSkulls);
-            writer.Write(this.ruleValues.ShawnCharonShrine);
+            writer.Write(this.ruleValues.EnableRevivalToken);
+            writer.Write(this.ruleValues.CutReviveeHp);
             Log.Info("Sending new rule values");
         }
 
@@ -51,7 +52,8 @@ namespace TeammateRevive.Revive.Rules
             this.ruleValues.ObolDamageReduceFactor = reader.ReadSingle();
             this.ruleValues.ForceDeathCurseRule = reader.ReadBoolean();
             this.ruleValues.DebugKeepSkulls = reader.ReadBoolean();
-            this.ruleValues.ShawnCharonShrine = reader.ReadBoolean();
+            this.ruleValues.EnableRevivalToken = reader.ReadBoolean();
+            this.ruleValues.CutReviveeHp = reader.ReadBoolean();
         }
 
         public void OnReceived()

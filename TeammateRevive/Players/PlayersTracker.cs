@@ -24,6 +24,7 @@ namespace TeammateRevive.Players
         public event Action<Player> OnPlayerDead;
         public event Action<Player> OnPlayerAlive;
         public event Action OnSetupFinished;
+        public event Action<Player> OnPlayerRespawned;
 
         public PlayerCharacterMasterController CurrentUserPlayerCharacterMasterController { get; set; }
         public NetworkInstanceId? CurrentUserBodyId => this.CurrentUserPlayerCharacterMasterController?.master.GetBody()?.netId;
@@ -58,7 +59,10 @@ namespace TeammateRevive.Players
             {
                 player.master.master.RespawnExtraLife();
                 PlayerAlive(player);
+                // removing consumed Dio's Best Friend
+                player.master.master.inventory.RemoveItem(RoR2Content.Items.ExtraLifeConsumed);
             }
+            OnPlayerRespawned?.Invoke(player);
             Log.Info("Player Respawned");
         }
 

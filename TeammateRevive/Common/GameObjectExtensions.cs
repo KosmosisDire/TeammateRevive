@@ -2,7 +2,6 @@
 
 namespace TeammateRevive.Common
 {
-    // source: https://answers.unity.com/questions/13840/how-to-detect-if-a-gameobject-has-been-destroyed.html
     public static class GameObjectExtensions
     {
         /// <summary>
@@ -10,6 +9,7 @@ namespace TeammateRevive.Common
         /// </summary>
         /// <param name="gameObject">GameObject reference to check for destructedness</param>
         /// <returns>If the game object has been marked as destroyed by UnityEngine</returns>
+        /// source: https://answers.unity.com/questions/13840/how-to-detect-if-a-gameobject-has-been-destroyed.html
         public static bool IsDestroyed(this GameObject gameObject)
         {
             // UnityEngine overloads the == operator for the GameObject type
@@ -19,6 +19,9 @@ namespace TeammateRevive.Common
             return gameObject == null && !ReferenceEquals(gameObject, null);
         }
 
+        /// <summary>
+        /// Adds component of type T if missing, otherwise return existing.
+        /// </summary>
         public static T AddIfMissing<T>(this GameObject gameObject) where T : Component
         {
             var existing = gameObject.GetComponent<T>();

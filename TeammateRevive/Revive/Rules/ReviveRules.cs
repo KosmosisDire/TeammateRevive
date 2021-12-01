@@ -105,7 +105,11 @@ namespace TeammateRevive.Revive.Rules
         }
         public float GetReviveIncrease(int obolsCount) => this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount);
 
-        public float GetReviveTime(int obolsCount) => this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount);
+        public float GetReviveTime(int obolsCount, int reviveEverywhereCount) => this.Values.ReviveTimeSeconds /
+            this.GetReviveSpeed(obolsCount, reviveEverywhereCount, 1);
+
+        public float GetReviveTimeIncrease(int obolsCount, int reviveEverywhereCount) =>
+            GetReviveSpeed(obolsCount, 0, 1) / GetReviveSpeed(obolsCount, reviveEverywhereCount, 1);
 
         public float GetDamageSpeed(float playerMaxHealth, Player dead, int reviverEverywhereObolCount)
         {

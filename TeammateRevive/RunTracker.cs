@@ -29,8 +29,8 @@ namespace TeammateRevive
             }
         }
 
-        public bool IsDeathCurseEnabled => (this.deathCurseArtifact.ArtifactEnabled ||
-                                           (ReviveRules.instance?.Values.ForceDeathCurseRule ?? false))
+        public bool IsDeathCurseEnabled => (ReviveRules.instance?.Values.ForceEnableDeathCurseForSinglePlayer ?? false)
+                                           || (this.deathCurseArtifact.ArtifactEnabled || (ReviveRules.instance?.Values.ForceDeathCurseRule ?? false))
                                            && Run.instance?.participatingPlayerCount != 1;
 
         public RunTracker(DeathCurseArtifact deathCurseArtifact)
