@@ -342,10 +342,11 @@ namespace TeammateRevival
                 {
                     PlayerDead(victim);
                     LogInfo(victimNetworkUser.userName + " Died!");
-                    return;
                 }
-
-                LogError("Player Died but they were not alive to begin with!");
+                else
+                {
+                    LogError("Player Died but they were not alive to begin with!");
+                }
             }
 
             orig(self, damageReport, victimNetworkUser);
