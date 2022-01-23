@@ -11,7 +11,6 @@ using RoR2;
 using TeammateRevive.Artifact;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
-using TeammateRevive.Content;
 using TeammateRevive.Debug;
 using TeammateRevive.Integrations;
 using TeammateRevive.Logging;
@@ -29,6 +28,7 @@ namespace TeammateRevive
     [BepInDependency("com.bepis.r2api")]
     [BepInDependency("dev.ontrigger.itemstats", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.xoxfaby.BetterUI", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI), nameof(BuffAPI), nameof(ItemAPI), nameof(ItemDropAPI), nameof(ArtifactAPI), nameof(LanguageAPI))]
     public class MainTeammateRevival : BaseUnityPlugin
@@ -56,6 +56,7 @@ namespace TeammateRevive
         private ReviveRules rules;
         private ReviveLinkBuffIconManager linkBuffIconManager;
         private SkullLongRangeActivationManager skullLongRangeActivationManager;
+        private InLobbyConfigIntegration inLobbyConfigIntegration;
         private SkullTracker skullTracker;
         private ReviveProgressBarTracker progressBarTracker;
         private ItemDropManager itemDropManager;
@@ -74,7 +75,7 @@ namespace TeammateRevive
             this.deathCurseArtifact = new DeathCurseArtifact();
             this.run = new RunTracker(this.deathCurseArtifact);
             this.players = new PlayersTracker(this.run, this.pluginConfig);
-            this.rules = new ReviveRules(this.run);
+            this.rules = new ReviveRules(this.run, this.pluginConfig);
             this.skullTracker = new SkullTracker(this.players, this.run, this.rules);
             this.progressBarTracker = new ReviveProgressBarTracker(new ProgressBarController(), this.players,
                 this.skullTracker, this.rules);
@@ -84,13 +85,14 @@ namespace TeammateRevive
             this.betterUiModIntegration = new BetterUiModIntegration();
             this.consoleCommands = new ConsoleCommands(this.rules, this.pluginConfig);
             this.linkBuffIconManager = new ReviveLinkBuffIconManager();
+            this.inLobbyConfigIntegration = new InLobbyConfigIntegration(this.pluginConfig);
             this.skullLongRangeActivationManager = new SkullLongRangeActivationManager(this.run, this.skullTracker);
             this.itemDropManager = new ItemDropManager(this.run, this.rules);
             this.contentManager = new ContentManager(this.rules, this.run, this.deathCurseArtifact);
             
             Log.Init(this.pluginConfig, this.Logger);
             this.contentManager.Init();
-            this.rules.ApplyConfigValues(this.pluginConfig);
+            this.rules.ApplyConfigValues();
 #if DEBUG
             DebugHelper.Init(this.pluginConfig);
 #endif
@@ -106,18 +108,11 @@ namespace TeammateRevive
             On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
             On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
             On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
-            On.RoR2.Run.BeginStage += hook_BeginStage;
         }
 
         #endregion
 
         #region Hooks
-
-        void hook_BeginStage(On.RoR2.Run.orig_BeginStage orig, Run self)
-        {
-            orig(self);
-            this.run.IsStarted = true;
-        }
 
         void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, NetworkUser self)
         {
@@ -171,33 +166,7 @@ namespace TeammateRevive
 
         void OnRunStarted(RunTracker obj)
         {
-            // disable artifact if single player
-            if (Run.instance.participatingPlayerCount == 1
-                && RunArtifactManager.instance.IsArtifactEnabled(this.deathCurseArtifact.ArtifactDef))
-            {
-                RunArtifactManager.instance.SetArtifactEnabledServer(this.deathCurseArtifact.ArtifactDef, false);
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                {
-                    baseToken = TextFormatter.Yellow("Artifact of Death Curse is disabled because run started in single player!.")
-                });
-                return;
-            }
-            
-            // enforce artifact if needed
-            if (
-                Run.instance.participatingPlayerCount > 1
-                && this.rules.Values.ForceDeathCurseRule
-                && !this.deathCurseArtifact.ArtifactEnabled
-                && NetworkHelper.IsServer
-            ) {
-                var message = "Artifact of Death Curse is enforced by server.";
-                RunArtifactManager.instance.SetArtifactEnabledServer(this.deathCurseArtifact.ArtifactDef, true);
-                Log.Info(message);
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                {
-                    baseToken = TextFormatter.Yellow(message)
-                });
-            }
+            this.deathCurseArtifact.EnsureEnabled(this.rules);
         }
 
         public Func<IEnumerator, Coroutine> DoCoroutine => StartCoroutine;

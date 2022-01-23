@@ -15,6 +15,7 @@ namespace TeammateRevive.Revive.Rules
         public static ReviveRules instance;
         
         private readonly RunTracker run;
+        private readonly PluginConfig pluginConfig;
         public event Action<ReviveRuleValues, ReviveRuleValues> ValuesChanged;
 
         public ReviveRuleValues Values { get; private set; }
@@ -23,11 +24,13 @@ namespace TeammateRevive.Revive.Rules
         public float ReduceReviveProgressSpeed { get; private set; }
         public float ReviveLinkBuffTime { get; private set; }
 
-        public ReviveRules(RunTracker run)
+        public ReviveRules(RunTracker run, PluginConfig pluginConfig)
         {
             instance = this;
             this.run = run;
+            this.pluginConfig = pluginConfig;
             this.run.RunStarted += OnRunStarted;
+            this.pluginConfig.RuleValuesBindCollection.OnChanged +=  ApplyConfigValues;
         }
 
         private void OnRunStarted(RunTracker sender)
@@ -38,7 +41,7 @@ namespace TeammateRevive.Revive.Rules
             }
         }
 
-        public void ApplyConfigValues(PluginConfig pluginConfig)
+        public void ApplyConfigValues()
         {
             ApplyValues(pluginConfig.RuleValues.Clone());
         }

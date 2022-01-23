@@ -396,6 +396,10 @@
       <HintPath>libs\BetterUI.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="InLobbyConfig">
+      <HintPath>libs\InLobbyConfig.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

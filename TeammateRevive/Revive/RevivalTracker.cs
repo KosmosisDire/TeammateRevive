@@ -92,6 +92,8 @@ namespace TeammateRevive.Revive
 
             // if players didn't finish setup yet, we cannot do any updates
             if (!this.players.Setup) return;
+            
+            UpdatePlayersGroundPosition();
 
             // interactions between dead and alive players
             for (var deadIdx = 0; deadIdx < this.players.Dead.Count; deadIdx++)
@@ -188,11 +190,11 @@ namespace TeammateRevive.Revive
             {
                 ApplyDeathCurses(dead, linkedPlayers);
             }
-                    
+            
             // remove revive links from all players
             foreach (var player in this.players.All) 
                 player.RemoveReviveLink(dead);
-                    
+            
             // add post-revive regeneration to revivers
             foreach (var player in linkedPlayers)
                 player.GetBody().AddTimedBuff(ReviveRegen.Index, this.rules.Values.PostReviveRegenDurationSec);
@@ -203,7 +205,7 @@ namespace TeammateRevive.Revive
             // invert - from "chance to get curse" to "chance to avoid curse"
             var percentChance = Mathf.Clamp(100 - this.rules.Values.DeathCurseChance, 0, 100);
             
-            void RollCurse(Player player, float extraLuck)
+            bool RollCurse(Player player, float extraLuck)
             {
                 // negative luck - take largest roll value
                 // if value > chance - roll is failed
@@ -214,9 +216,19 @@ namespace TeammateRevive.Revive
                 if (!curseAvoided)
                 {
                     player.GiveItem(DeathCurse.ItemIndex);
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    {
+                        baseToken = $"<color=\"red\">{player.networkUser.userName} was cursed! (Luck value: {luckTotal})</color>"
+                    });
+                    return true;
                 }
 
-                Log.Info($"Rolled curse for {player.networkUser.userName}: {luckTotal:F1}% (+{extraLuck:F1}%). Success: {curseAvoided}");
+                Log.Info($"Rolled curse for {player.networkUser.userName}: {percentChance:F1}% (luck: {player.master.master.luck:F0}+{extraLuck:F0}). Success: {curseAvoided}");
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                {
+                    baseToken = $"{player.networkUser.userName} avoided curse! (Luck value: {luckTotal})"
+                });
+                return false;
             }
             
             RollCurse(dead, dead.ItemCount(RevivalToken.Index));
@@ -226,7 +238,11 @@ namespace TeammateRevive.Revive
             for (var index = 0; index < array.Length; index++)
             {
                 var player = array[index];
-                RollCurse(player, index);
+                if (RollCurse(player, index))
+                {
+                    // when at least one player received curse, stop rolling for other members
+                    break;
+                }
             }
 
             if (this.rules.Values.EnableRevivalToken)
@@ -293,6 +309,18 @@ namespace TeammateRevive.Revive
                 max
             );
         }
+        void UpdatePlayersGroundPosition()
+        {
+            foreach (var player in this.players.Alive)
+            {
+                if (player.GetBody() == null)
+                {
+                    continue;
+                }
+                player.UpdateGroundPosition();
+            }
+        }
+        
 
         void RemoveReduceHpItem(NetworkUser networkUser)
         {

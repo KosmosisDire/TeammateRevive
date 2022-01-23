@@ -38,7 +38,14 @@ namespace TeammateRevive
             this.deathCurseArtifact = deathCurseArtifact;
             Run.onRunStartGlobal += GlobalOnRunStarted;
             Run.onRunDestroyGlobal += GlobalOnRunDestroy;
+            On.RoR2.Run.BeginStage += hook_BeginStage;
             instance = this;
+        }
+
+        private void hook_BeginStage(On.RoR2.Run.orig_BeginStage orig, Run self)
+        {
+            orig(self);
+            this.IsStarted = true;
         }
 
         void GlobalOnRunStarted(Run obj)

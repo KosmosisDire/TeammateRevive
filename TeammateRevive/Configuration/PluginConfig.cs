@@ -12,78 +12,26 @@ namespace TeammateRevive.Configuration
 
         public LogLevel LogLevel { get; set; }
 
-        public ServerLoggingConfig ServerLogging { get; set; } = new();
+        public ServerLoggingConfig ServerLogging { get; private set; } = new();
         public bool FileLogging { get; set; }
         public string FileLoggingPath { get; set; }
         public bool GodMode { get; set; }
 
-        public ReviveRuleValues RuleValues { get; set; }
+        public ReviveRuleValues RuleValues { get; } = new();
+
+        public BindCollection RuleValuesBindCollection { get; private set; }
+        public BindCollection DebugBindCollection { get; private set; }
 
 
         public static PluginConfig Load(ConfigFile config)
         {
-            var logLevel = config.Bind(
-                section: "Debugging",
-                key: "Log Level",
-                configDescription: new ConfigDescription("How much logs to display", new AcceptableValueList<string>(Enum.GetNames(typeof(LogLevel)))),
-                defaultValue: LogLevel.Info.ToString("G")
-            );
-
-            var ruleValues = ReadReviveRuleValues(config);
-            ruleValues.DebugKeepSkulls = config.Bind(
-                section: "Debugging",
-                key: "Keep skulls for characters revived by other means",
-                description: "Debug-only function that will ruin your experience when using Dio's Best Friend",
-                defaultValue: false
-            ).Value;
-            ruleValues.ForceEnableDeathCurseForSinglePlayer = config.Bind(
-                section: "Debugging",
-                key: "Force enable Death Curse even for single player",
-                description: "Retain Death Curse and related items even in single player",
-                defaultValue: false
-            ).Value;
+            var pluginConfig = new PluginConfig();
             
-            return new PluginConfig
-            {
-                ConsoleLogging = config.Bind<bool>(
-                    section: "Debugging",
-                    key: "Console Logging",
-                    description: "Log debugging messages to the console.",
-                    defaultValue: true).Value,
-                
-                LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), logLevel.Value),
+            pluginConfig.RuleValuesBindCollection = BindRuleValues(config, pluginConfig.RuleValues);
+            pluginConfig.DebugBindCollection = BindDebugSection(config, pluginConfig);
+            pluginConfig.ServerLogging = ReadServerLoggingConfig(config);
 
-                ChatLogging = config.Bind<bool>(
-                    section: "Debugging",
-                    key: "Chat Logging",
-                    description: "Log debugging messages to the in-game chat.",
-                    defaultValue: false).Value,
-
-                FileLogging = config.Bind<bool>(
-                    section: "Debugging",
-                    key: "File Logging",
-                    description:
-                    "Log debugging messages to log.txt located on the desktop by default (sometimes the path cannot be found, so set a custom path below). If the path cannot be found it will write to \"C:\\log.txt\" instead.",
-                    defaultValue: false).Value,
-
-                FileLoggingPath = config.Bind<string>(
-                    section: "Debugging",
-                    key: "File Logging Path",
-                    description:
-                    "This sets the location that the logging file will be created. Leave blank to put log.txt on the desktop. If the log file is not showing up set your path manually here.",
-                    defaultValue: "").Value,
-
-                GodMode = config.Bind<bool>(
-                    section: "Debugging",
-                    key: "God Mode",
-                    description:
-                    "Super massive base damage, and super speed for the host. For testing purposes only, Makes the game incredibly boring.",
-                    defaultValue: false).Value,
-                
-                ServerLogging = ReadServerLoggingConfig(config),
-                
-                RuleValues = ruleValues
-            };
+            return pluginConfig;
         }
 
         private static ServerLoggingConfig ReadServerLoggingConfig(ConfigFile configFile)
@@ -123,11 +71,61 @@ namespace TeammateRevive.Configuration
             return config;
         }
 
-        static ReviveRuleValues ReadReviveRuleValues(ConfigFile configFile)
+        static BindCollection BindDebugSection(ConfigFile configFile, PluginConfig pluginConfig)
         {
-            var values = new ReviveRuleValues();
-
-            configFile.BindCollection("Revive rules configuration")
+            return configFile.BindCollection("Debugging")
+                .Bind(
+                    key: "Keep skulls for characters revived by other means",
+                    description: "Debug-only function that will ruin your experience when using Dio's Best Friend",
+                    set: v => pluginConfig.RuleValues.DebugKeepSkulls = v,
+                    defaultValue: false)
+                .Bind(
+                    key: "Force enable Death Curse even for single player",
+                    description: "Retain Death Curse and related items even in single player",
+                    set: v => pluginConfig.RuleValues.ForceEnableDeathCurseForSinglePlayer = v,
+                    defaultValue: false)
+                
+                // Thunderstore is having troubles displaying proper dropdowns, so I need to do this :/
+                .Bind(
+                    key: "Log Level",
+                    configDescription: new ConfigDescription("How much logs to display",
+                        new AcceptableValueList<string>(Enum.GetNames(typeof(LogLevel)))),
+                    set: v => pluginConfig.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), v),
+                    defaultValue: LogLevel.Info.ToString("G"))
+                
+                .Bind(
+                    key: "Console Logging",
+                    description: "Log debugging messages to the console",
+                    set: v => pluginConfig.ConsoleLogging = v,
+                    defaultValue: true)
+                .Bind(
+                    key: "Chat Logging",
+                    description: "Log debugging messages to the in-game chat.",
+                    set: v => pluginConfig.ChatLogging = v,
+                    defaultValue: false)
+                .Bind(
+                    key: "File Logging",
+                    description:
+                    "Log debugging messages to log.txt located on the desktop by default (sometimes the path cannot be found, so set a custom path below). If the path cannot be found it will write to \"C:\\log.txt\" instead.",
+                    set: v => pluginConfig.FileLogging = v,
+                    defaultValue: false)
+                .Bind(
+                    key: "File Logging Path",
+                    description:
+                    "This sets the location that the logging file will be created. Leave blank to put log.txt on the desktop. If the log file is not showing up set your path manually here.",
+                    set: v => pluginConfig.FileLoggingPath = v,
+                    defaultValue: "")
+                .Bind(
+                    key: "God Mode",
+                    description:
+                    "Super massive base damage, and super speed for the host. For testing purposes only, Makes the game incredibly boring.",
+                    set: v => pluginConfig.GodMode = v,
+                    defaultValue: false);
+        }
+        
+        static BindCollection BindRuleValues(ConfigFile configFile, ReviveRuleValues values)
+        {
+            return configFile.BindCollection("Revive rules configuration")
                 .Bind(
                     key: "Base revive range",
                     description: "How wide revive circle will be",
@@ -147,7 +145,7 @@ namespace TeammateRevive.Configuration
                     defaultValue: values.ItemIncreaseRangeFactor)
                 .Bind(
                     key: "Revive time",
-                    description: "[Only with Death Curse enabled] How much time one player will need to revive one dead character.",
+                    description: "How much time one player will need to revive one dead character.",
                     set: v => values.ReviveTimeSeconds = v,
                     defaultValue: values.ReviveTimeSeconds)
                 .Bind(
@@ -211,8 +209,6 @@ namespace TeammateRevive.Configuration
                     set: v => values.DeathCurseChance = v,
                     defaultValue: values.DeathCurseChance)
                 ;
-
-            return values;
         }
     }
 }

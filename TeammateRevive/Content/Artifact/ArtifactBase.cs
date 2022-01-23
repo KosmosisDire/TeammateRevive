@@ -31,6 +31,5 @@ namespace TeammateRevive.Artifact
             this.ArtifactDef.smallIconDeselectedSprite = this.ArtifactDisabledIcon;
             ArtifactAPI.Add(this.ArtifactDef);
         }
-        public abstract void Hooks();
     }
 }

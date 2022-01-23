@@ -8,6 +8,8 @@ To more balanced and in-depth revive mechanic, you can enable Death Curse artifa
 - on stage change, (1 + Charon's Obol count) Death Curses will be removed from each character
 - Charon's Shrine can spawn on stages (but it doesn't spend director's credits). Obol can be consumed on them to remove Death Curses from whole party
 
+You can install InLobbyConfig to configure this plugin in-game. (https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/)
+
 ## Feedback
 
 Feedback would be greatly appreciated. It you encounter bug or want to discuss new or existing feature in mod, please contact KosmosisDire#4195 or amadare#8308 on Discord.

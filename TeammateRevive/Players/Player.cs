@@ -46,6 +46,26 @@ namespace TeammateRevive.Players
             return (!GetBody() || this.master.master.IsDeadAndOutOfLivesServer() || !GetBody().healthComponent.alive);
         }
 
+        public void UpdateGroundPosition() => this.groundPosition = GetGroundPosition(this);
+
+        public static Vector3 GetGroundPosition(Player player)
+        {
+            var body = player.GetBody();
+            
+            if (body == null)
+                return Vector3.zero;
+            
+            if (Physics.Raycast(body.transform.position, Vector3.down, out var hit, 1000, LayerMask.GetMask("World")))
+            {
+                if (Vector3.Dot(hit.normal, Vector3.up) > 0.5f && Vector3.Distance(body.transform.position, player.groundPosition) > Vector3.Distance(body.transform.position, hit.point))
+                {
+                    return hit.point;
+                }
+            }
+            
+            return player.groundPosition;
+        }
+
         public void IncreaseReviveLinkDuration(Player dead, float increase)
         {
             if (!this.reviveLinks.TryGetValue(dead, out var elapsingAt))

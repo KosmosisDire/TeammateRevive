@@ -91,7 +91,7 @@ namespace TeammateRevive.Skull
             var skull = Object.Instantiate(AddedAssets.DeathMarker).GetComponent<DeadPlayerSkull>();
 
             skull.deadPlayerId = player.networkUser.netId;
-            skull.transform.position = player.master.master.deathFootPosition;
+            skull.transform.position = player.groundPosition;
             skull.transform.rotation = Quaternion.identity;
             
             if (this.run.IsDeathCurseEnabled)
