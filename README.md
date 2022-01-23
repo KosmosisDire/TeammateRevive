@@ -1,6 +1,6 @@
 ## Description:
 
-Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk ;)
+Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk ;) <br> <br> All players need this mod
 
 <br>
 
