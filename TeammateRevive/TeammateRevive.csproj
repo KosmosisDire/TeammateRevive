@@ -13,7 +13,7 @@
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>C:\Users\amada\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\TeammateRevive testing\BepInEx\plugins\KosmosisDire-TeammateRevival\</OutputPath>
+    <OutputPath>C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\</OutputPath>
     <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <Optimize>false</Optimize>
