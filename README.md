@@ -13,7 +13,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 ### Feedback
 
-Feedback would be greatly appreciated. It you encounter a bug or want to discuss new or existing features, please submit an issue on Github, or contact KosmosisDire#4195 or amadare#8308 on Discord!
+Feedback would be greatly appreciated. If you encounter a bug or want to discuss new or existing features, please submit an issue on Github, or contact KosmosisDire#4195 or amadare#8308 on Discord!
 
 <br> <br>
 
@@ -37,6 +37,7 @@ Reviving is the same, but after you revive someone you will be linked to that pl
 
 When a player is revived, they will receive the **Death Curse**, along with one random other linked player. **Death Curse** is a debuff that reduces **Max HP/ Shield** simmilar to Shaped Glass. These debuffs will stack!
 
+## **Charon's Obol**
 ![Charon's Obol](https://thecodespace.ddns.net/fileshare/TeammateRevival/obol.png)
 
 The **Charon's Obol** item makes revival faster and easier. It can also be consumed to make revival instant without getting cursed.
@@ -48,6 +49,10 @@ Every time you enter a new stage, **1 Curse** will be removed. This goes up by *
 <br> <br>
 
 ## Change Notes:
+* 4.0.1
+    * Stupid typo in readme
+
+
 * 4.0.0 - big thanks to amadare
     * Huge refactoring of whole codebase
     * A lot of bug fixes and general improvements
