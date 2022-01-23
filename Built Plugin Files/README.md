@@ -13,7 +13,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 ### Feedback
 
-Feedback would be greatly appreciated. It you encounter a bug or want to discuss new or existing features, please submit an issue on Github, or contact KosmosisDire#4195 or amadare#8308 on Discord!
+Feedback would be greatly appreciated. If you encounter a bug or want to discuss new or existing features, please submit an issue on Github, or contact KosmosisDire#4195 or amadare#8308 on Discord!
 
 <br> <br>
 
@@ -49,6 +49,10 @@ Every time you enter a new stage, **1 Curse** will be removed. This goes up by *
 <br> <br>
 
 ## Change Notes:
+* 4.0.1
+    * Stupid typo in readme
+
+
 * 4.0.0 - big thanks to amadare
     * Huge refactoring of whole codebase
     * A lot of bug fixes and general improvements
