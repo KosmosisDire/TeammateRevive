@@ -7,3 +7,4 @@ C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\Te
 C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\TeammateRevive.deps.json
 C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\TeammateRevive.dll
 C:\Users\NathanGeorge\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\KosmosisDire-TeammateRevival\TeammateRevive.pdb
+C:\NathanGeorge\Main Documents\Projects\Modding\Risk of Rain 2\TeammateRevive\TeammateRevive\obj\Debug\TeammateRevive.GeneratedMSBuildEditorConfig.editorconfig

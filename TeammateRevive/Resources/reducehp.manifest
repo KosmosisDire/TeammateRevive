@@ -1,0 +1,69 @@
+ManifestFileVersion: 0
+CRC: 3066729493
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 33dc1bff9c6647e336933ce18c8b8835
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: bf9721b8de65ec1649d4f4e7c3983396
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 65
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+- Class: 114
+  Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 135
+  Script: {instanceID: 0}
+- Class: 136
+  Script: {instanceID: 0}
+- Class: 208
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+Assets:
+- Assets/materials/shrine_material.mat
+- Assets/textures/texCloudDifferenceBW2.png
+- Assets/materials/silver_material.mat
+- Assets/materials/revive_shrine.mat
+- Assets/models/Obol.prefab
+- Assets/icons/artifactCurseEnabled.png
+- Assets/textures/skulltexRGB.png
+- Assets/icons/lunar_obol.png
+- Assets/models/obolModel.blend
+- Assets/icons/timed_curse.png
+- Assets/models/hand_item.prefab
+- Assets/ProgressBar/ProgressBar.prefab
+- Assets/icons/obol.png
+- Assets/icons/artifactCurseDisabled.png
+- Assets/textures/skulltex.png
+- Assets/models/shrine.prefab
+- Assets/icons/curse.png
+- Assets/icons/lunar_hand.png
+Dependencies: []

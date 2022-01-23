@@ -1,13 +1,67 @@
 ## Description:
-Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk :)
 
-## To Do:
-* Add better indicator for how close the player is to revival.
-* Add customizability / config
-* Fix bugs
+Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk ;)
 
+<br>
+
+### Integration:
+* Use [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/) to configure this plugin in-game. 
+* [ItemStatsMod](https://thunderstore.io/package/ontrigger/ItemStatsMod/)
+* [BetterUI](https://thunderstore.io/package/XoXFaby/BetterUI/)
+
+<br>
+
+### Feedback
+
+Feedback would be greatly appreciated. It you encounter a bug or want to discuss new or existing features, please submit an issue on Github, or contact KosmosisDire#4195 or amadare#8308 on Discord!
+
+<br> <br>
+
+## Default Game Mode:
+
+The default and most simple game mode. When a teammate dies you can revive them by staying inside of the red bubble around where they died. Reviving drains your health over time to balance things out. This keeps you from reviving during battle, but once battle is over it isn't too dangerous to revive.
+
+<br> <br>
+
+## Death Curse Game Mode:
+
+This is a new optional game mode which fleshes out the experience with more difficulty and revival mechanics. There are a number of under the hood things to make the whole system balanced and adjust to player skill.
+
+### **Reviving**
+
+Reviving is the same, but after you revive someone you will be linked to that player for a time. This just means that you helped revive the player, and this will effect things under the hood.
+
+### **Death Curse**
+
+![Death Curse Icon](https://thecodespace.ddns.net/fileshare/TeammateRevival/timed_curse.png)
+
+When a player is revived, they will receive the **Death Curse**, along with one random other linked player. **Death Curse** is a debuff that reduces **Max HP/ Shield** simmilar to Shaped Glass. These debuffs will stack!
+
+![Charon's Obol](https://thecodespace.ddns.net/fileshare/TeammateRevival/obol.png)
+
+The **Charon's Obol** item makes revival faster and easier. It can also be consumed to make revival instant without getting cursed.
+
+### **Death Curse** and **Obol**
+
+Every time you enter a new stage, **1 Curse** will be removed. This goes up by **1** for every **Obol** you have.
+
+<br> <br>
 
 ## Change Notes:
+* 4.0.0 - big thanks to amadare
+    * Huge refactoring of whole codebase
+    * A lot of bug fixes and general improvements
+    * The revival time now makes actual sense.
+    * Added optional Death Curse mechanic and Charon's Obol that adds more depth to revive mechanic
+        * Added ItemStats & BetterUI mods integration
+        * Added Charon's Shrine
+    * Added revival progress bar
+    * Changed and tweaked revival formulae
+    * Network optimization
+    * Every revival aspect is highly configurable
+    * Revival range is now increased depending on players inside
+    * Added some debugging tools
+    * Tancendence used to break it, but now it's a feature ;)
 
 * 3.3.8
     * Fixed bug that caused players to instantly respawn after their first revival.
