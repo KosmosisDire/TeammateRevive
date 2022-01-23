@@ -61,7 +61,7 @@ Every time you enter a new stage, **1 Curse** will be removed. This goes up by *
     * Every revival aspect is highly configurable
     * Revival range is now increased depending on players inside
     * Added some debugging tools
-    * Tancendence used to break it, but now it's a feature ;)
+    * Trancendence used to break it, but now it's a feature ;)
 
 * 3.3.8
     * Fixed bug that caused players to instantly respawn after their first revival.
