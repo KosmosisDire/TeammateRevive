@@ -54,7 +54,6 @@ Every time you enter a new stage, **1 Curse** will be removed. This goes up by *
     * The revival time now makes actual sense.
     * Added optional Death Curse mechanic and Charon's Obol that adds more depth to revive mechanic
         * Added ItemStats & BetterUI mods integration
-        * Added Charon's Shrine
     * Added revival progress bar
     * Changed and tweaked revival formulae
     * Network optimization
