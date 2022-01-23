@@ -139,10 +139,11 @@ namespace TeammateRevive.Players
                 {
                     PlayerDead(victim);
                     Log.Info(victimNetworkUser.userName + " Died!");
-                    return;
                 }
-
-                Log.Error("Player Died but they were not alive to begin with!");
+                else
+                {
+                    Log.Error("Player Died but they were not alive to begin with!");
+                }
             }
 
             orig(self, damageReport, victimNetworkUser);
