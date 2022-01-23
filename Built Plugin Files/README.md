@@ -37,6 +37,7 @@ Reviving is the same, but after you revive someone you will be linked to that pl
 
 When a player is revived, they will receive the **Death Curse**, along with one random other linked player. **Death Curse** is a debuff that reduces **Max HP/ Shield** simmilar to Shaped Glass. These debuffs will stack!
 
+## **Charon's Obol**
 ![Charon's Obol](https://thecodespace.ddns.net/fileshare/TeammateRevival/obol.png)
 
 The **Charon's Obol** item makes revival faster and easier. It can also be consumed to make revival instant without getting cursed.
