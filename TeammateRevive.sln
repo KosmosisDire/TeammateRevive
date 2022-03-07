@@ -5,6 +5,13 @@ VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeammateRevive", "TeammateRevive\TeammateRevive.csproj", "{149A21F2-CD2E-48B5-B98A-628C37CF611F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4F0F3DB2-668A-4398-939E-C2A06E774B32}"
+	ProjectSection(SolutionItems) = preProject
+		icon.png = icon.png
+		manifest.json = manifest.json
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

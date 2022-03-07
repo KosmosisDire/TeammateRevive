@@ -9,7 +9,7 @@ using TeammateRevive.Players;
 using TeammateRevive.Revive.Rules;
 using Console = On.RoR2.Console;
 
-namespace TeammateRevive.Debug
+namespace TeammateRevive.Debugging
 {
     public class ConsoleCommands
     {
