@@ -29,7 +29,7 @@ namespace TeammateRevive.Artifact
             this.ArtifactDef.descriptionToken = "ARTIFACT_" + this.ArtifactLangTokenName + "_DESCRIPTION";
             this.ArtifactDef.smallIconSelectedSprite = this.ArtifactEnabledIcon;
             this.ArtifactDef.smallIconDeselectedSprite = this.ArtifactDisabledIcon;
-            ArtifactAPI.Add(this.ArtifactDef);
+            ContentAddition.AddArtifactDef(this.ArtifactDef);
         }
     }
 }
