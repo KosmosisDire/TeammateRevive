@@ -40,60 +40,12 @@
       <HintPath>libs\BepInEx.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Facepunch.Steamworks">
-      <HintPath>libs\Facepunch.Steamworks.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="HGCSharpUtils">
-      <HintPath>libs\HGCSharpUtils.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="HGUnityUtils">
-      <HintPath>libs\HGUnityUtils.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="KdTreeLib">
-      <HintPath>libs\KdTreeLib.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
       <HintPath>libs\MMHOOK_Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Mono.Security">
-      <HintPath>libs\Mono.Security.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="pb_Stl">
-      <HintPath>libs\pb_Stl.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Poly2Tri">
-      <HintPath>libs\Poly2Tri.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ProBuilderCore">
-      <HintPath>libs\ProBuilderCore.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ProBuilderMeshOps">
-      <HintPath>libs\ProBuilderMeshOps.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="R2API">
       <HintPath>libs\R2API.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Rewired_Core">
-      <HintPath>libs\Rewired_Core.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Rewired_CSharp">
-      <HintPath>libs\Rewired_CSharp.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Rewired_Windows_Lib">
-      <HintPath>libs\Rewired_Windows_Lib.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SimpleJSON">
@@ -370,14 +322,6 @@
     </Reference>
     <Reference Include="UnityEngine.XRModule">
       <HintPath>libs\UnityEngine.XRModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Wwise">
-      <HintPath>libs\Wwise.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Zio">
-      <HintPath>libs\Zio.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="ItemStats">
