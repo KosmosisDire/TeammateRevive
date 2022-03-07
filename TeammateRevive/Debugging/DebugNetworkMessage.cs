@@ -4,7 +4,7 @@ using R2API.Networking.Interfaces;
 using R2API.Utils;
 using UnityEngine.Networking;
 
-namespace TeammateRevive.Debug
+namespace TeammateRevive.Debugging
 {
     public class DebugNetworkMessage : INetMessage
     {

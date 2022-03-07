@@ -9,7 +9,7 @@ using TeammateRevive.Players;
 using TeammateRevive.Skull;
 using UnityEngine;
 
-namespace TeammateRevive.Debug
+namespace TeammateRevive.Debugging
 {
     public static class DebugHelper
     {

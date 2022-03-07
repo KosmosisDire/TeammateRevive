@@ -11,7 +11,7 @@ using RoR2;
 using TeammateRevive.Artifact;
 using TeammateRevive.Common;
 using TeammateRevive.Configuration;
-using TeammateRevive.Debug;
+using TeammateRevive.Debugging;
 using TeammateRevive.Integrations;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
