@@ -20,7 +20,7 @@ namespace TeammateRevive.Content
 
         public override void Init()
         {
-            var sprite = UnityEngine.Resources.Load<Sprite>("textures/bufficons/texBuffRegenBoostIcon");
+            var sprite = LegacyResourcesAPI.Load<Sprite>("textures/bufficons/texBuffRegenBoostIcon");
 
             BuffDef buffDefinition = ScriptableObject.CreateInstance<BuffDef>();
             buffDefinition.name = Name;

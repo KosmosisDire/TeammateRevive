@@ -72,7 +72,7 @@ namespace TeammateRevive.Resources
                     Log.Debug($"Loading the stubbed shared for shader {material.shader.name}");
 
                     string shaderPath = $"shaders{material.shader.name.Substring(13)}";
-                    Shader materialShader = UnityEngine.Resources.Load<Shader>(shaderPath);
+                    Shader materialShader = LegacyResourcesAPI.Load<Shader>(shaderPath);
 
                     if (materialShader is null)
                     {
