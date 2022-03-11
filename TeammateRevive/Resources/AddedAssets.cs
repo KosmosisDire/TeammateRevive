@@ -57,13 +57,39 @@ namespace TeammateRevive.Resources
 
         static void ReplaceStubbedShaders(AssetBundle bundle)
         {
+            Log.Debug($"Replacing the stubbed shaders of the {bundle.name} asset bundle");
+
             var materialsL = bundle.LoadAllAssets<Material>();
+
+            Log.Debug($"Found {materialsL.Length} materials in the asset bundle");
+
             foreach (Material material in materialsL)
             {
+                Log.Debug($"Loading the material {material.name}");
+
                 if (material.shader.name.StartsWith("StubbedShader"))
                 {
-                    material.shader = UnityEngine.Resources.Load<Shader>("shaders" + material.shader.name.Substring(13));
+                    Log.Debug($"Loading the stubbed shared for shader {material.shader.name}");
+
+                    string shaderPath = $"shaders{material.shader.name.Substring(13)}";
+                    Shader materialShader = UnityEngine.Resources.Load<Shader>(shaderPath);
+
+                    if (materialShader is null)
+                    {
+                        Log.Warn($"Could not find the shader for material {material.name} at the path {shaderPath}");
+                    }
+                    else
+                    {
+                        Log.Debug($"Loaded the stubbed shared {materialShader.name} from the path {shaderPath}");
+                    }
+
+                    material.shader = materialShader;
+
                     Materials.Add(material);
+                }
+                else
+                {
+                    Log.Debug("The shader was not loaded because it is not a stubbed shader");
                 }
             }
         }
