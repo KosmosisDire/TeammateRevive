@@ -30,7 +30,7 @@ namespace TeammateRevive
     [BepInDependency("com.xoxfaby.BetterUI", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI), nameof(BuffAPI), nameof(ItemAPI), nameof(ItemDropAPI), nameof(ArtifactAPI), nameof(LanguageAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI), nameof(ItemAPI), nameof(LanguageAPI))]
     public class MainTeammateRevival : BaseUnityPlugin
     {
         #region Plugin variables

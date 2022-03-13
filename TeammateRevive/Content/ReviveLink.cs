@@ -12,7 +12,14 @@ namespace TeammateRevive.Content
         
         public override void Init()
         {
-            BuffAPI.Add(new CustomBuff(Name, AddedAssets.ReviveLinkBuffIcon, Color.white, true, true));
+            BuffDef buffDefinition = ScriptableObject.CreateInstance<BuffDef>();
+            buffDefinition.name = Name;
+            buffDefinition.iconSprite = AddedAssets.ReviveLinkBuffIcon;
+            buffDefinition.buffColor = Color.white;
+            buffDefinition.isDebuff = true;
+            buffDefinition.canStack = true;
+
+            ContentAddition.AddBuffDef(buffDefinition);
         }
 
         protected override void OnBuffsAvailable() => Index = BuffCatalog.FindBuffIndex(Name);

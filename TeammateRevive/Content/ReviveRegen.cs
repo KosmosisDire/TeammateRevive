@@ -20,8 +20,16 @@ namespace TeammateRevive.Content
 
         public override void Init()
         {
-            var sprite = UnityEngine.Resources.Load<Sprite>("textures/bufficons/texBuffRegenBoostIcon");
-            BuffAPI.Add(new CustomBuff(Name, sprite, new Color(0.4f, 0.792f, 0.38f), false, false));
+            var sprite = LegacyResourcesAPI.Load<Sprite>("textures/bufficons/texBuffRegenBoostIcon");
+
+            BuffDef buffDefinition = ScriptableObject.CreateInstance<BuffDef>();
+            buffDefinition.name = Name;
+            buffDefinition.iconSprite = sprite;
+            buffDefinition.buffColor = new Color(0.4f, 0.792f, 0.38f);
+            buffDefinition.isDebuff = false;
+            buffDefinition.canStack = false;
+
+            ContentAddition.AddBuffDef(buffDefinition);
 
             On.RoR2.CharacterBody.Update += OnCharacterBodyUpdate;
         }

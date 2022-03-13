@@ -29,7 +29,15 @@ namespace TeammateRevive.Content
         public override void Init()
         {
             CreateDeathCurseHiddenItem();
-            BuffAPI.Add(new CustomBuff(BuffName, AddedAssets.DeathCurseBuffIcon, Color.white, true, true));
+
+            BuffDef buffDefinition = ScriptableObject.CreateInstance<BuffDef>();
+            buffDefinition.name = BuffName;
+            buffDefinition.iconSprite = AddedAssets.DeathCurseBuffIcon;
+            buffDefinition.buffColor = Color.white;
+            buffDefinition.isDebuff = true;
+            buffDefinition.canStack = true;
+
+            ContentAddition.AddBuffDef(buffDefinition);
             
             On.RoR2.CharacterBody.RecalculateStats += OnCharacterBodyRecalculateStats;
         }

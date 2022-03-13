@@ -36,7 +36,7 @@ namespace TeammateRevive
             if (!isDeathCurseEnabled)
             {
                 RemoveItem(CharonsObol.Index, self.availableTier2DropList, CharonsObol.Name);
-                RemoveItem(ReviveEverywhereItem.Index, self.availableLunarDropList, ReviveEverywhereItem.Name);
+                RemoveItem(ReviveEverywhereItem.Index, self.availableLunarItemDropList, ReviveEverywhereItem.Name);
             }
         }
 
