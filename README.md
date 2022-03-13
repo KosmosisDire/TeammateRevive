@@ -34,12 +34,12 @@ Reviving is the same, but after you revive someone you will be linked to that pl
 
 ### **Death Curse**
 
-![Death Curse Icon](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/curse.png)
+![Death Curse Icon](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/curse.png?)
 
 When a player is revived, they will receive the **Death Curse**, along with one random other linked player. **Death Curse** is a debuff that reduces **Max HP/ Shield** simmilar to Shaped Glass. These debuffs will stack!
 
 ### **Charon's Obol**
-![Charon's Obol](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/obol.png)
+![Charon's Obol](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/obol.png?)
 
 The **Charon's Obol** item makes revival faster and easier. It can also be consumed to make revival instant without getting cursed.
 
@@ -48,7 +48,7 @@ The **Charon's Obol** item makes revival faster and easier. It can also be consu
 Every time you enter a new stage, **1 Curse** will be removed. The number removed goes up by **1** for every **Obol** you have.
 
 ### **Dead Man's Hand**  -  Lunar Item
-![Dead Man's Hand](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/lunar_hand.png)
+![Dead Man's Hand](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/lunar_hand.png?)
 
 * **Revive** dead teammates **everywhere** on the map.
 * First item **increases** revival time by x2
