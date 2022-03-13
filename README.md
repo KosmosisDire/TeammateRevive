@@ -1,3 +1,4 @@
+![Notice Board](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/Notice.png?)
 ## Description:
 
 Survivors can revive their fallen colleagues, but it comes at the price of their own health. A skull totem marks where the player died. Stand within the circle to begin, but stay at your own risk ;) <br> <br> All players need this mod
@@ -33,22 +34,37 @@ Reviving is the same, but after you revive someone you will be linked to that pl
 
 ### **Death Curse**
 
-![Death Curse Icon](https://thecodespace.ddns.net/fileshare/TeammateRevival/curse.png)
+![Death Curse Icon](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/curse.png)
 
 When a player is revived, they will receive the **Death Curse**, along with one random other linked player. **Death Curse** is a debuff that reduces **Max HP/ Shield** simmilar to Shaped Glass. These debuffs will stack!
 
 ### **Charon's Obol**
-![Charon's Obol](https://thecodespace.ddns.net/fileshare/TeammateRevival/obol.png)
+![Charon's Obol](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/obol.png)
 
 The **Charon's Obol** item makes revival faster and easier. It can also be consumed to make revival instant without getting cursed.
 
 ### **Death Curse** and **Obol**
 
-Every time you enter a new stage, **1 Curse** will be removed. This goes up by **1** for every **Obol** you have.
+Every time you enter a new stage, **1 Curse** will be removed. The number removed goes up by **1** for every **Obol** you have.
+
+### **Dead Man's Hand**  -  Lunar Item
+![Dead Man's Hand](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/lunar_hand.png)
+
+* **Revive** dead teammates **everywhere** on the map.
+* First item **increases** revival time by x2
+* Every subsequent item **decreases** revival time when you are reviving
+
 
 <br> <br>
 
 ## Change Notes:
+<br>
+
+### 4.1.1 
+* Updated for the **Survivors of the Void** update!
+* Thanks to nathanpovo and amadare for their work on this fix
+* Fixed some other unrelated bugs
+* Clean up codebase
 
 <br>
 
