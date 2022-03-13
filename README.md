@@ -59,11 +59,11 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 
 ## Change Notes:
 
-### 4.1.1
+### 4.1.0
 * Updated for the **Survivors of the Void** update!
 * Fixed some other unrelated bugs
 * Clean up project structure
-* Thanks to nathanpovo and amadare for their work on this patch
+* Thanks to **nathanpovo** and **amadare** for their work on this patch
 
 <br>
 
