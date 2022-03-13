@@ -86,10 +86,7 @@ namespace TeammateRevive.ProgressBar
             {
                 this.progressBar.SetFraction(this.trackingSkull.progress);
                 this.progressBar.SetColor(this.trackingSkull.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
-                #if DEBUG
-                // for debug purposes, display speed and percentage
                 this.progressBar.UpdateText(this.trackingSkull.PlayerName, this.trackingSkull.progress);
-                #endif
             }
 
             // player moved out of skull circle, queuing to hide
@@ -106,6 +103,7 @@ namespace TeammateRevive.ProgressBar
                 RemoveTracking();
             }
             
+            // hiding based on time
             if (this.IsQueuedToHide && Time.time > this.queuedToHideAt)
             {
                 Log.DebugMethod($"removing tracking after delay ({Time.time} > {this.queuedToHideAt})");

@@ -35,6 +35,7 @@ namespace TeammateRevive.Revive.Rules
             writer.Write(this.ruleValues.DebugKeepSkulls);
             writer.Write(this.ruleValues.EnableRevivalToken);
             writer.Write(this.ruleValues.CutReviveeHp);
+            writer.Write(this.ruleValues.PostReviveRegenDurationSec);
             Log.Info("Sending new rule values");
         }
 
@@ -54,6 +55,7 @@ namespace TeammateRevive.Revive.Rules
             this.ruleValues.DebugKeepSkulls = reader.ReadBoolean();
             this.ruleValues.EnableRevivalToken = reader.ReadBoolean();
             this.ruleValues.CutReviveeHp = reader.ReadBoolean();
+            this.ruleValues.PostReviveRegenDurationSec = reader.ReadSingle();
         }
 
         public void OnReceived()

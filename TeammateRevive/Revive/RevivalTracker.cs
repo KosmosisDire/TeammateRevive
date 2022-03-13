@@ -144,10 +144,7 @@ namespace TeammateRevive.Revive
                         dead.reviveProgress = Mathf.Clamp01(dead.reviveProgress);
                         
                         // if player in range, update revive revive links
-                        if (this.run.IsDeathCurseEnabled)
-                        {
-                            reviver.IncreaseReviveLinkDuration(dead, Time.deltaTime + Time.deltaTime  / this.rules.Values.ReduceReviveProgressFactor * this.rules.Values.ReviveLinkBuffTimeFactor);
-                        }
+                        reviver.IncreaseReviveLinkDuration(dead, Time.deltaTime + Time.deltaTime  / this.rules.Values.ReduceReviveProgressFactor * this.rules.Values.ReviveLinkBuffTimeFactor);
 
                         DamageReviver(playerBody, dead);
                     }
@@ -168,7 +165,8 @@ namespace TeammateRevive.Revive
                 this.skullTracker.UpdateSkull(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
             }
             
-            // update revive links
+            // update revive link buffs
+            // NOTE: revive links are tracked in Normal Mode, but no buff is displayed
             if (this.run.IsDeathCurseEnabled) 
                 UpdateReviveLinkBuffs();
             
@@ -196,8 +194,11 @@ namespace TeammateRevive.Revive
                 player.RemoveReviveLink(dead);
             
             // add post-revive regeneration to revivers
-            foreach (var player in linkedPlayers)
-                player.GetBody().AddTimedBuff(ReviveRegen.Index, this.rules.Values.PostReviveRegenDurationSec);
+            if (this.rules.Values.PostReviveRegenDurationSec != 0)
+            {
+                foreach (var player in linkedPlayers)
+                    player.GetBody().AddTimedBuff(ReviveRegen.Index, this.rules.Values.PostReviveRegenDurationSec);
+            }
         }
 
         private void ApplyDeathCurses(Player dead, Player[] linkedPlayers)
