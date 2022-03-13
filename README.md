@@ -12,9 +12,9 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 <br>
 
-### Feedback
+### Feedback:
 
-Feedback would be greatly appreciated. If you encounter a bug or want to discuss new or existing features, please submit an issue on Github, or contact KosmosisDire#4195 or amadare#8308 on Discord!
+Feedback would be greatly appreciated. If you encounter **any** bugs or want to discuss new or existing features, **please** submit an issue on Github, or contact **KosmosisDire#4195** or **amadare#8308** on Discord!
 
 <br> <br>
 
@@ -43,7 +43,7 @@ When a player is revived, they will receive the **Death Curse**, along with one 
 
 The **Charon's Obol** item makes revival faster and easier. It can also be consumed to make revival instant without getting cursed.
 
-### **Death Curse** and **Obol**
+#### **Death Curse** and **Obol**
 
 Every time you enter a new stage, **1 Curse** will be removed. The number removed goes up by **1** for every **Obol** you have.
 
@@ -58,13 +58,12 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 <br> <br>
 
 ## Change Notes:
-<br>
 
-### 4.1.1 
+### 4.1.1
 * Updated for the **Survivors of the Void** update!
-* Thanks to nathanpovo and amadare for their work on this fix
 * Fixed some other unrelated bugs
-* Clean up codebase
+* Clean up project structure
+* Thanks to nathanpovo and amadare for their work on this patch
 
 <br>
 
