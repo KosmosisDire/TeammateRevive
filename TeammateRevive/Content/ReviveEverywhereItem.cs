@@ -15,8 +15,7 @@ namespace TeammateRevive.Content
             var full =
                 $"- {Yellow("Revive")} dead teammates {Yellow("everywhere")} on map." +
                 $"\n- First item {Red("increases")} {Yellow("revival time")} by x2." +
-                $"\n- Reduces {Yellow("revival time")} when you are reviving." +
-                $"\n- Every subsequent item decreases the revival time";
+                $"\n- Every subsequent item decreases {Yellow("revival time")} when you are reviving";
             
             ItemAPI.Add(new CustomItem(Name, "Dead Man's Hand", 
                 full, "Revive death teammates everywhere on map.",
