@@ -3,6 +3,7 @@ using RoR2;
 using TeammateRevive.Common;
 using TeammateRevive.Revive.Rules;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace TeammateRevive.Content
 {
@@ -20,7 +21,7 @@ namespace TeammateRevive.Content
 
         public override void Init()
         {
-            var sprite = LegacyResourcesAPI.Load<Sprite>("textures/bufficons/texBuffRegenBoostIcon");
+            var sprite = Addressables.LoadAssetAsync<BuffDef>("RoR2/Junk/Common/bdMeatRegenBoost.asset").WaitForCompletion().iconSprite;
 
             BuffDef buffDefinition = ScriptableObject.CreateInstance<BuffDef>();
             buffDefinition.name = Name;

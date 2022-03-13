@@ -156,7 +156,7 @@ namespace TeammateRevive.Configuration
                     defaultValue: values.ReduceReviveProgressFactor)
                 .Bind(
                     key: "Revive Link buff duration factor",
-                    description: "[Only with Death Curse enabled] How long Revive Link buff will stay after player leave revive range. " +
+                    description: "How long Revive Link buff will stay after player leave revive range. " +
                                  "\nBuffTime = TimeInCircle / ReduceReviveProgressFactor * ReviveLinkBuffTimeFactor + 1 second" +
                                  "\nBasically, when 1 - buff will be applied for exactly as long as it will take to remove all added revive progress (+1 second)." +
                                  "\nSo, when 0.5 - only half of that.",
@@ -208,7 +208,12 @@ namespace TeammateRevive.Configuration
                     description: "[Only with Death Curse enabled] Chance to receive Death Curse on revival (Range: 0-100%)",
                     set: v => values.DeathCurseChance = v,
                     defaultValue: values.DeathCurseChance)
-                ;
+                .Bind(
+                    key: "Post revive regeneration time",
+                    description: "After reviving, 40% of revivee and linked revivers HP is restored. This value specify how long regeneration buff is active in seconds. If set to 0 - revive regen is disabled.",
+                    set: v => values.PostReviveRegenDurationSec = v,
+                    defaultValue: values.PostReviveRegenDurationSec
+                );
         }
     }
 }
