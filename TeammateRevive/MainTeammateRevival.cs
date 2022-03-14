@@ -91,12 +91,14 @@ namespace TeammateRevive
             this.contentManager = new ContentManager(this.rules, this.run, this.deathCurseArtifact);
             
             Log.Init(this.pluginConfig, this.Logger);
+            ReviveHelper.Init();
             this.contentManager.Init();
             this.rules.ApplyConfigValues();
 #if DEBUG
             DebugHelper.Init(this.pluginConfig);
 #endif
             this.run.RunStarted += OnRunStarted;
+            this.run.RunEnded += OnRunEnded;
             
             SetupHooks();
 
@@ -167,6 +169,11 @@ namespace TeammateRevive
         void OnRunStarted(RunTracker obj)
         {
             this.deathCurseArtifact.EnsureEnabled(this.rules);
+        }
+
+        private void OnRunEnded(RunTracker obj)
+        {
+            this.players.Reset();
         }
 
         public Func<IEnumerator, Coroutine> DoCoroutine => StartCoroutine;
