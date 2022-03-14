@@ -57,10 +57,8 @@ namespace TeammateRevive.Players
             bool playerConnected = player.master.isConnected;
             if (playerConnected)
             {
-                player.master.master.RespawnExtraLife();
+                ReviveHelper.RespawnExtraLife(player.master.master);
                 PlayerAlive(player);
-                // removing consumed Dio's Best Friend
-                player.master.master.inventory.RemoveItem(RoR2Content.Items.ExtraLifeConsumed);
             }
             OnPlayerRespawned?.Invoke(player);
             Log.Info("Player Respawned");

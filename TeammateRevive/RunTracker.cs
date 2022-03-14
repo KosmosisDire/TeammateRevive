@@ -12,6 +12,7 @@ namespace TeammateRevive
         public static RunTracker instance;
 
         public event Action<RunTracker> RunStarted;
+        public event Action<RunTracker> RunEnded;
 
         private bool isStarted;
         public bool IsStarted
@@ -25,6 +26,11 @@ namespace TeammateRevive
                 {
                     Log.Info("Run started");
                     this.RunStarted?.Invoke(this);
+                }
+                else
+                {
+                    Log.Info("Run ended");
+                    this.RunEnded?.Invoke(this);
                 }
             }
         }
