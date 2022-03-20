@@ -26,12 +26,12 @@ namespace TeammateRevive
 
         private void LanguageOnSetStringByToken(Language.orig_SetStringByToken orig, RoR2.Language self, string token, string localizedstring)
         {
-            if (token == RoR2Content.Items.ShieldOnly.descriptionToken)
+            if (RoR2Content.Items.ShieldOnly && token == RoR2Content.Items.ShieldOnly.descriptionToken)
             {
                 localizedstring += " Teammate reviving will damage shield instead of health.";
             }
             orig(self, token, localizedstring);
-            if (token == RoR2Content.Items.ShieldOnly.descriptionToken)
+            if (RoR2Content.Items.ShieldOnly && token == RoR2Content.Items.ShieldOnly.descriptionToken)
             {
                 Log.Info($"Transcendence description ({token}) patched!");
             }
