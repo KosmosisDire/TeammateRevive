@@ -16,6 +16,8 @@ namespace TeammateRevive.Configuration
         public bool FileLogging { get; set; }
         public string FileLoggingPath { get; set; }
         public bool GodMode { get; set; }
+        
+        public bool HideDeathCurseItemsInLogBook { get; private set; }
 
         public ReviveRuleValues RuleValues { get; } = new();
 
@@ -30,6 +32,7 @@ namespace TeammateRevive.Configuration
             pluginConfig.RuleValuesBindCollection = BindRuleValues(config, pluginConfig.RuleValues);
             pluginConfig.DebugBindCollection = BindDebugSection(config, pluginConfig);
             pluginConfig.ServerLogging = ReadServerLoggingConfig(config);
+            BindMisc(config, pluginConfig);
 
             return pluginConfig;
         }
@@ -214,6 +217,13 @@ namespace TeammateRevive.Configuration
                     set: v => values.PostReviveRegenDurationSec = v,
                     defaultValue: values.PostReviveRegenDurationSec
                 );
+        }
+
+        static void BindMisc(ConfigFile configFile, PluginConfig config)
+        {
+            config.HideDeathCurseItemsInLogBook = configFile.Bind("Misc", "Hide Death Curse mode items in logbook", false,
+                    "Set it to true if you don't plan on playing Death Curse mode and don't want to see related items in logbook")
+                .Value;
         }
     }
 }

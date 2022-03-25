@@ -26,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>libs\MMHOOK_Assembly-CSharp.dll</HintPath>
+    <Reference Include="MMHOOK_RoR2">
+      <HintPath>libs\MMHOOK_RoR2.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="R2API">
