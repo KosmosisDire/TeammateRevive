@@ -18,6 +18,7 @@ namespace TeammateRevive.Configuration
         public bool GodMode { get; set; }
         
         public bool HideDeathCurseItemsInLogBook { get; private set; }
+        public bool HideDeathCurseArtifact { get; private set; }
 
         public ReviveRuleValues RuleValues { get; } = new();
 
@@ -223,6 +224,9 @@ namespace TeammateRevive.Configuration
         {
             config.HideDeathCurseItemsInLogBook = configFile.Bind("Misc", "Hide Death Curse mode items in logbook", false,
                     "Set it to true if you don't plan on playing Death Curse mode and don't want to see related items in logbook")
+                .Value;
+            config.HideDeathCurseArtifact = configFile.Bind("Misc", "Hide Death Curse Artifact", false,
+                    "Set it to true if you don't plan on playing Death Curse mode and don't want to see Death Curse artifact.")
                 .Value;
         }
     }

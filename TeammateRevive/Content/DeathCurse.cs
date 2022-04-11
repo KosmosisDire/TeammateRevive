@@ -16,6 +16,7 @@ namespace TeammateRevive.Content
         
         public static string ItemName = "ITEM_DeathCurse";
         public static string BuffName = "BUFF_DeathCurse";
+        public static string NameToken = "Death curse";
         
         public static ItemIndex ItemIndex;
         public static BuffIndex BuffIndex;
@@ -47,7 +48,7 @@ namespace TeammateRevive.Content
 
         static void CreateDeathCurseHiddenItem()
         {
-            ItemAPI.Add(new CustomItem(ItemName, "Death curse", 
+            ItemAPI.Add(new CustomItem(ItemName, NameToken, 
                 "Reduces your max HP/Shield. Removed on next stage.", "Reduces your max HP/Shield. Removed on next stage.",
                 "ITEM_REDUCEHP_PICK", 
                 AddedAssets.DeathCurseBuffIcon,
