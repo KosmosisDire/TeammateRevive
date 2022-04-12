@@ -9,6 +9,7 @@ namespace TeammateRevive.Content
     public class CharonsObol : ContentBase
     {
         public static string Name = "ITEM_CharonsObol";
+        public static string NameToken = "Charon's Obol";
         public static ItemIndex Index;
 
         public override void Init()
@@ -33,7 +34,7 @@ namespace TeammateRevive.Content
                 }
             });
             
-            ItemAPI.Add(new CustomItem(Name, "Charon's Obol", 
+            ItemAPI.Add(new CustomItem(Name, NameToken, 
                 full, 
                 full,
                 "Makes revival easier. Can be consumed for instant revival.", 

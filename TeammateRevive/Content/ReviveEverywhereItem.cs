@@ -8,6 +8,7 @@ namespace TeammateRevive.Content
     public class ReviveEverywhereItem : ContentBase
     {
         public static string Name = "ITEM_ReviveEverywhere";
+        public static string NameToken = "Dead Man's Hand";
         public static ItemIndex Index;
         
         public override void Init()
@@ -17,7 +18,7 @@ namespace TeammateRevive.Content
                 $"\n- First item {Red("increases")} {Yellow("revival time")} by x2." +
                 $"\n- Every subsequent item decreases {Yellow("revival time")} when you are reviving";
             
-            ItemAPI.Add(new CustomItem(Name, "Dead Man's Hand", 
+            ItemAPI.Add(new CustomItem(Name, NameToken, 
                 full, "Revive death teammates everywhere on map.",
                 "Revive death teammates everywhere on map", 
                 AddedAssets.LunarHandIcon,

@@ -89,7 +89,7 @@ namespace TeammateRevive
             
             Log.Init(this.pluginConfig, this.Logger);
             ReviveHelper.Init();
-            RemoveDeathCurseItemsFromLogbook.Init(this.pluginConfig);
+            HideDeathCurseContent.Init(this.pluginConfig);
             this.contentManager.Init();
             this.rules.ApplyConfigValues();
 #if DEBUG
