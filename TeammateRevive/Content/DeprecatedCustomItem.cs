@@ -28,7 +28,7 @@ namespace TeammateRevive.Content
             itemDef.pickupModelPrefab = pickupModelPrefab;
             itemDef.pickupToken = pickupToken;
             itemDef.tags = tags;
-            itemDef.tier = tier;
+            itemDef.deprecatedTier = tier;
             itemDef.unlockableDef = unlockableDef;
 
             return new CustomItem(itemDef, itemDisplayRules);
