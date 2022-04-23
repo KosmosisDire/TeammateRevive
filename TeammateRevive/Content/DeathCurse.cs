@@ -48,7 +48,7 @@ namespace TeammateRevive.Content
 
         static void CreateDeathCurseHiddenItem()
         {
-            ItemAPI.Add(new CustomItem(ItemName, NameToken, 
+            ItemAPI.Add(DeprecatedCustomItem.Create(ItemName, NameToken, 
                 "Reduces your max HP/Shield. Removed on next stage.", "Reduces your max HP/Shield. Removed on next stage.",
                 "ITEM_REDUCEHP_PICK", 
                 AddedAssets.DeathCurseBuffIcon,

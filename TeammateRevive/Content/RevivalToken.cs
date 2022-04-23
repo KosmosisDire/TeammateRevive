@@ -14,7 +14,7 @@ namespace TeammateRevive.Content
         public override void Init()
         {
             var description = "Reduces chance to receive curse";
-            ItemAPI.Add(new CustomItem(Name, "Revival Token",
+            ItemAPI.Add(DeprecatedCustomItem.Create(Name, "Revival Token",
                 description, description, description,
                 AddedAssets.ReviveLinkBuffIcon,
                 AddedAssets.CharonsObolItemPrefab, ItemTier.NoTier, new[]
