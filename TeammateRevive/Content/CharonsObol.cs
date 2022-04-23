@@ -34,7 +34,7 @@ namespace TeammateRevive.Content
                 }
             });
             
-            ItemAPI.Add(new CustomItem(Name, NameToken, 
+            ItemAPI.Add(DeprecatedCustomItem.Create(Name, NameToken, 
                 full, 
                 full,
                 "Makes revival easier. Can be consumed for instant revival.", 

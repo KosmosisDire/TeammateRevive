@@ -18,7 +18,7 @@ namespace TeammateRevive.Content
                 $"\n- First item {Red("increases")} {Yellow("revival time")} by x2." +
                 $"\n- Every subsequent item decreases {Yellow("revival time")} when you are reviving";
             
-            ItemAPI.Add(new CustomItem(Name, NameToken, 
+            ItemAPI.Add(DeprecatedCustomItem.Create(Name, NameToken, 
                 full, "Revive death teammates everywhere on map.",
                 "Revive death teammates everywhere on map", 
                 AddedAssets.LunarHandIcon,
