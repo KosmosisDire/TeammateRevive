@@ -26,7 +26,7 @@ namespace TeammateRevive.Content
                 new()
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
-                    followerPrefab = AddedAssets.CharonsObolItemPrefab,
+                    followerPrefab = CustomResources.CharonsObolItemPrefab,
                     childName = "Pelvis",
                     localPos = new Vector3(-0.22f, 0f, 0f),
                     localAngles = new Vector3(0f, -0.05f, 0f),
@@ -38,8 +38,8 @@ namespace TeammateRevive.Content
                 full, 
                 full,
                 "Makes revival easier. Can be consumed for instant revival.", 
-                AddedAssets.CharonsObolItemIcon,
-                AddedAssets.CharonsObolItemPrefab, ItemTier.Tier2, new[]
+                CustomResources.CharonsObolItemIcon,
+                CustomResources.CharonsObolItemPrefab, ItemTier.Tier2, new[]
                 {
                     ItemTag.Healing,
                     ItemTag.AIBlacklist

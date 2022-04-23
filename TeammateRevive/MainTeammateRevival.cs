@@ -16,7 +16,7 @@ using TeammateRevive.ProgressBar;
 using TeammateRevive.Resources;
 using TeammateRevive.Revive;
 using TeammateRevive.Revive.Rules;
-using TeammateRevive.Skull;
+using TeammateRevive.DeathTotem;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -52,9 +52,9 @@ namespace TeammateRevive
         private ConsoleCommands consoleCommands;
         private ReviveRules rules;
         private ReviveLinkBuffIconManager linkBuffIconManager;
-        private SkullLongRangeActivationManager skullLongRangeActivationManager;
+        private ReviveLongRangeActivationManager reviveLongRangeActivationManager;
         private InLobbyConfigIntegration inLobbyConfigIntegration;
-        private SkullTracker skullTracker;
+        private DeathTotemTracker deathTotemTracker;
         private ReviveProgressBarTracker progressBarTracker;
         private ItemDropManager itemDropManager;
         private ContentManager contentManager;
@@ -66,24 +66,24 @@ namespace TeammateRevive
             instance = this;
             this.pluginConfig = PluginConfig.Load(this.Config);
             
-            NetworkingAPI.RegisterMessageType<SyncSkullMessage>();
+            NetworkingAPI.RegisterMessageType<SyncDeathTotemMessage>();
             NetworkingAPI.RegisterMessageType<SetRulesMessage>();
 
             this.deathCurseArtifact = new DeathCurseArtifact();
             this.run = new RunTracker(this.deathCurseArtifact);
             this.players = new PlayersTracker(this.run, this.pluginConfig);
             this.rules = new ReviveRules(this.run, this.pluginConfig);
-            this.skullTracker = new SkullTracker(this.players, this.run, this.rules);
+            this.deathTotemTracker = new DeathTotemTracker(this.players, this.run, this.rules);
             this.progressBarTracker = new ReviveProgressBarTracker(new ProgressBarController(), this.players,
-                this.skullTracker, this.rules);
-            this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules, this.skullTracker, this.progressBarTracker);
+                this.deathTotemTracker, this.rules);
+            this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules, this.deathTotemTracker, this.progressBarTracker);
             
             this.itemsStatsModIntegration = new ItemsStatsModIntegration(this.rules);
             this.betterUiModIntegration = new BetterUiModIntegration();
             this.consoleCommands = new ConsoleCommands(this.rules, this.pluginConfig);
             this.linkBuffIconManager = new ReviveLinkBuffIconManager();
             this.inLobbyConfigIntegration = new InLobbyConfigIntegration(this.pluginConfig);
-            this.skullLongRangeActivationManager = new SkullLongRangeActivationManager(this.run, this.skullTracker);
+            this.reviveLongRangeActivationManager = new ReviveLongRangeActivationManager(this.run, this.deathTotemTracker);
             this.itemDropManager = new ItemDropManager(this.run, this.rules);
             this.contentManager = new ContentManager(this.rules, this.run, this.deathCurseArtifact);
             
@@ -120,10 +120,10 @@ namespace TeammateRevive
 
             if (NetworkHelper.IsClient())
             {
-                ClientScene.RegisterPrefab(AddedAssets.DeathMarker);
-                FindObjectOfType<NetworkManager>().spawnPrefabs.Add(AddedAssets.DeathMarker);
+                ClientScene.RegisterPrefab(CustomResources.DeathTotem.gameObject);
+                FindObjectOfType<NetworkManager>().spawnPrefabs.Add(CustomResources.DeathTotem.gameObject);
                 
-                Log.Info("Client Registered Prefabs");
+                Log.Info("Client registered prefabs");
                 return;
             }
 

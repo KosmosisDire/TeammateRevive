@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TeammateRevive.Skull
+namespace TeammateRevive.DeathTotem
 {
     public class ScaleAnimation
     {

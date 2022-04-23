@@ -62,14 +62,14 @@ namespace TeammateRevive.Revive.Rules
             new SetRulesMessage(this.Values).Send(NetworkDestination.Clients);
         }
 
-        public float CalculateSkullRadius(Player dead)
+        public float CalculateDeathTotemRadius(Player dead)
         {
             var itemCount = dead.master.master.inventory.GetItemCount(CharonsObol.Index);
-            var playersCount = dead.skull.insidePlayerIDs.Count;
+            var playersCount = dead.deathTotem.insidePlayerIDs.Count;
 
-            return CalculateSkullRadius(itemCount, playersCount);
+            return CalculateDeathTotemRadius(itemCount, playersCount);
         }
-        public float CalculateSkullRadius(int itemCount, int playersCount)
+        public float CalculateDeathTotemRadius(int itemCount, int playersCount)
         {
             var range = this.Values.BaseTotemRange;
 
@@ -116,7 +116,7 @@ namespace TeammateRevive.Revive.Rules
 
         public float GetDamageSpeed(float playerMaxHealth, Player dead, int reviverEverywhereObolCount)
         {
-            var playersInRange = dead.skull.insidePlayerIDs.Count;
+            var playersInRange = dead.deathTotem.insidePlayerIDs.Count;
             
             var deadPlayerObolsCount = dead.master.master.inventory.GetItemCount(CharonsObol.Index);
             return GetDamageSpeed(playersInRange, playerMaxHealth, deadPlayerObolsCount, reviverEverywhereObolCount);

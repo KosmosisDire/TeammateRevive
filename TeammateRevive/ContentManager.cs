@@ -39,7 +39,7 @@ namespace TeammateRevive
 
         public void Init()
         {
-            AddedAssets.Init();
+            CustomResources.LoadCustomResources();
             LoadAddedContent();
             this.deathCurseArtifact.Init();
         }

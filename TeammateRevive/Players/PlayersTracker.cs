@@ -212,7 +212,7 @@ namespace TeammateRevive.Players
             if (this.Dead.Contains(p)) this.Dead.Remove(p);
             p.isDead = false;
             p.reviveProgress = 0;
-            NetworkServer.Destroy(p.skull.gameObject);
+            NetworkServer.Destroy(p.deathTotem.gameObject);
             this.OnPlayerAlive?.Invoke(p);
         }
 

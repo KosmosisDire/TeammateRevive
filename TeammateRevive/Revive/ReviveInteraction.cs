@@ -4,7 +4,7 @@ using RoR2;
 using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
-using TeammateRevive.Skull;
+using TeammateRevive.DeathTotem;
 using UnityEngine;
 using UnityEngine.Networking;
 using static TeammateRevive.Common.TextFormatter;
@@ -32,20 +32,20 @@ namespace TeammateRevive.Revive
         public void OnInteractionBegin(Interactor interactor)
         {
             Log.DebugMethod("Interaction! " + interactor.name);
-            var skullId = this.gameObject.GetComponent<NetworkBehaviour>().netId;
-            Log.DebugMethod($"Skull Id " + skullId);
-            HandleInteraction(interactor.netId, skullId);
+            var totemId = this.gameObject.GetComponent<NetworkBehaviour>().netId;
+            Log.DebugMethod($"Totem Id " + totemId);
+            HandleInteraction(interactor.netId, totemId);
         }
 
-        public static void HandleInteraction(NetworkInstanceId playerNetId, NetworkInstanceId skullId)
+        public static void HandleInteraction(NetworkInstanceId playerNetId, NetworkInstanceId totemId)
         {
             Log.DebugMethod("Server respawn!");
             var player = PlayersTracker.instance.FindByBodyId(playerNetId);
             Log.DebugMethod($"Player " + player);
 
-            var skullComp = Util.FindNetworkObject(skullId).GetComponent<DeadPlayerSkull>();
-            Log.DebugMethod($"Skull component " + skullId);
-            var dead = PlayersTracker.instance.All.FirstOrDefault(dp => dp.skull == skullComp);
+            var totemComponent = Util.FindNetworkObject(totemId).GetComponent<DeathTotemBehavior>();
+            Log.DebugMethod($"Totem component " + totemId);
+            var dead = PlayersTracker.instance.All.FirstOrDefault(dp => dp.deathTotem == totemComponent);
             Log.DebugMethod($"Dead " + dead);
                 
             if (dead == null || player == null)

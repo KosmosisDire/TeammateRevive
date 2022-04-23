@@ -14,9 +14,7 @@
 
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\customprefabs" />
-    <EmbeddedResource Include="Resources\customprefabs.manifest" />
-    <EmbeddedResource Include="Resources\reducehp" />
+    <EmbeddedResource Include="Resources\customresources" />
   </ItemGroup>
   
 

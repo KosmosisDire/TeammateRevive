@@ -1,9 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;
 
-///<summary>
-///collection of methods that simplify the use of RectTransform
-///</summary>
 public static class RectTransformExtensions
 {
     public static Vector2 GetLocalPivotInPixels(this RectTransform rt)
@@ -14,6 +10,21 @@ public static class RectTransformExtensions
     public static Vector2 GetLocalPivotFromTopLeftInPixels(this RectTransform rt, bool negateY = false)
     {
         return rt.GetLocalPivotInPixels().MirrorY(rt, negateY);
+    }
+
+    public static Vector2 GetLocalPivotFromBottomLeftInPixels(this RectTransform rt, bool negateY = false)
+    {
+        return rt.GetLocalPivotInPixels();
+    }
+
+    public static Vector2 GetLocalPivotFromTopRightInPixels(this RectTransform rt, bool negateY = false)
+    {
+        return rt.GetLocalPivotInPixels().MirrorY(rt, negateY).MirrorX(rt, true);
+    }
+
+    public static Vector2 GetLocalPivotFromBottomRightInPixels(this RectTransform rt, bool negateY = false)
+    {
+        return rt.GetLocalPivotInPixels().MirrorX(rt, true);
     }
 
     ///<summary>
@@ -75,7 +86,7 @@ public static class RectTransformExtensions
         Vector3 reorientedTarget = new Vector2(x, y).MirrorX(parent, false);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomRightInPixels(true);
         transform.localPosition += finalOffset;
     }
 
@@ -89,7 +100,7 @@ public static class RectTransformExtensions
         Vector3 reorientedTarget = new Vector2(distance, distance).MirrorX(parent, false);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomRightInPixels(true);
         transform.localPosition += new Vector3(direction == RectTransform.Axis.Horizontal ? finalOffset.x : 0, direction == RectTransform.Axis.Vertical ? finalOffset.y : 0);
     }
 
@@ -110,10 +121,10 @@ public static class RectTransformExtensions
     {
         RectTransform parent = transform.parent as RectTransform;
 
-        Vector3 reorientedTarget = new Vector2(x, y).MirrorX(parent, false);
+        Vector3 reorientedTarget = new Vector2(x, y).MirrorX(parent, false).MirrorY(parent, false);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopRightInPixels(true);
         transform.localPosition += finalOffset;
     }
 
@@ -124,10 +135,10 @@ public static class RectTransformExtensions
     {
         RectTransform parent = transform.parent as RectTransform;
 
-        Vector3 reorientedTarget = new Vector2(distance, distance).MirrorX(parent, false);
+        Vector3 reorientedTarget = new Vector2(distance, distance).MirrorX(parent, false).MirrorY(parent, false);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopRightInPixels(true);
         transform.localPosition += new Vector3(direction == RectTransform.Axis.Horizontal ? finalOffset.x : 0, direction == RectTransform.Axis.Vertical ? finalOffset.y : 0);
     }
 
@@ -148,10 +159,10 @@ public static class RectTransformExtensions
     {
         RectTransform parent = transform.parent as RectTransform;
 
-        Vector3 reorientedTarget = new Vector2(x, y).MirrorX(parent, false);
+        Vector3 reorientedTarget = new Vector2(x, y);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomLeftInPixels(true);
         transform.localPosition += finalOffset;
     }
 
@@ -162,10 +173,10 @@ public static class RectTransformExtensions
     {
         RectTransform parent = transform.parent as RectTransform;
 
-        Vector3 reorientedTarget = new Vector2(distance, distance).MirrorX(parent, false);
+        Vector3 reorientedTarget = new Vector2(distance, distance);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromTopLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomLeftInPixels(true);
         transform.localPosition += new Vector3(direction == RectTransform.Axis.Horizontal ? finalOffset.x : 0, direction == RectTransform.Axis.Vertical ? finalOffset.y : 0);
     }
 
@@ -179,56 +190,20 @@ public static class RectTransformExtensions
         return transform.TransformVector(transform.rect.size);
     }
 
-    public static void SetWidthToAnchor(this RectTransform transform, float width)
+    public static void SetWidthInPixels(this RectTransform transform, float width)
     {
         transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
     }
 
-    public static void SetHeightToAnchor(this RectTransform transform, float height)
+    public static void SetHeightInPixels(this RectTransform transform, float height)
     {
         transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
     }
 
-    public static void SetSizeToAnchor(this RectTransform transform, float width, float height)
+    public static void SetSizeInPixels(this RectTransform transform, float width, float height)
     {
         transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
         transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
-    }
-
-    public static void SetWidthToParent(this RectTransform transform, float width)
-    {
-        transform.anchorMin = new Vector2(0, transform.anchorMin.y);
-        transform.anchorMax = new Vector2(1, transform.anchorMax.y);
-        transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
-    }
-
-    public static void SetHeightToParent(this RectTransform transform, float height)
-    {
-        transform.anchorMin = new Vector2(transform.anchorMin.x, 0);
-        transform.anchorMax = new Vector2(transform.anchorMax.x, 1);
-        transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
-    }
-
-    public static void SetSizeToParent(this RectTransform transform, float width, float height)
-    {
-        transform.SetWidthToParent(width);
-        transform.SetHeightToParent(height);
-    }
-
-    public static void SetWidthAbsolute(this RectTransform transform, int width)
-    {
-        SetWidthToParent(transform, width/transform.GetParentSize().x);
-    }
-
-    public static void SetHeightAbsolute(this RectTransform transform, int height)
-    {
-        SetHeightToParent(transform, height/transform.GetParentSize().y);
-    }
-
-    public static void SetSizeAbsolute(this RectTransform transform, int width, int height)
-    {
-        var size = new Vector2(width, height).DivideComponent(transform.GetParentSize());
-        SetSizeToParent(transform, size.x, size.y);
     }
 
 }

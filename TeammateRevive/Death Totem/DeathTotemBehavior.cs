@@ -13,15 +13,15 @@ using TeammateRevive.Revive.Rules;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace TeammateRevive.Skull
+namespace TeammateRevive.DeathTotem
 {
-    public class DeadPlayerSkull : NetworkBehaviour
+    public class DeathTotemBehavior : NetworkBehaviour
     {
         // events
-        public static Action<DeadPlayerSkull> GlobalOnValuesReceived;
-        public static Action<DeadPlayerSkull> GlobalOnCreated;
-        public static Action<DeadPlayerSkull> GlobalOnClientCreated;
-        public static Action<DeadPlayerSkull> GlobalOnDestroy;
+        public static Action<DeathTotemBehavior> GlobalOnValuesReceived;
+        public static Action<DeathTotemBehavior> GlobalOnCreated;
+        public static Action<DeathTotemBehavior> GlobalOnClientCreated;
+        public static Action<DeathTotemBehavior> GlobalOnDestroy;
 
         // dependencies
         private ReviveRules rules;
@@ -106,7 +106,7 @@ namespace TeammateRevive.Skull
         public void SetValuesReceive(NetworkInstanceId deadPlayerId,
             List<NetworkInstanceId> _insidePlayerIDs, float scale, float fractionPerSecond)
         {
-            Log.Debug($"Received skull values. Rad: {scale}");
+            Log.Debug($"Received death totem values. Rad: {scale}");
             this.deadPlayerId = deadPlayerId;
             this.fractionPerSecond = fractionPerSecond;
             this.insidePlayerIDs = _insidePlayerIDs;
@@ -160,7 +160,7 @@ namespace TeammateRevive.Skull
         {
             Log.DebugMethod($"Rad: {this.cachedRadius}");
             RemoveDeadIDs();
-            new SyncSkullMessage(GetComponent<NetworkIdentity>().netId, this.deadPlayerId, this.insidePlayerIDs, this.cachedRadius, this.fractionPerSecond).Send(NetworkDestination.Clients);
+            new SyncDeathTotemMessage(GetComponent<NetworkIdentity>().netId, this.deadPlayerId, this.insidePlayerIDs, this.cachedRadius, this.fractionPerSecond).Send(NetworkDestination.Clients);
             Log.Debug("Rad: " + this.radiusSphere.transform.localScale.x);
         }
 

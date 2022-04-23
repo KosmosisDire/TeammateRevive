@@ -33,7 +33,7 @@ namespace TeammateRevive.Content
 
             BuffDef buffDefinition = ScriptableObject.CreateInstance<BuffDef>();
             buffDefinition.name = BuffName;
-            buffDefinition.iconSprite = AddedAssets.DeathCurseBuffIcon;
+            buffDefinition.iconSprite = CustomResources.DeathCurseBuffIcon;
             buffDefinition.buffColor = Color.white;
             buffDefinition.isDebuff = true;
             buffDefinition.canStack = true;
@@ -51,8 +51,8 @@ namespace TeammateRevive.Content
             ItemAPI.Add(DeprecatedCustomItem.Create(ItemName, NameToken, 
                 "Reduces your max HP/Shield. Removed on next stage.", "Reduces your max HP/Shield. Removed on next stage.",
                 "ITEM_REDUCEHP_PICK", 
-                AddedAssets.DeathCurseBuffIcon,
-                AddedAssets.CharonsObolItemPrefab, ItemTier.NoTier, new[]
+                CustomResources.DeathCurseBuffIcon,
+                CustomResources.CharonsObolItemPrefab, ItemTier.NoTier, new[]
                 {
                     ItemTag.AIBlacklist
                 }, 

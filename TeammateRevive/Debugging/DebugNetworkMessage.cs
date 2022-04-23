@@ -39,9 +39,9 @@ namespace TeammateRevive.Debugging
             typeof(DebugHelper).GetMethod(this.messageType)?.Invoke(null, Array.Empty<object>());
         }
 
-        public void SpawnSkull()
+        public void SpawnTotem()
         {
-            DebugHelper.SpawnSkullForFirstPlayer();
+            DebugHelper.SpawnTotemForFirstPlayer();
         }
     }
 }

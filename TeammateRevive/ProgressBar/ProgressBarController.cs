@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
 using R2API;
 using TeammateRevive.Logging;
+using TeammateRevive.Resources;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TeammateRevive.ProgressBar
 {
@@ -12,78 +14,79 @@ namespace TeammateRevive.ProgressBar
     public class ProgressBarController
     {
         private const string DefaultName = "Player";
-        
-        private GameObject progressBarPrefab;
-        private ProgressBarScript progressBarScript;
         private TextMeshProUGUI textComponent;
-
         private string currentName = DefaultName;
         private readonly CharArrayBuilder charArrayBuilder;
-
-        public bool IsShown => this.progressBarScript is { IsShown: true };
+        public bool showing = false;
+        Slider progressBar;
+        public float progress;
 
         public ProgressBarController()
         {
             Log.Debug("Init ResurrectController");
-            InitProgressBar();
             On.RoR2.UI.HUD.Awake += HUDOnAwake;
-            
             // NOTE: this string splitting is required so class can internally keep track of individual parts and update them efficiently
-            this.charArrayBuilder = new CharArrayBuilder("Reviving ", DefaultName, " (", "000.0", "%)...");
+            charArrayBuilder = new CharArrayBuilder("Reviving ", DefaultName, " (", "000.0", "%)...");
         }
 
-        private void InitProgressBar()
+        public void UpdateText(string name, float progress = 0)
         {
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.reducehp");
-            var bundle = AssetBundle.LoadFromStream(stream);
+            name = string.IsNullOrEmpty(name) ? DefaultName : name;
 
-            this.progressBarPrefab = bundle.LoadAsset<GameObject>("Assets/ProgressBar/ProgressBar.prefab");
+            if (currentName != name)
+            {
+                charArrayBuilder.UpdatePart(1, name);
+                currentName = name;
+            }
 
-            bundle.Unload(false);
+            charArrayBuilder.SetPaddedPercentagePart(3, progress);
+            textComponent.SetCharArray(charArrayBuilder.Buffer, 0, charArrayBuilder.Length);
+
+            Show();
         }
 
         public void SetFraction(float fraction)
         {
-            if (this.progressBarScript == null) return;
-            if (fraction == 0)
-            {
-                this.progressBarScript.IsShown = false;
-                return;
-            }
-
-            if (!this.progressBarScript.IsShown)
-            {
-                this.progressBarScript.IsShown = true;
-            }
-
-            this.progressBarScript.Fraction = fraction > 1 ? 1 : fraction;
+            if(progressBar == null) return;
+            progressBar.value = fraction;
+            progress = fraction;
+            Show();
         }
 
         public void SetColor(Color color)
         {
-            this.progressBarScript.barImage.color = color;
+            if(progressBar == null) return;
+            progressBar.fillRect.GetComponent<Image>().color = color;
+            Show();
         }
 
         public void Hide()
         {
-            if (this.progressBarScript == null) return;
+            currentName = DefaultName;
+            progressBar.GetComponent<CanvasGroup>().alpha = 0;
+            showing = false;
+        }
 
-            this.progressBarScript.Fraction = 0;
-            if (this.progressBarScript.IsShown) this.progressBarScript.IsShown = false;
-            this.currentName = null;
+        public void Show()
+        {
+            showing = true;
+            progressBar.GetComponent<CanvasGroup>().alpha = 1;
         }
 
         private void AttachProgressBar(RoR2.UI.HUD hud)
         {
             Log.Debug("AttachProgressBar");
-            var progressBar = this.progressBarPrefab.InstantiateClone("Progress Bar");
+            
+            progressBar = CustomResources.progressBarPrefab.InstantiateClone("Revival Progress Bar").GetComponent<Slider>();
             progressBar.transform.SetParent(hud.mainContainer.transform);
-            this.progressBarScript = progressBar.AddComponent<ProgressBarScript>();
-            this.progressBarScript.IsShown = false;
 
-            var textObj = progressBar.transform.Find("Text");
-            this.textComponent = textObj.GetComponent<TextMeshProUGUI>();
-            this.textComponent.font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
+            textComponent = progressBar.GetComponentInChildren<TextMeshProUGUI>();
+            textComponent.font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
+
+            RectTransform rt = progressBar.GetComponent<RectTransform>();
+            rt.SetSizeInPixels(Screen.width/3f, Screen.height/30f);
+            rt.SetBottomLeftOffset(Screen.width/3f, Screen.height/25f);
+            Hide();
         }
 
         private void HUDOnAwake(On.RoR2.UI.HUD.orig_Awake orig, RoR2.UI.HUD self)
@@ -92,18 +95,6 @@ namespace TeammateRevive.ProgressBar
             orig(self);
 
             AttachProgressBar(self);
-        }
-
-        public void UpdateText(string name, float progress = 0)
-        {
-            name = string.IsNullOrEmpty(name) ? DefaultName : name;
-            if (this.currentName != name)
-            {
-                this.charArrayBuilder.UpdatePart(1, name);
-                this.currentName = name;
-            }
-            this.charArrayBuilder.SetPaddedPercentagePart(3, progress);
-            this.textComponent.SetCharArray(this.charArrayBuilder.Buffer, 0, this.charArrayBuilder.Length);
         }
     }
 }
