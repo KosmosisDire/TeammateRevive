@@ -1,6 +1,7 @@
 ﻿{
 	"name": "TeammateRevival",
-	"version_number": "4.1.0",
+	"version_number": "4.1.1",
+	"author": "KosmosisDire",
 	"website_url": "https://github.com/KosmosisDire/TeammateRevive",
 	"description": "Survivors can revive fallen teammates, but it comes at the price of their own health and safety! Optional Death Curse mechanic, and item. Highly configurable. Updated for SOTV. [Report feedback and issues on GitHub].  multiplayer heal spawn",
 	"dependencies": [
