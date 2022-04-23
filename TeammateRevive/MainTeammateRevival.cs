@@ -1,9 +1,6 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
 using BepInEx;
-using On.RoR2.Networking;
 using R2API;
 using R2API.Networking;
 using R2API.Utils;
@@ -92,6 +89,7 @@ namespace TeammateRevive
             
             Log.Init(this.pluginConfig, this.Logger);
             ReviveHelper.Init();
+            HideDeathCurseContent.Init(this.pluginConfig);
             this.contentManager.Init();
             this.rules.ApplyConfigValues();
 #if DEBUG

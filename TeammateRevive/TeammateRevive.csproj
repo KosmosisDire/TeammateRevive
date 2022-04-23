@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <BuiltPluginDestPath></BuiltPluginDestPath>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,8 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>libs\MMHOOK_Assembly-CSharp.dll</HintPath>
+    <Reference Include="MMHOOK_RoR2">
+      <HintPath>libs\MMHOOK_RoR2.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="R2API">
@@ -51,5 +52,13 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <Target Name="CopyCustomContent" AfterTargets="Build" Condition="$(BuiltPluginDestPath) != ''">
+    <ItemGroup>
+      <_FilesToCopy Include="$(OutputPath)*.*" />
+    </ItemGroup>
+    <Message Text="Copying plugin files to '$(BuiltPluginDestPath)'" Importance="High" />
+    <Copy SourceFiles="@(_FilesToCopy)" DestinationFolder="$(BuiltPluginDestPath)" />
+  </Target>
 
 </Project>
