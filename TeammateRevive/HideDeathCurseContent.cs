@@ -26,19 +26,18 @@ public static class HideDeathCurseContent
 
         if (config.HideDeathCurseArtifact)
         {
-            On.RoR2.RuleCatalog.AddRule += OnAddRule;
+            On.RoR2.UI.RuleChoiceController.UpdateChoiceDisplay += OnRuleChoiceUpdate;
         }
     }
 
-    private static void OnAddRule(On.RoR2.RuleCatalog.orig_AddRule orig, RuleDef ruledef)
+    private static void OnRuleChoiceUpdate(On.RoR2.UI.RuleChoiceController.orig_UpdateChoiceDisplay orig, RoR2.UI.RuleChoiceController self, RuleChoiceDef def)
     {
-        if (ruledef.globalName == "Artifacts.ARTIFACT_DEATH_CURSE")
+        orig(self, def);
+        // hide Death Curse artifact if it is not enabled
+        if (def.globalName.StartsWith("Artifacts.ARTIFACT_DEATH_CURSE.Off"))
         {
-            Log.Info($"Hid Death Curse artifact.");
-            return;
+            self.gameObject.SetActive(false);
         }
-
-        orig(ruledef);
     }
 
     private static Entry[] OnBuildPickupEntries(On.RoR2.UI.LogBook.LogBookController.orig_BuildPickupEntries orig, Dictionary<ExpansionDef, bool> expansionAvailability)
