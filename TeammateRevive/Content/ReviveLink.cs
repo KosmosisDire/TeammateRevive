@@ -14,7 +14,7 @@ namespace TeammateRevive.Content
         {
             BuffDef buffDefinition = ScriptableObject.CreateInstance<BuffDef>();
             buffDefinition.name = Name;
-            buffDefinition.iconSprite = AddedAssets.ReviveLinkBuffIcon;
+            buffDefinition.iconSprite = CustomResources.ReviveLinkBuffIcon;
             buffDefinition.buffColor = Color.white;
             buffDefinition.isDebuff = true;
             buffDefinition.canStack = true;

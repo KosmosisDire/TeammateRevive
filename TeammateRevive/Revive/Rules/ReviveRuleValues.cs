@@ -23,7 +23,7 @@
 
         public bool ForceDeathCurseRule { get; set; } = false;
 
-        public bool DebugKeepSkulls { get; set; } = false;
+        public bool DebugKeepTotem { get; set; } = false;
 
         public bool ForceEnableDeathCurseForSinglePlayer { get; set; } = false;
 

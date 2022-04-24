@@ -5,7 +5,7 @@ using TeammateRevive.Common;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.Revive.Rules;
-using TeammateRevive.Skull;
+using TeammateRevive.DeathTotem;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -16,29 +16,29 @@ namespace TeammateRevive.ProgressBar
     /// </summary>
     public class ReviveProgressBarTracker
     {
-        private static readonly Color NegativeProgressColor = new(1, .35f, .35f);
-        private static readonly Color PositiveProgressColor = Color.white;
+        private static readonly Color NegativeProgressColor = new(1, .3f, .3f);
+        private Color PositiveProgressColor => Color.Lerp(new(0.8f, .35f, .3f), new(0, 0.772f, 0.329f), progressBar.progress);
         
         private readonly ProgressBarController progressBar;
         private readonly PlayersTracker players;
-        private readonly SkullTracker skullTracker;
+        private readonly DeathTotemTracker deathTotemTracker;
         private readonly ReviveRules rules;
 
-        public DeadPlayerSkull trackingSkull;
+        public DeathTotemBehavior trackingTotem;
 
         private float queuedToHideAt;
         private bool IsQueuedToHide => this.queuedToHideAt > 0;
 
         private SpectatorLabel spectatorLabel;
 
-        public ReviveProgressBarTracker(ProgressBarController progressBar, PlayersTracker players, SkullTracker skullTracker, ReviveRules rules)
+        public ReviveProgressBarTracker(ProgressBarController progressBar, PlayersTracker players, DeathTotemTracker totemTracker, ReviveRules rules)
         {
             this.progressBar = progressBar;
             this.players = players;
-            this.skullTracker = skullTracker;
+            this.deathTotemTracker = totemTracker;
             this.rules = rules;
             
-            DeadPlayerSkull.GlobalOnDestroy += OnSkullDestroy;
+            DeathTotemBehavior.GlobalOnDestroy += OnDeathTotemDestroy;
             On.RoR2.UI.SpectatorLabel.Awake += SpectatorLabelAwake;
         }
 
@@ -48,56 +48,56 @@ namespace TeammateRevive.ProgressBar
             this.spectatorLabel = self;
         }
 
-        private void OnSkullDestroy(DeadPlayerSkull skull)
+        private void OnDeathTotemDestroy(DeathTotemBehavior totem)
         {
-            if (this.trackingSkull == skull)
+            if (this.trackingTotem == totem)
             {
-                Log.DebugMethod("removing tracking - skull destroyed");
+                Log.DebugMethod("removing tracking - totem destroyed");
                 RemoveTracking();
             }
         }
 
         public void Update()
         {
-            var skull = GetSkullInRange();
+            var deathTotem = GetDeathTotemInRange();
             
-            // no skull, no tracking
-            if (skull == this.trackingSkull && skull == null)
+            // no totem, no tracking
+            if (deathTotem == this.trackingTotem && deathTotem == null)
             {
-                if (this.progressBar.IsShown)
+                if (this.progressBar.showing)
                 {
-                    Log.DebugMethod("hide - no skull, no tracking");
+                    Log.DebugMethod("hide - no totem, no tracking");
                     this.progressBar.Hide();
                 }
                 return;
             }
 
-            // new skull
-            if (skull != null && this.trackingSkull != skull)
+            // new totem
+            if (deathTotem != null && this.trackingTotem != deathTotem)
             {
-                Log.DebugMethod("new skull");
-                this.trackingSkull = skull;
+                Log.DebugMethod("new totem");
+                this.trackingTotem = deathTotem;
                 DequeFromHiding();
-                this.progressBar.UpdateText(skull.PlayerName);
+                this.progressBar.UpdateText(deathTotem.PlayerName);
             }
             
             // update progress
-            if (this.trackingSkull != null)
+            if (this.trackingTotem != null)
             {
-                this.progressBar.SetFraction(this.trackingSkull.progress);
-                this.progressBar.SetColor(this.trackingSkull.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
-                this.progressBar.UpdateText(this.trackingSkull.PlayerName, this.trackingSkull.progress);
+                this.progressBar.SetFraction(this.trackingTotem.progress);
+                this.progressBar.SetColor(this.trackingTotem.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
+                this.progressBar.UpdateText(this.trackingTotem.PlayerName, this.trackingTotem.progress);
             }
 
-            // player moved out of skull circle, queuing to hide
-            if (skull == null && this.trackingSkull != null && !this.IsQueuedToHide)
+            // player moved out of totem circle, queuing to hide
+            if (deathTotem == null && this.trackingTotem != null && !this.IsQueuedToHide)
             {
                 Log.DebugMethod("queue to hide");
                 QueueToHide();
             }
 
             // hiding either if progress become 0 or specified delay elapsed
-            if (this.trackingSkull != null && this.trackingSkull.progress == 0)
+            if (this.trackingTotem != null && this.trackingTotem.progress == 0)
             {
                 Log.DebugMethod("removing due to progress is 0");
                 RemoveTracking();
@@ -124,19 +124,19 @@ namespace TeammateRevive.ProgressBar
         {
             DequeFromHiding();
             this.progressBar.Hide();
-            this.trackingSkull = null;
+            this.trackingTotem = null;
         }
 
-        public DeadPlayerSkull GetSkullInRange()
+        public DeathTotemBehavior GetDeathTotemInRange()
         {
-            if (!this.skullTracker.HasAnySkulls)
+            if (!this.deathTotemTracker.HasAnyTotems)
                 return null;
 
             var trackingBodyId = this.players.CurrentUserBodyId ?? GetSpectatingBody();
             if (trackingBodyId == null)
                 return null;
 
-            return this.skullTracker.GetSkullInRange(trackingBodyId.Value);
+            return this.deathTotemTracker.GetDeathTotemInRange(trackingBodyId.Value);
         }
 
         private NetworkInstanceId? GetSpectatingBody()

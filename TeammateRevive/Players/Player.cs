@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RoR2;
 using TeammateRevive.Logging;
-using TeammateRevive.Skull;
+using TeammateRevive.DeathTotem;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -14,7 +14,7 @@ namespace TeammateRevive.Players
         public readonly NetworkUser networkUser;
         public readonly PlayerCharacterMasterController master;
 
-        public DeadPlayerSkull skull = null;
+        public DeathTotemBehavior deathTotem = null;
 
         public Vector3 groundPosition = Vector3.zero;
         public float reviveProgress = 0;
