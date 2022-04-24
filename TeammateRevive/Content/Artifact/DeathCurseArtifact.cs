@@ -15,8 +15,8 @@ namespace TeammateRevive.Artifact
         public override string ArtifactDescription =>
             "Adds Death Curse on revive, but also adds Charon's Obol item that will make revive easier.";
 
-        public override Sprite ArtifactEnabledIcon => AddedAssets.DeathCurseArtifactEnabledIcon;
-        public override Sprite ArtifactDisabledIcon => AddedAssets.DeathCurseArtifactDisabledIcon;
+        public override Sprite ArtifactEnabledIcon => CustomResources.DeathCurseArtifactEnabledIcon;
+        public override Sprite ArtifactDisabledIcon => CustomResources.DeathCurseArtifactDisabledIcon;
 
         public override void Init()
         {

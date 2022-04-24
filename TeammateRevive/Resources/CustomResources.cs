@@ -3,54 +3,45 @@ using System.Reflection;
 using R2API;
 using RoR2;
 using TeammateRevive.Logging;
-using TeammateRevive.Skull;
+using TeammateRevive.DeathTotem;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TeammateRevive.Resources
 {
-    public static class AddedAssets
+    public static class CustomResources
     {
-        public static void Init()
-        {
-            Log.Debug("Loading assets...");
-            LoadSkullPrefab();
-            ReadCurseAssets();
-        }
-        
-        static void LoadSkullPrefab()
+
+        static void InitializeDeathTotem(GameObject totemPrefab)
         {
             Log.DebugMethod();
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.customprefabs");
-            
-            var bundle = AssetBundle.LoadFromStream(stream);
-            ReplaceStubbedShaders(bundle);
-
-            var dm = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
-            DeathMarkerPrefab = bundle.LoadAsset<GameObject>("Assets/PlayerDeathPoint.prefab");
-            dm.AddComponent<DeadPlayerSkull>();
-            DeathMarker = dm.InstantiateClone("Death Marker");
-            dm.GetComponent<DeadPlayerSkull>().Setup();
-            dm.GetComponent<DeadPlayerSkull>().radiusSphere.material = Materials[0];
-
-            bundle.Unload(false);
+            totemPrefab.AddComponent<DeathTotemBehavior>();
+            DeathTotem = totemPrefab.InstantiateClone("Death Totem").GetComponent<DeathTotemBehavior>();
+            totemPrefab.GetComponent<DeathTotemBehavior>().Setup();
         }
-        
-        static void ReadCurseAssets()
+
+        public static void LoadCustomResources()
         {
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.reducehp");
+            Log.DebugMethod();
+            Log.Debug("Loading custom resources...");
+
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeammateRevive.Resources.customresources");
             var bundle = AssetBundle.LoadFromStream(stream);
-
-            CharonsObolItemPrefab = bundle.LoadAsset<GameObject>("Assets/models/Obol.prefab");
-            HandItemPrefab = bundle.LoadAsset<GameObject>("Assets/models/hand_item.prefab");
-            CharonsObolItemIcon = bundle.LoadAsset<Sprite>("Assets/icons/obol.png");
-            DeathCurseBuffIcon = bundle.LoadAsset<Sprite>("Assets/icons/curse.png");
-            ReviveLinkBuffIcon = bundle.LoadAsset<Sprite>("Assets/icons/timed_curse.png");
-            LunarHandIcon = bundle.LoadAsset<Sprite>("Assets/icons/lunar_hand.png");
             
-            DeathCurseArtifactEnabledIcon = bundle.LoadAsset<Sprite>("Assets/icons/artifactCurseEnabled.png");
-            DeathCurseArtifactDisabledIcon = bundle.LoadAsset<Sprite>("Assets/icons/artifactCurseDisabled.png");
-
             ReplaceStubbedShaders(bundle);
+
+            CharonsObolItemIcon = bundle.LoadAsset<Sprite>("Assets/CustomAssets/icons/obol.png");
+            DeathCurseBuffIcon = bundle.LoadAsset<Sprite>("Assets/CustomAssets/icons/curse.png");
+            ReviveLinkBuffIcon = bundle.LoadAsset<Sprite>("Assets/CustomAssets/icons/timed_curse.png");
+            LunarHandIcon = bundle.LoadAsset<Sprite>("Assets/CustomAssets/icons/lunar_hand.png");
+            DeathCurseArtifactEnabledIcon = bundle.LoadAsset<Sprite>("Assets/CustomAssets/icons/artifactCurseEnabled.png");
+            DeathCurseArtifactDisabledIcon = bundle.LoadAsset<Sprite>("Assets/CustomAssets/icons/artifactCurseDisabled.png");
+
+            CurseOrbPrefab = bundle.LoadAsset<GameObject>("Assets/CustomAssets/curseOrb.prefab");
+            progressBarPrefab = bundle.LoadAsset<GameObject>("Assets/CustomAssets/progressBar.prefab");
+            CharonsObolItemPrefab = bundle.LoadAsset<GameObject>("Assets/CustomAssets/obol.prefab");
+            HandItemPrefab = bundle.LoadAsset<GameObject>("Assets/CustomAssets/handItem.prefab");
+            InitializeDeathTotem(bundle.LoadAsset<GameObject>("Assets/CustomAssets/deathTotem.prefab"));
 
             bundle.Unload(false);
         }
@@ -103,9 +94,11 @@ namespace TeammateRevive.Resources
         
         public static Sprite DeathCurseArtifactEnabledIcon;
         public static Sprite DeathCurseArtifactDisabledIcon;
-        
+
         public static readonly List<Material> Materials = new();
-        public static GameObject DeathMarkerPrefab { get; private set; }
-        public static GameObject DeathMarker { get; private set; }
+        public static DeathTotemBehavior DeathTotem { get; private set; }
+        public static GameObject CurseOrbPrefab;
+
+        public static GameObject progressBarPrefab;
     }
 }

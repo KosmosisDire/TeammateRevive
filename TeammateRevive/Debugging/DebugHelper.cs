@@ -6,7 +6,7 @@ using TeammateRevive.Common;
 using TeammateRevive.Configuration;
 using TeammateRevive.Content;
 using TeammateRevive.Players;
-using TeammateRevive.Skull;
+using TeammateRevive.DeathTotem;
 using UnityEngine;
 
 namespace TeammateRevive.Debugging
@@ -53,7 +53,7 @@ namespace TeammateRevive.Debugging
                 RunOnServer(RemoveObol, nameof(RemoveObol));
 
             if (Input.GetKeyDown(KeyCode.F10))
-                RunOnServer(SpawnSkullForFirstPlayer, nameof(SpawnSkullForFirstPlayer));
+                RunOnServer(SpawnTotemForFirstPlayer, nameof(SpawnTotemForFirstPlayer));
 
             if (Config.GodMode && NetworkHelper.IsServer)
             {
@@ -127,7 +127,7 @@ namespace TeammateRevive.Debugging
             });
         }
 
-        public static void SpawnSkullForFirstPlayer()
+        public static void SpawnTotemForFirstPlayer()
         {
             var players = PlayersTracker.instance;
             
@@ -138,7 +138,7 @@ namespace TeammateRevive.Debugging
 
             players.All[0].master.master.deathFootPosition = players.All[0].GetBody().footPosition;
 
-            SkullTracker.instance.ServerSpawnSkull(players.All[0]);
+            DeathTotemTracker.instance.ServerSpawnTotem(players.All[0]);
         }
     }
 }

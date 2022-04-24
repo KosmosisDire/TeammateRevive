@@ -79,9 +79,9 @@ namespace TeammateRevive.Configuration
         {
             return configFile.BindCollection("Debugging")
                 .Bind(
-                    key: "Keep skulls for characters revived by other means",
+                    key: "Keep death totem for characters revived by other means",
                     description: "Debug-only function that will ruin your experience when using Dio's Best Friend",
-                    set: v => pluginConfig.RuleValues.DebugKeepSkulls = v,
+                    set: v => pluginConfig.RuleValues.DebugKeepTotem = v,
                     defaultValue: false)
                 .Bind(
                     key: "Force enable Death Curse even for single player",

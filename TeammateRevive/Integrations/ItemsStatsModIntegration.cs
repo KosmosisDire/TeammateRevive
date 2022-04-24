@@ -51,7 +51,7 @@ namespace TeammateRevive.Integrations
                         (value, ctx) => $"Time to revive alone: {value.FormatInt(postfix: "s", decimals: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.rules.CalculateSkullRadius((int)itemCount, 1),
+                        (itemCount, ctx) => this.rules.CalculateDeathTotemRadius((int)itemCount, 1),
                         (value, ctx) => $"Revive circle range: {value.FormatInt(postfix: "m", decimals: 1)}"
                     ),
                     new(

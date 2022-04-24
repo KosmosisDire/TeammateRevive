@@ -32,7 +32,7 @@ namespace TeammateRevive.Revive.Rules
             writer.Write(this.ruleValues.ReviveLinkBuffTimeFactor);
             writer.Write(this.ruleValues.ObolDamageReduceFactor);
             writer.Write(this.ruleValues.ForceDeathCurseRule);
-            writer.Write(this.ruleValues.DebugKeepSkulls);
+            writer.Write(this.ruleValues.DebugKeepTotem);
             writer.Write(this.ruleValues.EnableRevivalToken);
             writer.Write(this.ruleValues.CutReviveeHp);
             writer.Write(this.ruleValues.PostReviveRegenDurationSec);
@@ -52,7 +52,7 @@ namespace TeammateRevive.Revive.Rules
             this.ruleValues.ReviveLinkBuffTimeFactor = reader.ReadSingle();
             this.ruleValues.ObolDamageReduceFactor = reader.ReadSingle();
             this.ruleValues.ForceDeathCurseRule = reader.ReadBoolean();
-            this.ruleValues.DebugKeepSkulls = reader.ReadBoolean();
+            this.ruleValues.DebugKeepTotem = reader.ReadBoolean();
             this.ruleValues.EnableRevivalToken = reader.ReadBoolean();
             this.ruleValues.CutReviveeHp = reader.ReadBoolean();
             this.ruleValues.PostReviveRegenDurationSec = reader.ReadSingle();

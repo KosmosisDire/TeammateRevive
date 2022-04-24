@@ -3,19 +3,19 @@ using RoR2;
 using TeammateRevive.Revive;
 using UnityEngine;
 
-namespace TeammateRevive.Skull
+namespace TeammateRevive.DeathTotem
 {
-    public class SkullLongRangeActivationManager
+    public class ReviveLongRangeActivationManager
     {
         private static readonly float RaycastExtraRadius = 3f;
         
         private readonly RunTracker run;
-        private readonly SkullTracker skullTracker;
+        private readonly DeathTotemTracker deathTotemTracker;
 
-        public SkullLongRangeActivationManager(RunTracker run, SkullTracker skullTracker)
+        public ReviveLongRangeActivationManager(RunTracker run, DeathTotemTracker deathTotemTracker)
         {
             this.run = run;
-            this.skullTracker = skullTracker;
+            this.deathTotemTracker = deathTotemTracker;
             On.RoR2.Interactor.FindBestInteractableObject += hook_Interactor_FindBestInteractableObject;
         }
 
@@ -31,7 +31,7 @@ namespace TeammateRevive.Skull
                 QueryTriggerInteraction.Collide))
             {
                 var entity = EntityLocator.GetEntity(hitInfo.collider.gameObject);
-                if (entity != null && CheckSkullRangeAllowed(entity, hitInfo))
+                if (entity != null && CheckDeathTotemRangeAllowed(entity, hitInfo))
                 {
                     var component = entity.GetComponent<IInteractable>();
                     if (component is ReviveInteraction interaction)
@@ -47,17 +47,17 @@ namespace TeammateRevive.Skull
 
         float GetMaxReviveDistance()
         {
-            if (this.skullTracker.skulls.Count == 0) return 0;
-            return this.skullTracker.skulls.Max(skull => skull.cachedRadius + RaycastExtraRadius);
+            if (this.deathTotemTracker.totems.Count == 0) return 0;
+            return this.deathTotemTracker.totems.Max(totem => totem.cachedRadius + RaycastExtraRadius);
         }
 
-        bool CheckSkullRangeAllowed(GameObject gameObject, RaycastHit hitInfo)
+        bool CheckDeathTotemRangeAllowed(GameObject gameObject, RaycastHit hitInfo)
         {
-            var skull = gameObject.GetComponent<DeadPlayerSkull>();
-            if (!skull)
+            var totem = gameObject.GetComponent<DeathTotemBehavior>();
+            if (!totem)
                 return false;
             
-            return skull.cachedRadius + RaycastExtraRadius >= hitInfo.distance;
+            return totem.cachedRadius + RaycastExtraRadius >= hitInfo.distance;
         }
     }
 }

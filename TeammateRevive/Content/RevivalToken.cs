@@ -16,8 +16,8 @@ namespace TeammateRevive.Content
             var description = "Reduces chance to receive curse";
             ItemAPI.Add(DeprecatedCustomItem.Create(Name, "Revival Token",
                 description, description, description,
-                AddedAssets.ReviveLinkBuffIcon,
-                AddedAssets.CharonsObolItemPrefab, ItemTier.NoTier, new[]
+                CustomResources.ReviveLinkBuffIcon,
+                CustomResources.CharonsObolItemPrefab, ItemTier.NoTier, new[]
                 {
                     ItemTag.AIBlacklist
                 }, true, true));

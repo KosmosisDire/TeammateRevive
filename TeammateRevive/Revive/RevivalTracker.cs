@@ -7,7 +7,7 @@ using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.ProgressBar;
 using TeammateRevive.Revive.Rules;
-using TeammateRevive.Skull;
+using TeammateRevive.DeathTotem;
 using UnityEngine;
 
 namespace TeammateRevive.Revive
@@ -20,16 +20,16 @@ namespace TeammateRevive.Revive
         private readonly PlayersTracker players;
         private readonly RunTracker run;
         private readonly ReviveRules rules;
-        private readonly SkullTracker skullTracker;
+        private readonly DeathTotemTracker deathTotemTracker;
         private readonly ReviveProgressBarTracker reviveProgressBarTracker;
 
-        public RevivalTracker(PlayersTracker players, RunTracker run, ReviveRules rules, SkullTracker skullTracker, ReviveProgressBarTracker reviveProgressBarTracker)
+        public RevivalTracker(PlayersTracker players, RunTracker run, ReviveRules rules, DeathTotemTracker deathTotemTracker, ReviveProgressBarTracker reviveProgressBarTracker)
         {
             instance = this;
             this.players = players;
             this.run = run;
             this.rules = rules;
-            this.skullTracker = skullTracker;
+            this.deathTotemTracker = deathTotemTracker;
             this.reviveProgressBarTracker = reviveProgressBarTracker;
 
             this.players.OnPlayerDead += OnPlayerDead;
@@ -58,7 +58,7 @@ namespace TeammateRevive.Revive
             orig(self);
             var sceneName = self.sceneDef.cachedName;
             Log.Debug($"Stage start: {self.sceneDef.cachedName}");
-            this.skullTracker.Clear();
+            this.deathTotemTracker.Clear();
             
             foreach (var player in this.players.All)
             {
@@ -99,26 +99,26 @@ namespace TeammateRevive.Revive
             for (var deadIdx = 0; deadIdx < this.players.Dead.Count; deadIdx++)
             {
                 var dead = this.players.Dead[deadIdx];
-                var skull = dead.skull;
+                var deathTotem = dead.deathTotem;
 
-                if (skull == null)
+                if (deathTotem == null)
                 {
-                    Log.Warn($"Skull is missing {deadIdx}");
+                    Log.Warn($"Death Totem is missing {deadIdx}");
                     continue;
                 }
                 
                 //have they been revived by other means?
-                if (dead.CheckAlive() && !this.rules.Values.DebugKeepSkulls)
+                if (dead.CheckAlive() && !this.rules.Values.DebugKeepTotem)
                 {
-                    Log.Info("Removing skull revived by other means");
+                    Log.Info("Removing totem revived by other means");
                     this.players.PlayerAlive(dead);
                     continue;
                 }
                 var totalReviveSpeed = 0f;
                 var playersInRange = 0;
 
-                var insidePlayersHash = skull.GetInsidePlayersHash();
-                var actualRange = this.rules.CalculateSkullRadius(dead);
+                var insidePlayersHash = deathTotem.GetInsidePlayersHash();
+                var actualRange = this.rules.CalculateDeathTotemRadius(dead);
 
                 // ReSharper disable once ForCanBeConvertedToForeach - array can be changed during iteration
                 for (var aliveIdx = 0; aliveIdx < this.players.Alive.Count; aliveIdx++)
@@ -128,17 +128,17 @@ namespace TeammateRevive.Revive
 
                     var playerBody = reviver.GetBody();
                     var hasReviveEverywhere = playerBody.inventory.GetItemCount(ReviveEverywhereItem.Index) > 0;
-                    var inRange = hasReviveEverywhere || Vector3.Distance(playerBody.transform.position, skull.transform.position) < (actualRange * .5);
+                    var inRange = hasReviveEverywhere || Vector3.Distance(playerBody.transform.position, deathTotem.transform.position) < (actualRange * .5);
                     if (inRange)
                     {
                         playersInRange++;
                         
                         // player entered range, update players in range list
-                        if (!skull.insidePlayerIDs.Contains(playerBody.netId))
-                            skull.insidePlayerIDs.Add(playerBody.netId);
+                        if (!deathTotem.insidePlayerIDs.Contains(playerBody.netId))
+                            deathTotem.insidePlayerIDs.Add(playerBody.netId);
                         
                         // revive progress
-                        var reviveSpeed = this.rules.GetReviveSpeed(reviver, skull.insidePlayerIDs.Count);
+                        var reviveSpeed = this.rules.GetReviveSpeed(reviver, deathTotem.insidePlayerIDs.Count);
                         totalReviveSpeed += reviveSpeed;
                         dead.reviveProgress += reviveSpeed * Time.deltaTime;
                         dead.reviveProgress = Mathf.Clamp01(dead.reviveProgress);
@@ -151,8 +151,8 @@ namespace TeammateRevive.Revive
                     else
                     {
                         // player left the range
-                        if (skull.insidePlayerIDs.Contains(playerBody.netId))
-                            skull.insidePlayerIDs.Remove(playerBody.netId);
+                        if (deathTotem.insidePlayerIDs.Contains(playerBody.netId))
+                            deathTotem.insidePlayerIDs.Remove(playerBody.netId);
                     }
                 }
                 
@@ -162,7 +162,7 @@ namespace TeammateRevive.Revive
                     continue;
                 }
 
-                this.skullTracker.UpdateSkull(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
+                this.deathTotemTracker.UpdateTotem(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
             }
             
             // update revive link buffs

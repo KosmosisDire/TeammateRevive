@@ -10,20 +10,20 @@ using TeammateRevive.Revive.Rules;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace TeammateRevive.Skull
+namespace TeammateRevive.DeathTotem
 {
-    public class SkullTracker
+    public class DeathTotemTracker
     {
         private readonly PlayersTracker players;
         private readonly RunTracker run;
         private readonly ReviveRules rules;
-        public static SkullTracker instance;
+        public static DeathTotemTracker instance;
         
-        public readonly HashSet<DeadPlayerSkull> skulls = new();
+        public readonly HashSet<DeathTotemBehavior> totems = new();
 
-        public bool HasAnySkulls => this.skulls.Count > 0;
+        public bool HasAnyTotems => this.totems.Count > 0;
 
-        public SkullTracker(PlayersTracker players, RunTracker run, ReviveRules rules)
+        public DeathTotemTracker(PlayersTracker players, RunTracker run, ReviveRules rules)
         {
             instance = this;
             
@@ -31,38 +31,38 @@ namespace TeammateRevive.Skull
             this.run = run;
             this.rules = rules;
             
-            DeadPlayerSkull.GlobalOnDestroy += OnSkullDestroy;
-            DeadPlayerSkull.GlobalOnCreated += OnSkullUpdate;
-            DeadPlayerSkull.GlobalOnValuesReceived += OnSkullUpdate;
-            DeadPlayerSkull.GlobalOnClientCreated += OnClientSkullSpawned;
+            DeathTotemBehavior.GlobalOnDestroy += OnTotemDestroy;
+            DeathTotemBehavior.GlobalOnCreated += OnTotemUpdate;
+            DeathTotemBehavior.GlobalOnValuesReceived += OnTotemUpdate;
+            DeathTotemBehavior.GlobalOnClientCreated += OnClientTotemSpawned;
             this.players.OnPlayerDead += OnPlayerDead;
         }
 
         public void Clear()
         {
-            this.skulls.Clear();
+            this.totems.Clear();
         }
         
         void OnPlayerDead(Player player)
         {
-            ServerSpawnSkull(player);
+            ServerSpawnTotem(player);
         }
         
-        public void UpdateSkull(Player dead, int insidePlayersBefore, int playersInRange, float totalReviveSpeed)
+        public void UpdateTotem(Player dead, int insidePlayersBefore, int playersInRange, float totalReviveSpeed)
         {
-            var skull = dead.skull;
+            var totem = dead.deathTotem;
             
             // recalculating range, since it could have been changed after alive/dead interactions
-            var actualRange = this.rules.CalculateSkullRadius(dead);
+            var actualRange = this.rules.CalculateDeathTotemRadius(dead);
             
             // if players inside changed, forcing update
-            var forceUpdate = skull.GetInsidePlayersHash() != insidePlayersBefore;
+            var forceUpdate = totem.GetInsidePlayersHash() != insidePlayersBefore;
             if (playersInRange > 0)
             {
-                skull.progress = dead.reviveProgress;
+                totem.progress = dead.reviveProgress;
                 var fractionPerSecond = totalReviveSpeed.Truncate(4);
 
-                skull.SetValuesSend(fractionPerSecond, actualRange, forceUpdate);
+                totem.SetValuesSend(fractionPerSecond, actualRange, forceUpdate);
             }
             else
             {
@@ -81,36 +81,36 @@ namespace TeammateRevive.Skull
                     }
                 }
 
-                skull.progress = dead.reviveProgress;
-                skull.SetValuesSend(this.rules.ReduceReviveProgressSpeed, actualRange, forceUpdate);
+                totem.progress = dead.reviveProgress;
+                totem.SetValuesSend(this.rules.ReduceReviveProgressSpeed, actualRange, forceUpdate);
             }
         }
         
-        public DeadPlayerSkull ServerSpawnSkull(Player player)
+        public DeathTotemBehavior ServerSpawnTotem(Player player)
         {
-            var skull = Object.Instantiate(AddedAssets.DeathMarker).GetComponent<DeadPlayerSkull>();
+            var totem = Object.Instantiate(CustomResources.DeathTotem);
 
-            skull.deadPlayerId = player.networkUser.netId;
-            skull.transform.position = player.groundPosition;
-            skull.transform.rotation = Quaternion.identity;
+            totem.deadPlayerId = player.networkUser.netId;
+            totem.transform.position = player.groundPosition;
+            totem.transform.rotation = Quaternion.identity;
             
             if (this.run.IsDeathCurseEnabled)
             {
-                CreateInteraction(skull.gameObject);
+                CreateInteraction(totem.gameObject);
             }
 
-            player.skull = skull;
+            player.deathTotem = totem;
 
-            NetworkServer.Spawn(skull.gameObject);
-            Log.Info("Skull spawned on Server and Client");
+            NetworkServer.Spawn(totem.gameObject);
+            Log.Info("Totem spawned on Server and Client");
 
-            return skull;
+            return totem;
         }
         
-        void OnClientSkullSpawned(DeadPlayerSkull skull)
+        void OnClientTotemSpawned(DeathTotemBehavior totem)
         {
             if (!this.run.IsDeathCurseEnabled) return;
-            CreateInteraction(skull.gameObject);
+            CreateInteraction(totem.gameObject);
         }
         
         
@@ -134,22 +134,22 @@ namespace TeammateRevive.Skull
             Log.DebugMethod("done");
         }
 
-        private void OnSkullUpdate(DeadPlayerSkull obj)
+        private void OnTotemUpdate(DeathTotemBehavior obj)
         {
-            Log.Debug("Skull updated! " + string.Join(", ", obj.insidePlayerIDs.Select(i => i.ToString())));
-            this.skulls.Add(obj);
+            Log.Debug("Totem updated! " + string.Join(", ", obj.insidePlayerIDs.Select(i => i.ToString())));
+            this.totems.Add(obj);
         }
 
-        private void OnSkullDestroy(DeadPlayerSkull obj)
+        private void OnTotemDestroy(DeathTotemBehavior obj)
         {
-            Log.Debug("Skull destroyed! " + string.Join(", ", obj.insidePlayerIDs.Select(i => i.ToString())));
-            this.skulls.Remove(obj);
+            Log.Debug("Totem destroyed! " + string.Join(", ", obj.insidePlayerIDs.Select(i => i.ToString())));
+            this.totems.Remove(obj);
         }
 
-        public DeadPlayerSkull GetSkullInRange(NetworkInstanceId userBodyId)
+        public DeathTotemBehavior GetDeathTotemInRange(NetworkInstanceId userBodyId)
         {
-            var skull = this.skulls.FirstOrDefault(s => s.insidePlayerIDs.Contains(userBodyId));
-            return skull;
+            var totem = this.totems.FirstOrDefault(s => s.insidePlayerIDs.Contains(userBodyId));
+            return totem;
         }
     }
 }
