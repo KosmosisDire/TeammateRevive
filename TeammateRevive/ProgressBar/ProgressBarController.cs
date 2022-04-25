@@ -20,6 +20,7 @@ namespace TeammateRevive.ProgressBar
         public bool showing = false;
         Slider progressBar;
         public float progress;
+        RoR2.UI.HUD hudRef;
 
         public ProgressBarController()
         {
@@ -60,6 +61,24 @@ namespace TeammateRevive.ProgressBar
             Show();
         }
 
+        void UpdatePositionAndSize()
+        {
+            RectTransform rt = progressBar.GetComponent<RectTransform>();
+            Vector2 parentSize = rt.GetParentSize();
+
+            var healthbarRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot/ShrunkenRoot").GetChild(3).GetComponent<RectTransform>().rect;
+
+            float width = parentSize.x * 0.8f;
+            float height = healthbarRect.height;
+            //use law of sines to get the depth of the bar after 6 degrees of rotation
+            float depthOffset = healthbarRect.width/Mathf.Sin(90 * Mathf.Deg2Rad) * Mathf.Sin(6 * Mathf.Deg2Rad);
+
+            rt.SetSizeInPixels(width, height);
+            rt.SetBottomLeftOffset(parentSize.x/2 - width/2, 0);
+            rt.localScale = Vector3.one;
+            rt.localPosition = rt.localPosition.SetZ(depthOffset);
+        }
+
         public void Hide()
         {
             currentName = DefaultName;
@@ -69,6 +88,7 @@ namespace TeammateRevive.ProgressBar
 
         public void Show()
         {
+            UpdatePositionAndSize();
             showing = true;
             progressBar.GetComponent<CanvasGroup>().alpha = 1;
         }
@@ -76,16 +96,14 @@ namespace TeammateRevive.ProgressBar
         private void AttachProgressBar(RoR2.UI.HUD hud)
         {
             Log.Debug("AttachProgressBar");
+
+            hudRef = hud;
             
             progressBar = CustomResources.progressBarPrefab.InstantiateClone("Revival Progress Bar").GetComponent<Slider>();
-            progressBar.transform.SetParent(hud.mainContainer.transform);
+            progressBar.transform.SetParent(hud.mainUIPanel.transform.Find("SpringCanvas/BottomCenterCluster"));
 
             textComponent = progressBar.GetComponentInChildren<TextMeshProUGUI>();
             textComponent.font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
-
-            RectTransform rt = progressBar.GetComponent<RectTransform>();
-            rt.SetSizeInPixels(Screen.width/3f, Screen.height/30f);
-            rt.SetBottomLeftOffset(Screen.width/3f, Screen.height/25f);
             Hide();
         }
 
