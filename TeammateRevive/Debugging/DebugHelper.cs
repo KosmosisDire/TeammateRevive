@@ -62,7 +62,12 @@ namespace TeammateRevive.Debugging
                     var body = player.GetBody();
                     if (body != null)
                     {
-                        body.healthComponent.Networkbarrier = 1000;
+                        body.healthComponent.Networkhealth = 1000;
+                        body.maxHealth = 1000;
+                        body.moveSpeed = body.baseMoveSpeed * 2;
+                        body.skillLocator.DeductCooldownFromAllSkillsServer(10);
+                        body.damage = body.baseDamage * 5;
+                        body.attackSpeed = body.baseAttackSpeed * 10;
                     }
                 }
             }

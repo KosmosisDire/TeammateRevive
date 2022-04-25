@@ -8,6 +8,7 @@ using TeammateRevive.Common;
 using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
+using TeammateRevive.ProgressBar;
 using TeammateRevive.Resources;
 using TeammateRevive.Revive.Rules;
 using UnityEngine;
@@ -43,9 +44,9 @@ namespace TeammateRevive.DeathTotem
         {
             get
             {
-                if (this.cachedUserName != null) return this.cachedUserName;
-                this.cachedUserName = NetworkUser.readOnlyInstancesList.FirstOrDefault(p => p.netId == this.deadPlayerId)?.userName;
-                return this.cachedUserName;
+                if (cachedUserName != null) return cachedUserName;
+                cachedUserName = NetworkUser.readOnlyInstancesList.FirstOrDefault(p => p.netId == deadPlayerId)?.userName;
+                return cachedUserName;
             }
         }
 
@@ -58,10 +59,10 @@ namespace TeammateRevive.DeathTotem
         {
             // interpolate revive progress
             if (NetworkHelper.IsClient())
-                this.progress = Mathf.Clamp01(this.progress + Time.deltaTime * this.fractionPerSecond);
+                progress = Mathf.Clamp01(progress + Time.deltaTime * fractionPerSecond);
 
             if (DamageNumberManager.instance == null) return;
-            this.animation.Update();
+            animation.Update();
             SetLighting();
             DamageNumbers();
         }
@@ -83,7 +84,7 @@ namespace TeammateRevive.DeathTotem
             unchecked
             {
                 int hash = 17;
-                foreach (var id in this.insidePlayerIDs)
+                foreach (var id in insidePlayerIDs)
                 {
                     hash = hash * 31 + id.GetHashCode();
                 }
@@ -94,12 +95,12 @@ namespace TeammateRevive.DeathTotem
 
         public void Setup()
         {
-            this.lighting = this.transform.GetChild(0).GetComponentInChildren<Light>(false);
-            this.radiusSphere = this.transform.Find("Radius Indicator").GetComponent<MeshRenderer>();
+            lighting = transform.GetChild(0).GetComponentInChildren<Light>(false);
+            radiusSphere = transform.Find("Radius Indicator").GetComponent<MeshRenderer>();
             if(!NetworkServer.active)
-                this.gameObject.SetActive(false);
-            this.animation = new ScaleAnimation(this.radiusSphere.transform, .2f);
-            this.rules = ReviveRules.instance;
+                gameObject.SetActive(false);
+            animation = new ScaleAnimation(radiusSphere.transform, .2f);
+            rules = ReviveRules.instance;
             GlobalOnCreated?.Invoke(this);
         }
 
@@ -107,49 +108,49 @@ namespace TeammateRevive.DeathTotem
             List<NetworkInstanceId> _insidePlayerIDs, float scale, float fractionPerSecond)
         {
             Log.Debug($"Received death totem values. Rad: {scale}");
-            this.deadPlayerId = deadPlayerId;
-            this.fractionPerSecond = fractionPerSecond;
-            this.insidePlayerIDs = _insidePlayerIDs;
-            this.cachedRadius = scale;
-            this.animation.AnimateTo(Vector3.one * scale);
+            deadPlayerId = deadPlayerId;
+            fractionPerSecond = fractionPerSecond;
+            insidePlayerIDs = _insidePlayerIDs;
+            cachedRadius = scale;
+            animation.AnimateTo(Vector3.one * scale);
             GlobalOnValuesReceived?.Invoke(this);
         }
 
         public void SetValuesSend(float speed, float radius, bool forceUpdate = false)
         {
             if (!forceUpdate
-                && Mathf.Approximately(speed, this.fractionPerSecond)
-                && Mathf.Approximately(radius, this.cachedRadius)
+                && Mathf.Approximately(speed, fractionPerSecond)
+                && Mathf.Approximately(radius, cachedRadius)
             )
             {
                 return;
             }
         
-            this.fractionPerSecond = speed;
-            this.cachedRadius = radius;
-            this.animation.AnimateTo(Vector3.one * radius);
+            fractionPerSecond = speed;
+            cachedRadius = radius;
+            animation.AnimateTo(Vector3.one * radius);
         
             SyncToClients();
         }
         
         public void SetValues(float speed, float radius)
         {
-            this.fractionPerSecond = speed;
-            this.cachedRadius = radius;
-            this.animation.AnimateTo(Vector3.one * radius);
+            fractionPerSecond = speed;
+            cachedRadius = radius;
+            animation.AnimateTo(Vector3.one * radius);
         }
 
         public void RemoveDeadIDs()
         {
-            for (int i = 0; i < this.insidePlayerIDs.Count; i++)
+            for (int i = 0; i < insidePlayerIDs.Count; i++)
             {
-                var id = this.insidePlayerIDs[i];
+                var id = insidePlayerIDs[i];
                 var p = PlayersTracker.instance.FindByBodyId(id);
                 if (p != null)
                 {
                     if (p.CheckDead()) 
                     {
-                        this.insidePlayerIDs.RemoveAt(i);
+                        insidePlayerIDs.RemoveAt(i);
                         i--;
                     }
                 }
@@ -158,33 +159,39 @@ namespace TeammateRevive.DeathTotem
 
         public void SyncToClients() 
         {
-            Log.DebugMethod($"Rad: {this.cachedRadius}");
+            Log.DebugMethod($"Rad: {cachedRadius}");
             RemoveDeadIDs();
-            new SyncDeathTotemMessage(GetComponent<NetworkIdentity>().netId, this.deadPlayerId, this.insidePlayerIDs, this.cachedRadius, this.fractionPerSecond).Send(NetworkDestination.Clients);
-            Log.Debug("Rad: " + this.radiusSphere.transform.localScale.x);
+            new SyncDeathTotemMessage(GetComponent<NetworkIdentity>().netId, deadPlayerId, insidePlayerIDs, cachedRadius, fractionPerSecond).Send(NetworkDestination.Clients);
+            Log.Debug("Rad: " + radiusSphere.transform.localScale.x);
         }
 
         void SetLighting()
         {
-            var p = Mathf.Clamp01(this.progress);
-            this.lighting.color = new Color(1 - p, p, 0.6f * p);
-            this.lighting.intensity = 4 + 15 * p;
+            lighting.color = Color.Lerp(ReviveProgressBarTracker.ZeroProgressColor, ReviveProgressBarTracker.FullProgressColor, progress);
+            
+            if(progress > 0 && insidePlayerIDs.Count == 0)
+            {
+                lighting.color = ReviveProgressBarTracker.NegativeProgressColor;
+            }
+
+            lighting.intensity = 8 - progress;
+            lighting.range = cachedRadius * 2f;
         }
 
         private float damageNumberElapsed = 0;
-        private float damageNumberRate = .2f;
+        private float damageNumberRate = .15f;
 
         void DamageNumbers()
         {
-            if (this.progress >= 1 || this.insidePlayerIDs.Count == 0) return;
+            if (progress >= 1 || insidePlayerIDs.Count == 0) return;
             
-            this.damageNumberElapsed += Time.deltaTime;
-            if (this.damageNumberElapsed < damageNumberRate)
+            damageNumberElapsed += Time.deltaTime;
+            if (damageNumberElapsed < damageNumberRate)
             {
                 return;
             }
 
-            foreach (var playerID in this.insidePlayerIDs)
+            foreach (var playerID in insidePlayerIDs)
             {
                 var body = GetBody(playerID);
                 if (!body)
@@ -192,13 +199,13 @@ namespace TeammateRevive.DeathTotem
                 
                 var deadPlayerObolsCount = body.master.inventory.GetItemCount(CharonsObol.Index);
                 var reviverReviveEverywhereItemCount = body.master.inventory.GetItemCount(ReviveEverywhereItem.Index);
-                var damageSpeed = this.rules.GetDamageSpeed(this.insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount, reviverReviveEverywhereItemCount);
+                var damageSpeed = rules.GetDamageSpeed(insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount, reviverReviveEverywhereItemCount);
 
-                DamageNumberManager.instance.SpawnDamageNumber(damageSpeed * this.damageNumberElapsed, body.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);
+                DamageNumberManager.instance.SpawnDamageNumber(damageSpeed * damageNumberElapsed, body.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);
             }
 
-            DamageNumberManager.instance.SpawnDamageNumber(this.fractionPerSecond * this.damageNumberElapsed * 100, this.transform.position, false, TeamIndex.Player, DamageColorIndex.Heal);
-            this.damageNumberElapsed = 0;
+            DamageNumberManager.instance.SpawnDamageNumber(fractionPerSecond * damageNumberElapsed * 100, transform.position, false, TeamIndex.Player, DamageColorIndex.Heal);
+            damageNumberElapsed = 0;
         }
 
         CharacterBody GetBody(NetworkInstanceId playerID)

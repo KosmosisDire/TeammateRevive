@@ -16,8 +16,10 @@ namespace TeammateRevive.ProgressBar
     /// </summary>
     public class ReviveProgressBarTracker
     {
-        private static readonly Color NegativeProgressColor = new(1, .3f, .3f);
-        private Color PositiveProgressColor => Color.Lerp(new(0.8f, .35f, .3f), new(0, 0.772f, 0.329f), progressBar.progress);
+        public static readonly Color NegativeProgressColor = new(0.84f, 0.2f, 0.28f, 1f);
+        public static readonly Color ZeroProgressColor = new(0.39f, 0.12f, 0.73f, 1f);
+        public static readonly Color FullProgressColor = new(0.09f, 0.49f, 0.3f, 1f);
+        public Color PositiveProgressColor => Color.Lerp(ZeroProgressColor, FullProgressColor, progressBar.progress);
         
         private readonly ProgressBarController progressBar;
         private readonly PlayersTracker players;

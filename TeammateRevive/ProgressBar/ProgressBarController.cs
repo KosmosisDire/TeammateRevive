@@ -66,12 +66,13 @@ namespace TeammateRevive.ProgressBar
             RectTransform rt = progressBar.GetComponent<RectTransform>();
             Vector2 parentSize = rt.GetParentSize();
 
-            var healthbarRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot/ShrunkenRoot").GetChild(3).GetComponent<RectTransform>().rect;
+            var healthbarRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot").GetComponent<RectTransform>().rect;
+            var BarRootRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots").GetComponent<RectTransform>().rect;
 
             float width = parentSize.x * 0.8f;
             float height = healthbarRect.height;
             //use law of sines to get the depth of the bar after 6 degrees of rotation
-            float depthOffset = healthbarRect.width/Mathf.Sin(90 * Mathf.Deg2Rad) * Mathf.Sin(6 * Mathf.Deg2Rad);
+            float depthOffset = (BarRootRect.width * 1.2f)/Mathf.Sin(90 * Mathf.Deg2Rad) * Mathf.Sin(6 * Mathf.Deg2Rad);
 
             rt.SetSizeInPixels(width, height);
             rt.SetBottomLeftOffset(parentSize.x/2 - width/2, 0);
