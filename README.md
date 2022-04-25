@@ -20,9 +20,9 @@ Feedback would be greatly appreciated. If you encounter **any** bugs or want to 
 
 ## Default Game Mode:
 
-The default and most simple game mode. When a teammate dies you can revive them by staying inside of the red bubble around where they died. Reviving drains your health over time to balance things out. This keeps you from reviving during battle, but once battle is over it isn't too dangerous to revive.
+The default and most simple game mode. When a teammate dies you can revive them by staying inside of the purple bubble around where they died. Reviving drains your health over time to balance things out. This makes it dangerous (but possible) to revive during battle. Once battle is over it isn't too dangerous to revive.
 
-<br> <br>
+<br> <br> <br>
 
 ## Death Curse Game Mode:
 
@@ -58,6 +58,13 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 <br> <br>
 
 ## Change Notes:
+
+### 4.1.1
+* Fixed for patch 1.2.3
+* Updated totem coloring and visuals
+* Updated progress bar ui
+
+<br>
 
 ### 4.1.0
 * Updated for the **Survivors of the Void** update!
