@@ -60,19 +60,20 @@ namespace TeammateRevive.ProgressBar
             progressBar.fillRect.GetComponent<Image>().color = color;
             Show();
         }
+        
+        Rect healthbarRect;
+        Rect barRootRect;
+        RectTransform rt;
 
         void UpdatePositionAndSize()
         {
-            RectTransform rt = progressBar.GetComponent<RectTransform>();
+            
             Vector2 parentSize = rt.GetParentSize();
-
-            var healthbarRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot").GetComponent<RectTransform>().rect;
-            var BarRootRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots").GetComponent<RectTransform>().rect;
 
             float width = parentSize.x * 0.8f;
             float height = healthbarRect.height;
             //use law of sines to get the depth of the bar after 6 degrees of rotation
-            float depthOffset = (BarRootRect.width * 1.2f)/Mathf.Sin(90 * Mathf.Deg2Rad) * Mathf.Sin(6 * Mathf.Deg2Rad);
+            float depthOffset = (barRootRect.width * 1.2f)/Mathf.Sin(90 * Mathf.Deg2Rad) * Mathf.Sin(6 * Mathf.Deg2Rad);
 
             rt.SetSizeInPixels(width, height);
             rt.SetBottomLeftOffset(parentSize.x/2 - width/2, 0);
@@ -102,6 +103,10 @@ namespace TeammateRevive.ProgressBar
             
             progressBar = CustomResources.progressBarPrefab.InstantiateClone("Revival Progress Bar").GetComponent<Slider>();
             progressBar.transform.SetParent(hud.mainUIPanel.transform.Find("SpringCanvas/BottomCenterCluster"));
+
+            healthbarRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot").GetComponent<RectTransform>().rect;
+            barRootRect = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots").GetComponent<RectTransform>().rect;
+            rt = progressBar.GetComponent<RectTransform>();
 
             textComponent = progressBar.GetComponentInChildren<TextMeshProUGUI>();
             textComponent.font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
