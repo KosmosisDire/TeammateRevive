@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Purple
+  m_Shader: {fileID: 4800000, guid: 94e3bb0247185f842a5153fe0cd6ef74, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 5
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Cloud1:
+        m_Texture: {fileID: 2800000, guid: c1748a5c8583b8542901d7e80abd588d, type: 3}
+        m_Scale: {x: 10, y: 5}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud2:
+        m_Texture: {fileID: 2800000, guid: 55f70b04b7560854e9c7d9b1ebd8dc2c, type: 3}
+        m_Scale: {x: 10, y: 5}
+        m_Offset: {x: 0, y: 0}
+    - _RemapTex:
+        m_Texture: {fileID: 2800000, guid: ea64dcbc452534e4b8c7e3316561e71b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _CenterAlpha: 0.178
+    - _CenterThreshold: 0.263
+    - _GlobalPower: 1.9
+    - _HueShift: 1
+    - _IntersectAlpha: 1
+    - _IntersectAlpha1: 0.514
+    - _IntersectAlpha2: 0.527
+    - _IntersectFadePower: 0.217
+    - _IntersectPower: 1.96
+    - _IntersectPower1: 1.91
+    - _IntersectPower2: 5
+    - _LowerHalfAlpha: 0.143
+    - _NorthPoleAlpha: 0.051
+    - _RimAlpha: 0.551
+    - _RimPower: 2.61
+    - _Test: 76.1
+    - _UpperHalfAlpha: 0.234
+    m_Colors:
+    - _Color: {r: 0, g: 0, b: 0, a: 0}

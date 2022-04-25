@@ -1,0 +1,121 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: matTotemRangeIndicator
+  m_Shader: {fileID: 4800000, guid: 2b6c2b73ebf62a346a39435c556dd7b1, type: 3}
+  m_ShaderKeywords: TRIPLANAR _EMISSION
+  m_LightmapFlags: 1
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Cloud1Tex:
+        m_Texture: {fileID: 2800000, guid: c1748a5c8583b8542901d7e80abd588d, type: 3}
+        m_Scale: {x: 0.3, y: 0.3}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud2Tex:
+        m_Texture: {fileID: 2800000, guid: 55f70b04b7560854e9c7d9b1ebd8dc2c, type: 3}
+        m_Scale: {x: 0.2, y: 0.2}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RemapTex:
+        m_Texture: {fileID: 2800000, guid: 4ce33abe880d68d4fb6f04191d49785c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AlphaBoost: 0.42
+    - _AlphaThreshold: 0.254
+    - _BlueChannelBias: 0
+    - _BlueChannelSmoothness: 0
+    - _Boost: 0.34
+    - _BumpScale: 1
+    - _ColorsOn: 0
+    - _Cull: 0
+    - _Cutoff: 0.578
+    - _DecalLayer: 0
+    - _Depth: 0.2
+    - _DetailNormalMapScale: 1
+    - _DitherOn: 0
+    - _DstBlend: 0
+    - _DstBlendFloat: 1
+    - _EliteBrightnessMax: 1
+    - _EliteBrightnessMin: 0
+    - _EliteIndex: 0
+    - _EmPower: 1
+    - _EnableCutout: 0
+    - _ExternalAlpha: 1
+    - _FEON: 0
+    - _Fade: 1
+    - _FadeBias: 0
+    - _FadeFromVertexColorsOn: 0
+    - _FlowEmissionStrength: 1
+    - _FlowHeightBias: 0
+    - _FlowHeightPower: 1
+    - _FlowMaskStrength: 0
+    - _FlowNormalStrength: 1
+    - _FlowSpeed: 1
+    - _FlowTextureScaleFactor: 1
+    - _FlowmapOn: 0
+    - _ForceSpecOn: 0
+    - _FresnelBoost: 1
+    - _FresnelPower: 1
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _GreenChannelBias: 0
+    - _GreenChannelSmoothness: 0
+    - _IntersectionStrength: 9.16
+    - _InvFade: 0.78
+    - _LimbPrimeMask: 1
+    - _LimbRemovalOn: 0
+    - _Metallic: 0
+    - _Mode: 0
+    - _NormalStrength: 1
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _PrintBias: 0
+    - _PrintBoost: 1
+    - _PrintDirection: 0
+    - _PrintEmissionToAlbedoLerp: 0
+    - _PrintOn: 0
+    - _RampInfo: 0
+    - _RimPower: 2.16
+    - _RimStrength: 0.19
+    - _SliceAlphaDepth: 0.1
+    - _SliceBandHeight: 1
+    - _SliceHeight: 5
+    - _Smoothness: 0
+    - _SmoothnessTextureChannel: 0
+    - _SoftPower: 1
+    - _SpecularExponent: 1
+    - _SpecularHighlights: 1
+    - _SpecularStrength: 0
+    - _SplatmapOn: 0
+    - _SplatmapTileScale: 1
+    - _SrcBlend: 1
+    - _SrcBlendFloat: 1
+    - _TriplanarOn: 1
+    - _UVSec: 0
+    - _VertexColorsOn: 0
+    - _ZWrite: 1
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _CutoffScroll: {r: -4, g: 3, b: 1, a: -9}
+    - _EmColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FlashColor: {r: 0, g: 0, b: 0, a: 1}
+    - _RimColor: {r: 1, g: 0.6827586, b: 0, a: 0}
+    - _TintColor: {r: 1.029412, g: 1.029412, b: 1.029412, a: 1}
