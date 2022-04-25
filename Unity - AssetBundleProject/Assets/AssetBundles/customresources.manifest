@@ -1,0 +1,100 @@
+ManifestFileVersion: 0
+CRC: 2279863914
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: e777a7ea2049fa91cccd64b9b853e37f
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: a014f31f5624ff4897251668cf7770d6
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 96
+  Script: {instanceID: 0}
+- Class: 108
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+- Class: 114
+  Script: {fileID: -113659843, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+- Class: 225
+  Script: {instanceID: 0}
+Assets:
+- Assets/CustomAssets/progress_bar/texUIHighlightHeader.png
+- Assets/CustomAssets/curse_mode/shrine_material.mat
+- Assets/CustomAssets/totem/Deathmark_Low.asset
+- Assets/CustomAssets/progress_bar/texUIHighlightBoxOutline.png
+- Assets/CustomAssets/totem/TMR_Intersect.shader
+- Assets/CustomAssets/deathTotem.prefab
+- Assets/CustomAssets/totem/hgintersectioncloudremap.shader
+- Assets/CustomAssets/curse_mode/silver_material.mat
+- Assets/CustomAssets/totem/texCloudCrackedIce.png
+- Assets/CustomAssets/obol.prefab
+- Assets/CustomAssets/curse_mode/Mist.mat
+- Assets/CustomAssets/icons/artifactCurseEnabled.png
+- Assets/CustomAssets/curse_mode/hand.blend
+- Assets/CustomAssets/totem/Front.mat
+- Assets/CustomAssets/icons/lunar_obol.png
+- Assets/CustomAssets/totem/IndicatorTest.mat
+- Assets/CustomAssets/curseOrb.prefab
+- Assets/CustomAssets/curse_mode/obolModel.blend
+- Assets/CustomAssets/totem/FrontRenderedSprite.shader
+- Assets/CustomAssets/icons/timed_curse.png
+- Assets/CustomAssets/handItem.prefab
+- Assets/CustomAssets/totem/matDeathMark.mat
+- Assets/CustomAssets/totem/texDeathMarkDiffuse.png
+- Assets/CustomAssets/totem/Deathmark_Particle.asset
+- Assets/CustomAssets/totem/texRampWisp.png
+- Assets/CustomAssets/totem/texDeathMarkNormal.png
+- Assets/CustomAssets/totem/texChevronDead.png
+- Assets/CustomAssets/progressBar.prefab
+- Assets/CustomAssets/totem/matTotemRangeIndicator.mat
+- Assets/CustomAssets/icons/obol.png
+- Assets/CustomAssets/totem/Deathmark Particles.obj
+- Assets/CustomAssets/icons/artifactCurseDisabled.png
+- Assets/CustomAssets/totem/texCloudDifferenceBW2.png
+- Assets/CustomAssets/totem/texThermiteDroplet2Mask.png
+- Assets/CustomAssets/totem/Purple.mat
+- Assets/CustomAssets/totem/texRampGalaxy.png
+- Assets/CustomAssets/totem/Sphere, Unwrapped.asset
+- Assets/CustomAssets/curse_mode/crackleTexture.png
+- Assets/CustomAssets/totem/texRampTeleporterSoft.png
+- Assets/CustomAssets/totem/Drip.mat
+- Assets/CustomAssets/icons/curse.png
+- Assets/CustomAssets/icons/lunar_hand.png
+- Assets/CustomAssets/totem/Orange.mat
+Dependencies: []
