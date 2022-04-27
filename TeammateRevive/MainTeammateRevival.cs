@@ -55,6 +55,7 @@ namespace TeammateRevive
         private ReviveLongRangeActivationManager reviveLongRangeActivationManager;
         private InLobbyConfigIntegration inLobbyConfigIntegration;
         private DeathTotemTracker deathTotemTracker;
+        private ProgressBarController progressBarController;
         private ReviveProgressBarTracker progressBarTracker;
         private ItemDropManager itemDropManager;
         private ContentManager contentManager;
@@ -74,7 +75,8 @@ namespace TeammateRevive
             this.players = new PlayersTracker(this.run, this.pluginConfig);
             this.rules = new ReviveRules(this.run, this.pluginConfig);
             this.deathTotemTracker = new DeathTotemTracker(this.players, this.run, this.rules);
-            this.progressBarTracker = new ReviveProgressBarTracker(new ProgressBarController(), this.players,
+            this.progressBarController = new ProgressBarController();
+            this.progressBarTracker = new ReviveProgressBarTracker(progressBarController, this.players,
                 this.deathTotemTracker, this.rules);
             this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules, this.deathTotemTracker, this.progressBarTracker);
             
@@ -89,6 +91,7 @@ namespace TeammateRevive
             
             Log.Init(this.pluginConfig, this.Logger);
             ReviveHelper.Init();
+            CustomResources.LoadCustomResources();
             HideDeathCurseContent.Init(this.pluginConfig);
             this.contentManager.Init();
             this.rules.ApplyConfigValues();

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using On.RoR2;
 using TeammateRevive.Artifact;
 using TeammateRevive.Content;
@@ -15,6 +16,8 @@ namespace TeammateRevive
         private readonly RunTracker run;
         private readonly DeathCurseArtifact deathCurseArtifact;
         private List<ContentBase> addedContent = new();
+        
+        public static bool ContentInited;
 
         public ContentManager(ReviveRules rules, RunTracker run, DeathCurseArtifact deathCurseArtifact)
         {
@@ -22,6 +25,8 @@ namespace TeammateRevive
             this.run = run;
             this.deathCurseArtifact = deathCurseArtifact;
             Language.SetStringByToken += LanguageOnSetStringByToken;
+            On.RoR2.ItemCatalog.Init += ItemsOnInit;
+            On.RoR2.BuffCatalog.Init += BuffsOnInit;
         }
 
         private void LanguageOnSetStringByToken(Language.orig_SetStringByToken orig, RoR2.Language self, string token, string localizedstring)
@@ -37,9 +42,49 @@ namespace TeammateRevive
             }
         }
 
+        private void BuffsOnInit(BuffCatalog.orig_Init orig)
+        {
+            orig();
+            if (!ContentInited)
+            {
+                Log.Error($"{nameof(BuffsOnInit)} called before content was inited!");
+            }
+            
+            foreach (var content in this.addedContent)
+            {
+                try
+                {
+                    content.OnBuffsAvailable();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Error on OnBuffsAvailable for {content}: {ex}");
+                }
+            }
+        }
+
+        private void ItemsOnInit(ItemCatalog.orig_Init orig)
+        {
+            orig();
+            if (!ContentInited)
+            {
+                Log.Error($"{nameof(ItemsOnInit)} called before content was inited!");
+            }
+            foreach (var content in this.addedContent)
+            {
+                try
+                {
+                    content.OnItemsAvailable();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Error on OnBuffsAvailable for {content}: {ex}");
+                }
+            }
+        }
+
         public void Init()
         {
-            CustomResources.LoadCustomResources();
             LoadAddedContent();
             this.deathCurseArtifact.Init();
         }
@@ -63,7 +108,7 @@ namespace TeammateRevive
                     ?.SetValue(null, content);
             }
 
-            ContentBase.ContentInited = true;
+            ContentInited = true;
         }
 
     }

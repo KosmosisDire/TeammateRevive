@@ -35,7 +35,7 @@ namespace TeammateRevive.Content
             On.RoR2.CharacterBody.Update += OnCharacterBodyUpdate;
         }
 
-        protected override void OnBuffsAvailable() => Index = BuffCatalog.FindBuffIndex(Name);
+        public override void OnBuffsAvailable() => Index = BuffCatalog.FindBuffIndex(Name);
 
         void OnCharacterBodyUpdate(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
         {

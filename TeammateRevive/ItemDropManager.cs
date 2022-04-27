@@ -24,7 +24,7 @@ namespace TeammateRevive
         private void OnBuildDropTable(Run.orig_BuildDropTable orig, RoR2.Run self)
         {
             orig(self);
-            if (!ContentBase.ContentInited)
+            if (!ContentManager.ContentInited)
             {
                 Log.Error($"Content wasn't inited on {nameof(OnBuildDropTable)}!");
                 return;

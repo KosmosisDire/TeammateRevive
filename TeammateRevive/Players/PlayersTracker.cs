@@ -57,7 +57,15 @@ namespace TeammateRevive.Players
             bool playerConnected = player.master.isConnected;
             if (playerConnected)
             {
-                ReviveHelper.RespawnExtraLife(player.master.master);
+                if (!player.CheckAlive())
+                {
+                    ReviveHelper.RespawnExtraLife(player.master.master);
+                }
+                else
+                {
+                    Log.Warn("Respawn was called for alive player!");
+                }
+
                 PlayerAlive(player);
             }
             OnPlayerRespawned?.Invoke(player);

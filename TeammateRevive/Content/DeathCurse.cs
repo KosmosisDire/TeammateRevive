@@ -43,8 +43,8 @@ namespace TeammateRevive.Content
             On.RoR2.CharacterBody.RecalculateStats += OnCharacterBodyRecalculateStats;
         }
 
-        protected override void OnItemsAvailable() => ItemIndex = ItemCatalog.FindItemIndex(ItemName);
-        protected override void OnBuffsAvailable() => BuffIndex = BuffCatalog.FindBuffIndex(BuffName);
+        public override void OnItemsAvailable() => ItemIndex = ItemCatalog.FindItemIndex(ItemName);
+        public override void OnBuffsAvailable() => BuffIndex = BuffCatalog.FindBuffIndex(BuffName);
 
         static void CreateDeathCurseHiddenItem()
         {
