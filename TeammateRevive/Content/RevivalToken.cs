@@ -23,6 +23,6 @@ namespace TeammateRevive.Content
                 }, true, true));
         }
 
-        protected override void OnItemsAvailable() => Index = ItemCatalog.FindItemIndex(Name);
+        public override void OnItemsAvailable() => Index = ItemCatalog.FindItemIndex(Name);
     }
 }

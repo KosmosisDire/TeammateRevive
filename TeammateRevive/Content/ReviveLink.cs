@@ -22,6 +22,6 @@ namespace TeammateRevive.Content
             ContentAddition.AddBuffDef(buffDefinition);
         }
 
-        protected override void OnBuffsAvailable() => Index = BuffCatalog.FindBuffIndex(Name);
+        public override void OnBuffsAvailable() => Index = BuffCatalog.FindBuffIndex(Name);
     }
 }
