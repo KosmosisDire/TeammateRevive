@@ -19,6 +19,7 @@ namespace TeammateRevive.Configuration
 
         public List<ConfigEntryBase> Bindings { get; } = new();
         private Dictionary<ConfigEntryBase, Action> UpdateCallbacks { get; } = new();
+        private Dictionary<ConfigEntryBase, EntryMetadata> Metadatas { get; } = new();
 
         public event Action OnChanged;
 
@@ -41,13 +42,18 @@ namespace TeammateRevive.Configuration
         public BindCollection Bind<TValue>(string key,
             string description,
             Action<TValue> set,
-            TValue defaultValue = default)
+            TValue defaultValue = default,
+            EntryMetadata metadata = null)
         {
             var binding = this.config.Bind(this.Section, key, description: description,
                 defaultValue: defaultValue);
             set(binding.Value);
             this.Bindings.Add(binding);
             UpdateCallbacks.Add(binding, () => set(binding.Value));
+            if (metadata != null)
+            {
+                this.Metadatas.Add(binding, metadata);
+            }
             return this;
         }
 
@@ -61,6 +67,11 @@ namespace TeammateRevive.Configuration
             this.Bindings.Add(binding);
             UpdateCallbacks.Add(binding, () => set(binding.Value));
             return this;
+        }
+
+        public bool TryGetMetadata(ConfigEntryBase entry, out EntryMetadata value)
+        {
+            return this.Metadatas.TryGetValue(entry, out value);
         }
     }
 }

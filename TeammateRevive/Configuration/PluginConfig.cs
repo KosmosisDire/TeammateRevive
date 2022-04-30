@@ -24,6 +24,7 @@ namespace TeammateRevive.Configuration
 
         public BindCollection RuleValuesBindCollection { get; private set; }
         public BindCollection DebugBindCollection { get; private set; }
+        public BindCollection MiscBindCollection { get; private set; }
 
 
         public static PluginConfig Load(ConfigFile config)
@@ -33,7 +34,7 @@ namespace TeammateRevive.Configuration
             pluginConfig.RuleValuesBindCollection = BindRuleValues(config, pluginConfig.RuleValues);
             pluginConfig.DebugBindCollection = BindDebugSection(config, pluginConfig);
             pluginConfig.ServerLogging = ReadServerLoggingConfig(config);
-            BindMisc(config, pluginConfig);
+            pluginConfig.MiscBindCollection = BindMisc(config, pluginConfig);
 
             return pluginConfig;
         }
@@ -134,30 +135,35 @@ namespace TeammateRevive.Configuration
                     key: "Base revive range",
                     description: "How wide revive circle will be",
                     set: v => values.BaseTotemRange = v,
-                    defaultValue: values.BaseTotemRange)
+                    defaultValue: values.BaseTotemRange,
+                    metadata: new FloatMetadata(0, 300))
                 .Bind(
                     key: "Increase range per player factor",
                     description: "How much to increase revive circle range per player. Set to 0 to disable. " +
                                  "\nRangeIncrease = BaseRange * IncreasePerPlayerFactor",
                     set: v => values.IncreaseRangeWithPlayersFactor = v,
-                    defaultValue: values.IncreaseRangeWithPlayersFactor)
+                    defaultValue: values.IncreaseRangeWithPlayersFactor,
+                    metadata: new FloatMetadata(0, 2, .01f))
                 .Bind(
                     key: "Increase range per Obol",
                     description: "[Only with Death Curse enabled] How much to increase revive circle range per dead character's Obol. " +
                                  "\nnRangeIncrease = BaseRange * ItemsCount * IncreasePerPlayerFactor",
                     set: v => values.ItemIncreaseRangeFactor = v,
-                    defaultValue: values.ItemIncreaseRangeFactor)
+                    defaultValue: values.ItemIncreaseRangeFactor,
+                    metadata: new FloatMetadata(0, 2, .01f))
                 .Bind(
                     key: "Revive time",
                     description: "How much time one player will need to revive one dead character.",
                     set: v => values.ReviveTimeSeconds = v,
-                    defaultValue: values.ReviveTimeSeconds)
+                    defaultValue: values.ReviveTimeSeconds,
+                    metadata: new FloatMetadata(0, 30))
                 .Bind(
                     key: "Reduce revive progress factor",
                     description: "How fast revive progress will be decreased when no one in revive range. " +
                                  "\nReduceSpeed = -(1 / ReviveTime * ReduceProgressFactor)",
                     set: v => values.ReduceReviveProgressFactor = v,
-                    defaultValue: values.ReduceReviveProgressFactor)
+                    defaultValue: values.ReduceReviveProgressFactor,
+                    metadata: new FloatMetadata(0, 1, .01f))
                 .Bind(
                     key: "Revive Link buff duration factor",
                     description: "How long Revive Link buff will stay after player leave revive range. " +
@@ -165,33 +171,38 @@ namespace TeammateRevive.Configuration
                                  "\nBasically, when 1 - buff will be applied for exactly as long as it will take to remove all added revive progress (+1 second)." +
                                  "\nSo, when 0.5 - only half of that.",
                     set: v => values.ReviveLinkBuffTimeFactor = v,
-                    defaultValue: values.ReviveLinkBuffTimeFactor)
+                    defaultValue: values.ReviveLinkBuffTimeFactor,
+                    metadata: new FloatMetadata(0, 5, .1f))
                 .Bind(
                     key: "Obol revive factor",
                     description: "[Only with Death Curse enabled] How much revive speed will increase per dead character's Obol. " +
                                  "\nSpeedIncrease = ReviveTime / (ReviveTime / ObolReviveFactor ^ ObolsCount)",
                     set: v => values.ObolReviveFactor = v,
-                    defaultValue: values.ObolReviveFactor)
+                    defaultValue: values.ObolReviveFactor,
+                    metadata: new FloatMetadata(1, 3, .001f))
                 .Bind(
                     key: "Obol damage reduce factor",
                     description: "[Only with Death Curse enabled] How much revive damage in revive circle will decrease per dead character's Obol. " +
                                  "\nDamagePercentage = 1 / (ObolDamageReduceFactor ^ DeadPlayerObolsCount)",
                     set: v => values.ObolDamageReduceFactor = v,
-                    defaultValue: values.ObolDamageReduceFactor)
+                    defaultValue: values.ObolDamageReduceFactor,
+                    metadata: new FloatMetadata(1, 3, .01f))
                 .Bind(
                     key: "Base Death Curse HP reduce factor",
                     description: "[Only with Death Curse enabled] For how much HP will be reduced for Death Curse." +
                                  "\nReduceHP = MaxHP - (MaxHP / (ReduceHpFactor ^ CursesCount + BaseReduceHpFactor))" +
                                  "\nMaxHP = MaxHP - ReduceHP",
                     set: v => values.BaseReduceHpFactor = v,
-                    defaultValue: values.BaseReduceHpFactor)
+                    defaultValue: values.BaseReduceHpFactor,
+                    metadata: new FloatMetadata(0, 1, .01f))
                 .Bind(
                     key: "Death Curse HP reduce factor",
                     description: "[Only with Death Curse enabled] For how much HP will be reduced for Death Curse." +
                                  "\nReduceHP = MaxHP - (MaxHP / (ReduceHpFactor ^ CursesCount + BaseReduceHpFactor))" +
                                  "\nMaxHP = MaxHP - ReduceHP",
                     set: v => values.ReduceHpFactor = v,
-                    defaultValue: values.ReduceHpFactor)
+                    defaultValue: values.ReduceHpFactor,
+                    metadata: new FloatMetadata(0, 3, .1f))
                 .Bind(
                     key: "Force Death Curse rule",
                     description: "Force enable Death Curse logic (e.g. Artifact of Death Curse) even when artifact is disabled.",
@@ -211,23 +222,32 @@ namespace TeammateRevive.Configuration
                     key: "Death Curse chance",
                     description: "[Only with Death Curse enabled] Chance to receive Death Curse on revival (Range: 0-100%)",
                     set: v => values.DeathCurseChance = v,
-                    defaultValue: values.DeathCurseChance)
+                    defaultValue: values.DeathCurseChance,
+                    metadata: new FloatMetadata(0, 100, 1))
                 .Bind(
                     key: "Post revive regeneration time",
                     description: "After reviving, 40% of revivee and linked revivers HP is restored. This value specify how long regeneration buff is active in seconds. If set to 0 - revive regen is disabled.",
                     set: v => values.PostReviveRegenDurationSec = v,
-                    defaultValue: values.PostReviveRegenDurationSec
+                    defaultValue: values.PostReviveRegenDurationSec,
+                    metadata: new FloatMetadata(0, 30, 1)
                 );
         }
 
-        static void BindMisc(ConfigFile configFile, PluginConfig config)
+        static BindCollection BindMisc(ConfigFile configFile, PluginConfig config)
         {
-            config.HideDeathCurseItemsInLogBook = configFile.Bind("Misc", "Hide Death Curse mode items in logbook", false,
-                    "Set it to true if you don't plan on playing Death Curse mode and don't want to see related items in logbook")
-                .Value;
-            config.HideDeathCurseArtifact = configFile.Bind("Misc", "Hide Death Curse Artifact", false,
-                    "Set it to true if you don't plan on playing Death Curse mode and don't want to see Death Curse artifact.")
-                .Value;
+            return configFile.BindCollection("Misc")
+                .Bind(key: "Hide Death Curse mode items in logbook",
+                    description:
+                    "Set it to true if you don't plan on playing Death Curse mode and don't want to see related items in logbook",
+                    set: v => config.HideDeathCurseItemsInLogBook = v,
+                    defaultValue: false,
+                    new EntryMetadata(restartRequired: true))
+                .Bind(key: "Hide Death Curse Artifact",
+                    description:
+                    "Set it to true if you don't plan on playing Death Curse mode and don't want to see Death Curse artifact in lobby",
+                    set: v => config.HideDeathCurseItemsInLogBook = v,
+                    defaultValue: false,
+                    new EntryMetadata(restartRequired: true));
         }
     }
 }
