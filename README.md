@@ -63,6 +63,7 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 * Fixed for patch 1.2.3
 * Updated totem coloring and visuals
 * Updated progress bar ui
+* Added Risk Of Options integration for easy changing options in-game
 
 <br>
 
