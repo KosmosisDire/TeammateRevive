@@ -6,7 +6,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 <br>
 
 ### Integration:
-* Use [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/) to configure this plugin in-game. 
+* [RiskOfOptions](https://thunderstore.io/package/Rune580/Risk_Of_Options/) or [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/) to configure in-game.
 * [ItemStatsMod](https://thunderstore.io/package/ontrigger/ItemStatsMod/)
 * [BetterUI](https://thunderstore.io/package/XoXFaby/BetterUI/)
 
@@ -14,7 +14,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 
 ### Feedback:
 
-Feedback would be greatly appreciated. If you encounter **any** bugs or want to discuss new or existing features, **please** submit an issue on Github, or contact **KosmosisDire#4195** or **amadare#8308** on Discord!
+Feedback would be greatly appreciated. If you encounter **any** bugs or want to discuss new or existing features, **please** submit an issue on [Github](https://github.com/KosmosisDire/TeammateRevive), or contact **KosmosisDire#4195** or **amadare#8308** on Discord!
 
 <br> <br>
 
@@ -28,15 +28,11 @@ The default and most simple game mode. When a teammate dies you can revive them 
 
 This is a new optional game mode which fleshes out the experience with more difficulty and revival mechanics. There are a number of under the hood things to make the whole system balanced and adjust to player skill.
 
-### **Reviving**
-
-Reviving is the same, but after you revive someone you will be linked to that player for a time. This just means that you helped revive the player, and this will effect things under the hood.
-
 ### **Death Curse**
 
 ![Death Curse Icon](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/curse.png?)
 
-When a player is revived, they will receive the **Death Curse**, along with one random other linked player. **Death Curse** is a debuff that reduces **Max HP/ Shield** simmilar to Shaped Glass. These debuffs will stack!
+When a player is revived, they will receive the **Death Curse**, along with one other random player who helped revive. **Death Curse** is a debuff that reduces **Max HP/ Shield** simmilar to Shaped Glass. These debuffs will stack!
 
 ### **Charon's Obol**
 ![Charon's Obol](https://raw.githubusercontent.com/KosmosisDire/TeammateRevive/main/readme/obol.png?)
@@ -59,11 +55,20 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 
 ## Change Notes:
 
-### 4.1.1
+### To Do:
+* Organize config options to make more user friendly.
+* Make progress bar line up pixel perfect with health bar, regardless of resolution.
+
+<br>
+
+### 4.1.1 - Latest Update
 * Fixed for patch 1.2.3
 * Updated totem coloring and visuals
-* Updated progress bar ui
+* Updated progress bar UI
 * Added Risk Of Options integration for easy changing options in-game
+* Added options to disable death curse features
+* Hopefully fixed weird addition of items in Simulacrum
+* Fixed compatibilty with ExtendedLoadout
 
 <br>
 
