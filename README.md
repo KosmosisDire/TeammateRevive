@@ -6,7 +6,7 @@ Survivors can revive their fallen colleagues, but it comes at the price of their
 <br>
 
 ### Integration:
-* [RiskOfOptions](https://thunderstore.io/package/Rune580/Risk_Of_Options/) or [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/) to configure in-game.
+* Use [RiskOfOptions](https://thunderstore.io/package/Rune580/Risk_Of_Options/) or [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/) to configure in-game.
 * [ItemStatsMod](https://thunderstore.io/package/ontrigger/ItemStatsMod/)
 * [BetterUI](https://thunderstore.io/package/XoXFaby/BetterUI/)
 
