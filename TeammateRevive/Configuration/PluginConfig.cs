@@ -245,7 +245,7 @@ namespace TeammateRevive.Configuration
                 .Bind(key: "Hide Death Curse Artifact",
                     description:
                     "Set it to true if you don't plan on playing Death Curse mode and don't want to see Death Curse artifact in lobby",
-                    set: v => config.HideDeathCurseItemsInLogBook = v,
+                    set: v => config.HideDeathCurseArtifact = v,
                     defaultValue: false,
                     new EntryMetadata(restartRequired: true));
         }

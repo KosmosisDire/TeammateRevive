@@ -26,6 +26,8 @@ namespace TeammateRevive
     [BepInDependency("dev.ontrigger.itemstats", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.xoxfaby.BetterUI", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(RiskOfOptionsIntegration.Guid, BepInDependency.DependencyFlags.SoftDependency)]
+    
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI), nameof(ItemAPI), nameof(LanguageAPI))]
     public class MainTeammateRevival : BaseUnityPlugin
@@ -47,13 +49,16 @@ namespace TeammateRevive
         private PlayersTracker players;
         private RunTracker run;
         private RevivalTracker revivalTracker;
+        
         private ItemsStatsModIntegration itemsStatsModIntegration;
         private BetterUiModIntegration betterUiModIntegration;
+        private InLobbyConfigIntegration inLobbyConfigIntegration;
+        private RiskOfOptionsIntegration riskOfOptionsIntegration;
+        
         private ConsoleCommands consoleCommands;
         private ReviveRules rules;
         private ReviveLinkBuffIconManager linkBuffIconManager;
         private ReviveLongRangeActivationManager reviveLongRangeActivationManager;
-        private InLobbyConfigIntegration inLobbyConfigIntegration;
         private DeathTotemTracker deathTotemTracker;
         private ProgressBarController progressBarController;
         private ReviveProgressBarTracker progressBarTracker;
@@ -85,6 +90,7 @@ namespace TeammateRevive
             this.consoleCommands = new ConsoleCommands(this.rules, this.pluginConfig);
             this.linkBuffIconManager = new ReviveLinkBuffIconManager();
             this.inLobbyConfigIntegration = new InLobbyConfigIntegration(this.pluginConfig);
+            this.riskOfOptionsIntegration = new RiskOfOptionsIntegration(this.pluginConfig);
             this.reviveLongRangeActivationManager = new ReviveLongRangeActivationManager(this.run, this.deathTotemTracker);
             this.itemDropManager = new ItemDropManager(this.run, this.rules);
             this.contentManager = new ContentManager(this.rules, this.run, this.deathCurseArtifact);
