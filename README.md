@@ -63,12 +63,12 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 
 ### 4.1.1 - Latest Update
 * Fixed for patch 1.2.3
-* Updated totem coloring and visuals
+* Updated totem **coloring** and **visuals**
 * Updated progress bar UI
-* Added Risk Of Options integration for easy changing options in-game
+* Added **Risk Of Options** integration for easy changing options in-game
 * Added options to disable death curse features
-* Hopefully fixed weird addition of items in Simulacrum
-* Fixed compatibilty with ExtendedLoadout
+* Hopefully fixed weird addition of items in **Simulacrum**
+* Fixed compatibilty with **ExtendedLoadout**
 
 <br>
 
