@@ -61,7 +61,13 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 
 <br>
 
-### 4.1.1 - Latest Update
+### 4.1.2 - Latest Update
+* Fixed missing **Risk Of Options** integration.
+* Fixed **artifact** not being **disabled** when turned off in options.
+
+<br>
+
+### 4.1.1
 * Fixed for patch 1.2.3
 * Updated totem **coloring** and **visuals**
 * Updated progress bar UI
