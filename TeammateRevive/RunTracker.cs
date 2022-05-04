@@ -17,26 +17,26 @@ namespace TeammateRevive
         private bool isStarted;
         public bool IsStarted
         {
-            get => this.isStarted;
+            get => isStarted;
             set
             {
-                if (this.IsStarted == value) return;
-                this.isStarted = value;
+                if (IsStarted == value) return;
+                isStarted = value;
                 if (value)
                 {
                     Log.Info("Run started");
-                    this.RunStarted?.Invoke(this);
+                    RunStarted?.Invoke(this);
                 }
                 else
                 {
                     Log.Info("Run ended");
-                    this.RunEnded?.Invoke(this);
+                    RunEnded?.Invoke(this);
                 }
             }
         }
 
         public bool IsDeathCurseEnabled => (ReviveRules.instance?.Values.ForceEnableDeathCurseForSinglePlayer ?? false)
-                                           || (this.deathCurseArtifact.ArtifactEnabled || (ReviveRules.instance?.Values.ForceDeathCurseRule ?? false))
+                                           || (deathCurseArtifact.ArtifactEnabled || (ReviveRules.instance?.Values.ForceDeathCurseRule ?? false))
                                            && Run.instance?.participatingPlayerCount != 1;
 
         public RunTracker(DeathCurseArtifact deathCurseArtifact)
@@ -44,24 +44,24 @@ namespace TeammateRevive
             this.deathCurseArtifact = deathCurseArtifact;
             Run.onRunStartGlobal += GlobalOnRunStarted;
             Run.onRunDestroyGlobal += GlobalOnRunDestroy;
-            On.RoR2.Run.BeginStage += hook_BeginStage;
+            On.RoR2.Run.BeginStage += Hook_BeginStage;
             instance = this;
         }
 
-        private void hook_BeginStage(On.RoR2.Run.orig_BeginStage orig, Run self)
+        private void Hook_BeginStage(On.RoR2.Run.orig_BeginStage orig, Run self)
         {
             orig(self);
-            this.IsStarted = true;
+            IsStarted = true;
         }
 
         void GlobalOnRunStarted(Run obj)
         {
-            this.IsStarted = true;
+            IsStarted = true;
         }
 
         private void GlobalOnRunDestroy(Run obj)
         {
-            this.IsStarted = false;
+            IsStarted = false;
         }
     }
 }

@@ -20,33 +20,33 @@ namespace TeammateRevive.Players
         public float reviveProgress = 0;
         
         public bool isDead = false;
-        public NetworkInstanceId? BodyId => this.master.master.GetBody()?.netId;
+        public NetworkInstanceId? BodyId => master.master.GetBody()?.netId;
 
         public readonly Dictionary<Player, float> reviveLinks = new();
 
         public Player(PlayerCharacterMasterController _player)
         {
-            if (_player.networkUser) this.networkUser = _player.networkUser;
-            this.master = _player;
-            this.reviveProgress = 0;
+            if (_player.networkUser) networkUser = _player.networkUser;
+            master = _player;
+            reviveProgress = 0;
         }
 
         public CharacterBody GetBody()
         {
-            return this.master.master.GetBody();
+            return master.master.GetBody();
         }
 
         public bool CheckAlive()
         {
-            return (GetBody() && !this.master.master.IsDeadAndOutOfLivesServer() && GetBody().healthComponent.alive);
+            return (GetBody() && !master.master.IsDeadAndOutOfLivesServer() && GetBody().healthComponent.alive);
         }
 
         public bool CheckDead()
         {
-            return (!GetBody() || this.master.master.IsDeadAndOutOfLivesServer() || !GetBody().healthComponent.alive);
+            return (!GetBody() || master.master.IsDeadAndOutOfLivesServer() || !GetBody().healthComponent.alive);
         }
 
-        public void UpdateGroundPosition() => this.groundPosition = GetGroundPosition(this);
+        public void UpdateGroundPosition() => groundPosition = GetGroundPosition(this);
 
         public static Vector3 GetGroundPosition(Player player)
         {
@@ -68,22 +68,22 @@ namespace TeammateRevive.Players
 
         public void IncreaseReviveLinkDuration(Player dead, float increase)
         {
-            if (!this.reviveLinks.TryGetValue(dead, out var elapsingAt))
+            if (!reviveLinks.TryGetValue(dead, out var elapsingAt))
             {
                 elapsingAt = Time.time + 1;
             }
-            this.reviveLinks[dead] = elapsingAt + increase;
+            reviveLinks[dead] = elapsingAt + increase;
         }
         
         public int RemoveReviveLink(Player dead)
         {
-            this.reviveLinks.Remove(dead);
-            return this.reviveLinks.Count;
+            reviveLinks.Remove(dead);
+            return reviveLinks.Count;
         }
 
         public float GetReviveLinkDuration(Player dead)
         {
-            if (this.reviveLinks.TryGetValue(dead, out var time))
+            if (reviveLinks.TryGetValue(dead, out var time))
             {
                 return time;
             }
@@ -91,27 +91,27 @@ namespace TeammateRevive.Players
             return 0;
         }
         
-        public void ClearReviveLinks() => this.reviveLinks.Clear();
+        public void ClearReviveLinks() => reviveLinks.Clear();
 
         public int GetPlayersReviveLinks()
         {
             var time = Time.time;
             
-            foreach (var pair in this.reviveLinks.ToArray())
+            foreach (var pair in reviveLinks.ToArray())
             {
                 var player = pair.Key;
                 var elapsingAt = pair.Value;
                 if (time > elapsingAt)
                 {
                     RemoveReviveLink(player);
-                    Log.Debug($"Removed revive link for revive of {player.networkUser.userName} from {this.networkUser.userName}. Left: {this.reviveLinks.Count}");
+                    Log.Debug($"Removed revive link for revive of {player.networkUser.userName} from {networkUser.userName}. Left: {reviveLinks.Count}");
                 }
             }
 
-            return this.reviveLinks.Count;
+            return reviveLinks.Count;
         }
 
-        public bool IsLinkedTo(Player player) => this.reviveLinks.ContainsKey(player);
+        public bool IsLinkedTo(Player player) => reviveLinks.ContainsKey(player);
 
     }
 }

@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1016676511
+CRC: 2730909505
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: a8b60ca1519775646376f21c4399103e
+    Hash: 20344b6f924b283b61120c8785820790
   TypeTreeHash:
     serializedVersion: 2
     Hash: a014f31f5624ff4897251668cf7770d6
@@ -67,10 +67,12 @@ Assets:
 - Assets/CustomAssets/curse_mode/Mist.mat
 - Assets/CustomAssets/icons/artifactCurseEnabled.png
 - Assets/CustomAssets/curse_mode/hand.blend
+- Assets/CustomAssets/progress_bar/texUINonsegmentedHealthbar.png
 - Assets/CustomAssets/totem/Front.mat
 - Assets/CustomAssets/icons/lunar_obol.png
 - Assets/CustomAssets/totem/IndicatorTest.mat
 - Assets/CustomAssets/curseOrb.prefab
+- Assets/CustomAssets/progress_bar/BOMBARD_.ttf
 - Assets/CustomAssets/curse_mode/obolModel.blend
 - Assets/CustomAssets/totem/FrontRenderedSprite.shader
 - Assets/CustomAssets/icons/timed_curse.png
@@ -86,6 +88,7 @@ Assets:
 - Assets/CustomAssets/icons/obol.png
 - Assets/CustomAssets/totem/Deathmark Particles.obj
 - Assets/CustomAssets/icons/artifactCurseDisabled.png
+- Assets/CustomAssets/progress_bar/BOMBARD_ SDF.asset
 - Assets/CustomAssets/totem/texCloudDifferenceBW2.png
 - Assets/CustomAssets/totem/texThermiteDroplet2Mask.png
 - Assets/CustomAssets/totem/Purple.mat

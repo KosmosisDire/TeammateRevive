@@ -29,7 +29,7 @@ namespace TeammateRevive.ProgressBar
         public DeathTotemBehavior trackingTotem;
 
         private float queuedToHideAt;
-        private bool IsQueuedToHide => this.queuedToHideAt > 0;
+        private bool IsQueuedToHide => queuedToHideAt > 0;
 
         private SpectatorLabel spectatorLabel;
 
@@ -37,7 +37,7 @@ namespace TeammateRevive.ProgressBar
         {
             this.progressBar = progressBar;
             this.players = players;
-            this.deathTotemTracker = totemTracker;
+            deathTotemTracker = totemTracker;
             this.rules = rules;
             
             DeathTotemBehavior.GlobalOnDestroy += OnDeathTotemDestroy;
@@ -47,12 +47,12 @@ namespace TeammateRevive.ProgressBar
         private void SpectatorLabelAwake(On.RoR2.UI.SpectatorLabel.orig_Awake orig, RoR2.UI.SpectatorLabel self)
         {
             orig(self);
-            this.spectatorLabel = self;
+            spectatorLabel = self;
         }
 
         private void OnDeathTotemDestroy(DeathTotemBehavior totem)
         {
-            if (this.trackingTotem == totem)
+            if (trackingTotem == totem)
             {
                 Log.DebugMethod("removing tracking - totem destroyed");
                 RemoveTracking();
@@ -64,51 +64,51 @@ namespace TeammateRevive.ProgressBar
             var deathTotem = GetDeathTotemInRange();
             
             // no totem, no tracking
-            if (deathTotem == this.trackingTotem && deathTotem == null)
+            if (deathTotem == trackingTotem && deathTotem == null)
             {
-                if (this.progressBar.showing)
+                if (progressBar.showing)
                 {
                     Log.DebugMethod("hide - no totem, no tracking");
-                    this.progressBar.Hide();
+                    progressBar.Hide();
                 }
                 return;
             }
 
             // new totem
-            if (deathTotem != null && this.trackingTotem != deathTotem)
+            if (deathTotem != null && trackingTotem != deathTotem)
             {
                 Log.DebugMethod("new totem");
-                this.trackingTotem = deathTotem;
+                trackingTotem = deathTotem;
                 DequeFromHiding();
-                this.progressBar.UpdateText(deathTotem.PlayerName);
+                progressBar.UpdateText(deathTotem.PlayerName);
             }
             
             // update progress
-            if (this.trackingTotem != null)
+            if (trackingTotem != null)
             {
-                this.progressBar.SetFraction(this.trackingTotem.progress);
-                this.progressBar.SetColor(this.trackingTotem.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
-                this.progressBar.UpdateText(this.trackingTotem.PlayerName, this.trackingTotem.progress);
+                progressBar.SetFraction(trackingTotem.progress);
+                progressBar.SetColor(trackingTotem.fractionPerSecond >= 0 ? PositiveProgressColor : NegativeProgressColor);
+                progressBar.UpdateText(trackingTotem.PlayerName, trackingTotem.progress);
             }
 
             // player moved out of totem circle, queuing to hide
-            if (deathTotem == null && this.trackingTotem != null && !this.IsQueuedToHide)
+            if (deathTotem == null && trackingTotem != null && !IsQueuedToHide)
             {
                 Log.DebugMethod("queue to hide");
                 QueueToHide();
             }
 
             // hiding either if progress become 0 or specified delay elapsed
-            if (this.trackingTotem != null && this.trackingTotem.progress == 0)
+            if (trackingTotem != null && trackingTotem.progress == 0)
             {
                 Log.DebugMethod("removing due to progress is 0");
                 RemoveTracking();
             }
             
             // hiding based on time
-            if (this.IsQueuedToHide && Time.time > this.queuedToHideAt)
+            if (IsQueuedToHide && Time.time > queuedToHideAt)
             {
-                Log.DebugMethod($"removing tracking after delay ({Time.time} > {this.queuedToHideAt})");
+                Log.DebugMethod($"removing tracking after delay ({Time.time} > {queuedToHideAt})");
                 RemoveTracking();
             }
         }
@@ -116,36 +116,36 @@ namespace TeammateRevive.ProgressBar
         private void QueueToHide()
         {
             // TODO: make hide time in sync with revive link buff
-            this.queuedToHideAt = Time.time + this.rules.ReviveLinkBuffTime;
-            Log.DebugMethod($"Queued to hide at {this.queuedToHideAt} (current time: {Time.time})");
+            queuedToHideAt = Time.time + rules.ReviveLinkBuffTime;
+            Log.DebugMethod($"Queued to hide at {queuedToHideAt} (current time: {Time.time})");
         }
 
-        private void DequeFromHiding() => this.queuedToHideAt = 0;
+        private void DequeFromHiding() => queuedToHideAt = 0;
 
         private void RemoveTracking()
         {
             DequeFromHiding();
-            this.progressBar.Hide();
-            this.trackingTotem = null;
+            progressBar.Hide();
+            trackingTotem = null;
         }
 
         public DeathTotemBehavior GetDeathTotemInRange()
         {
-            if (!this.deathTotemTracker.HasAnyTotems)
+            if (!deathTotemTracker.HasAnyTotems)
                 return null;
 
-            var trackingBodyId = this.players.CurrentUserBodyId ?? GetSpectatingBody();
+            var trackingBodyId = players.CurrentUserBodyId ?? GetSpectatingBody();
             if (trackingBodyId == null)
                 return null;
 
-            return this.deathTotemTracker.GetDeathTotemInRange(trackingBodyId.Value);
+            return deathTotemTracker.GetDeathTotemInRange(trackingBodyId.Value);
         }
 
         private NetworkInstanceId? GetSpectatingBody()
         {
             if (IsInSpectatorMode())
             {
-                var target = this.spectatorLabel.cachedTarget;
+                var target = spectatorLabel.cachedTarget;
                 if (target.IsDestroyed())
                 {
                     return null;
@@ -163,9 +163,9 @@ namespace TeammateRevive.ProgressBar
             return null;
         }
 
-        private bool IsInSpectatorMode() => this.spectatorLabel != null 
-                                            && !this.spectatorLabel.gameObject.IsDestroyed() 
-                                            && !this.spectatorLabel.labelRoot.IsDestroyed() 
-                                            && this.spectatorLabel.labelRoot.activeSelf;
+        private bool IsInSpectatorMode() => spectatorLabel != null 
+                                            && !spectatorLabel.gameObject.IsDestroyed() 
+                                            && !spectatorLabel.labelRoot.IsDestroyed() 
+                                            && spectatorLabel.labelRoot.activeSelf;
     }
 }

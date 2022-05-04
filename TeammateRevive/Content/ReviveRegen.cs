@@ -46,8 +46,8 @@ namespace TeammateRevive.Content
             var hasTranscendence = self.inventory.GetItemCount(RoR2Content.Items.ShieldOnly) > 0;
 
             var effectiveHp = self.maxHealth + self.maxShield;
-            var regenSpeed = (effectiveHp * this.rules.Values.PostReviveRegenFraction) /
-                             this.rules.Values.PostReviveRegenDurationSec;
+            var regenSpeed = (effectiveHp * rules.Values.PostReviveRegenFraction) /
+                             rules.Values.PostReviveRegenDurationSec;
             var regenValue = regenSpeed * Time.deltaTime;
             
             if (hasTranscendence)

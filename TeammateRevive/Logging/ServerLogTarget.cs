@@ -38,55 +38,43 @@ namespace TeammateRevive.Logging
 
         private void InternalWrite(LogLevel level, object message, bool fromHook)
         {
-            if (!this.config.IsEnabled) return;
-            if (this.config.LogAll && !fromHook) return;
+            if (!config.IsEnabled) return;
+            if (config.LogAll && !fromHook) return;
 
-            this.logsQueue.Enqueue(new JSONObject
+            logsQueue.Enqueue(new JSONObject
             {
                 ["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 ["level"] = MapLevel(level),
                 // TODO: debug, remove
                 ["msg"] =  (NetworkHelper.IsClient() ? "C " : "S ") + message?.ToString(),
-                ["user"] = (NetworkHelper.IsClient() ? "C " : "S ") + this.config.UserName,
-                ["room"] = this.config.RoomName
+                ["user"] = (NetworkHelper.IsClient() ? "C " : "S ") + config.UserName,
+                ["room"] = config.RoomName
             });
             ShipLogs();
         }
 
         private string MapLevel(LogLevel level)
         {
-            switch (level)
+            return level switch
             {
-                case LogLevel.Fatal:
-                case LogLevel.Error:
-                    return "ERROR";
-                
-                case LogLevel.Warning:
-                    return "WARN";
-                
-                case LogLevel.Debug:
-                    return "DEBUG";
-
-                case LogLevel.All:
-                case LogLevel.None:
-                case LogLevel.Info:
-                case LogLevel.Message:
-                default:
-                    return "INFO";
-            }
+                LogLevel.Fatal or LogLevel.Error => "ERROR",
+                LogLevel.Warning => "WARN",
+                LogLevel.Debug => "DEBUG",
+                _ => "INFO",
+            };
         }
 
         private void ShipLogs()
         {
-            if (this.logsQueue.IsEmpty) return;
+            if (logsQueue.IsEmpty) return;
 
             // achieving queue using task scheduling. Performing only one sending at a time
-            lock (this.locker)
+            lock (locker)
             {
-                this.shipTask = this.shipTask.ContinueWith(async _ =>
+                shipTask = shipTask.ContinueWith(async _ =>
                 {
                     var array = GroupEntries();
-                    if (!this.config.IsEnabled) return;
+                    if (!config.IsEnabled) return;
                     await SendEntries(array);
                 });
             }
@@ -97,7 +85,7 @@ namespace TeammateRevive.Logging
             var content = new StringContent(entry.ToString(), Encoding.UTF8, "application/json");
             try
             {
-                await this.client.PostAsync(this.config.Url.TrimEnd('/') + "/logs/add", content);
+                await client.PostAsync(config.Url.TrimEnd('/') + "/logs/add", content);
             }
             catch (Exception)
             {
@@ -112,7 +100,7 @@ namespace TeammateRevive.Logging
             var maxCount = 50;
             
             // group all pending entries but not more that specific amount
-            while (this.logsQueue.TryDequeue(out var entry))
+            while (logsQueue.TryDequeue(out var entry))
             {
                 entries.Add(entry);
                 if (entries.Count == maxCount)
@@ -130,7 +118,7 @@ namespace TeammateRevive.Logging
 
         void ILogListener.LogEvent(object sender, LogEventArgs eventArgs)
         {
-            if (this.config.LogAll || eventArgs.Level.HasFlag(LogLevel.Error))
+            if (config.LogAll || eventArgs.Level.HasFlag(LogLevel.Error))
             {
                 InternalWrite(eventArgs.Level, eventArgs.Data.ToString(), true);
             }

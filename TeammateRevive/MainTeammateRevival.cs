@@ -70,42 +70,42 @@ namespace TeammateRevive
         public void Awake()
         {
             instance = this;
-            this.pluginConfig = PluginConfig.Load(this.Config);
+            pluginConfig = PluginConfig.Load(Config);
             
             NetworkingAPI.RegisterMessageType<SyncDeathTotemMessage>();
             NetworkingAPI.RegisterMessageType<SetRulesMessage>();
 
-            this.deathCurseArtifact = new DeathCurseArtifact();
-            this.run = new RunTracker(this.deathCurseArtifact);
-            this.players = new PlayersTracker(this.run, this.pluginConfig);
-            this.rules = new ReviveRules(this.run, this.pluginConfig);
-            this.deathTotemTracker = new DeathTotemTracker(this.players, this.run, this.rules);
-            this.progressBarController = new ProgressBarController();
-            this.progressBarTracker = new ReviveProgressBarTracker(progressBarController, this.players,
-                this.deathTotemTracker, this.rules);
-            this.revivalTracker = new RevivalTracker(this.players, this.run, this.rules, this.deathTotemTracker, this.progressBarTracker);
+            deathCurseArtifact = new DeathCurseArtifact();
+            run = new RunTracker(deathCurseArtifact);
+            players = new PlayersTracker(run, pluginConfig);
+            rules = new ReviveRules(run, pluginConfig);
+            deathTotemTracker = new DeathTotemTracker(players, run, rules);
+            progressBarController = new ProgressBarController();
+            progressBarTracker = new ReviveProgressBarTracker(progressBarController, players,
+                deathTotemTracker, rules);
+            revivalTracker = new RevivalTracker(players, run, rules, deathTotemTracker, progressBarTracker);
+        
+            itemsStatsModIntegration = new ItemsStatsModIntegration(rules);
+            betterUiModIntegration = new BetterUiModIntegration();
+            consoleCommands = new ConsoleCommands(rules, pluginConfig);
+            linkBuffIconManager = new ReviveLinkBuffIconManager();
+            inLobbyConfigIntegration = new InLobbyConfigIntegration(pluginConfig);
+            riskOfOptionsIntegration = new RiskOfOptionsIntegration(pluginConfig);
+            reviveLongRangeActivationManager = new ReviveLongRangeActivationManager(run, deathTotemTracker);
+            itemDropManager = new ItemDropManager(run, rules);
+            contentManager = new ContentManager(rules, run, deathCurseArtifact);
             
-            this.itemsStatsModIntegration = new ItemsStatsModIntegration(this.rules);
-            this.betterUiModIntegration = new BetterUiModIntegration();
-            this.consoleCommands = new ConsoleCommands(this.rules, this.pluginConfig);
-            this.linkBuffIconManager = new ReviveLinkBuffIconManager();
-            this.inLobbyConfigIntegration = new InLobbyConfigIntegration(this.pluginConfig);
-            this.riskOfOptionsIntegration = new RiskOfOptionsIntegration(this.pluginConfig);
-            this.reviveLongRangeActivationManager = new ReviveLongRangeActivationManager(this.run, this.deathTotemTracker);
-            this.itemDropManager = new ItemDropManager(this.run, this.rules);
-            this.contentManager = new ContentManager(this.rules, this.run, this.deathCurseArtifact);
-            
-            Log.Init(this.pluginConfig, this.Logger);
+            Log.Init(pluginConfig, Logger);
             ReviveHelper.Init();
             CustomResources.LoadCustomResources();
-            HideDeathCurseContent.Init(this.pluginConfig);
-            this.contentManager.Init();
-            this.rules.ApplyConfigValues();
+            HideDeathCurseContent.Init(pluginConfig);
+            contentManager.Init();
+            rules.ApplyConfigValues();
 #if DEBUG
-            DebugHelper.Init(this.pluginConfig);
+            DebugHelper.Init(pluginConfig);
 #endif
-            this.run.RunStarted += OnRunStarted;
-            this.run.RunEnded += OnRunEnded;
+            run.RunStarted += OnRunStarted;
+            run.RunEnded += OnRunEnded;
             
             SetupHooks();
 
@@ -114,16 +114,16 @@ namespace TeammateRevive
 
         void SetupHooks()
         {
-            On.RoR2.Run.BeginGameOver += hook_BeginGameOver;
-            On.RoR2.Run.AdvanceStage += hook_AdvanceStage;
-            On.RoR2.NetworkUser.OnStartLocalPlayer += hook_OnStartLocalPlayer;
+            On.RoR2.Run.BeginGameOver += Hook_BeginGameOver;
+            On.RoR2.Run.AdvanceStage += Hook_AdvanceStage;
+            On.RoR2.NetworkUser.OnStartLocalPlayer += Hook_OnStartLocalPlayer;
         }
 
         #endregion
 
         #region Hooks
 
-        void hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, NetworkUser self)
+        void Hook_OnStartLocalPlayer(On.RoR2.NetworkUser.orig_OnStartLocalPlayer orig, NetworkUser self)
         {
             orig(self);
 
@@ -140,7 +140,7 @@ namespace TeammateRevive
             NetworkManager.singleton.connectionConfig.MaxSentMessageQueueSize = 1024;
         }
 
-        void hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
+        void Hook_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
         {
             orig(self, gameEndingDef);
 
@@ -148,18 +148,18 @@ namespace TeammateRevive
 
             Log.Info("Game Over - reseting data");
 
-            this.players.Reset();
-            this.run.IsStarted = false;
+            players.Reset();
+            run.IsStarted = false;
         }
 
-        void hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
+        void Hook_AdvanceStage(On.RoR2.Run.orig_AdvanceStage orig, Run self, SceneDef nextScene)
         {
             orig(self, nextScene);
 
             if (NetworkHelper.IsClient()) return;
 
             Log.Info("Advanced a stage - now resetting");
-            this.players.Reset();
+            players.Reset();
         }
         
         #endregion
@@ -169,18 +169,18 @@ namespace TeammateRevive
 #if DEBUG
             DebugHelper.Update();
 #endif
-            this.players.Update();
-            this.revivalTracker.Update();
+            players.Update();
+            revivalTracker.Update();
         }
 
         void OnRunStarted(RunTracker obj)
         {
-            this.deathCurseArtifact.EnsureEnabled(this.rules);
+            deathCurseArtifact.EnsureEnabled(rules);
         }
 
         private void OnRunEnded(RunTracker obj)
         {
-            this.players.Reset();
+            players.Reset();
         }
 
         public Func<IEnumerator, Coroutine> DoCoroutine => StartCoroutine;

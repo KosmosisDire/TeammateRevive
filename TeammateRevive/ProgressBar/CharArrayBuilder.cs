@@ -15,8 +15,8 @@ namespace TeammateRevive.ProgressBar
 
             public Part(int start, int len)
             {
-                this.Start = start;
-                this.Len = len;
+                Start = start;
+                Len = len;
             }
         }
 
@@ -40,32 +40,32 @@ namespace TeammateRevive.ProgressBar
         public void InitParts(params string[] strs)
         {
             // init buffer length
-            this.Length = 0;
+            Length = 0;
             foreach (var s in strs)
             {
-                this.Length += s.Length;
+                Length += s.Length;
             }
 
             // ensure array sizes
-            if (this.Buffer.Length < this.Length) this.Buffer = new char[this.Length + 7];
-            if (this.parts.Length < strs.Length) this.parts = new Part[strs.Length];
+            if (Buffer.Length < Length) Buffer = new char[Length + 7];
+            if (parts.Length < strs.Length) parts = new Part[strs.Length];
 
             // init buffer and parts arrays
             var idx = 0;
             for (var i = 0; i < strs.Length; i++)
             {
                 var s = strs[i];
-                s.CopyTo(0, this.Buffer, idx, s.Length);
-                this.parts[i] = new Part(idx, s.Length);
+                s.CopyTo(0, Buffer, idx, s.Length);
+                parts[i] = new Part(idx, s.Length);
                 idx += s.Length;
             }
         }
 
         public void UpdatePart(int idx, string value)
         {
-            var part = this.parts[idx];
+            var part = parts[idx];
             UpdatePartLen(part, value.Length, idx);
-            value.CopyTo(0, this.Buffer, part.Start, value.Length);
+            value.CopyTo(0, Buffer, part.Start, value.Length);
         }
 
         private void UpdatePartLen(Part part, int len, int partIdx)
@@ -76,30 +76,30 @@ namespace TeammateRevive.ProgressBar
             if (diff == 0) return;
 
             // expand buffer if needed
-            var newLen = this.Length - diff;
-            if (diff < 0 && this.Buffer.Length < newLen)
+            var newLen = Length - diff;
+            if (diff < 0 && Buffer.Length < newLen)
             {
                 var newBuffer = new char[newLen];
-                Array.Copy(this.Buffer, newBuffer, this.Length);
-                this.Buffer = newBuffer;
+                Array.Copy(Buffer, newBuffer, Length);
+                Buffer = newBuffer;
             }
 
             // update buffer
-            Array.Copy(this.Buffer,
+            Array.Copy(Buffer,
                 part.Start + part.Len,
-                this.Buffer,
+                Buffer,
                 part.Start + part.Len - diff,
-                this.Length - part.Start - part.Len
+                Length - part.Start - part.Len
             );
 
             // update lengths
             part.Len = len;
-            this.Length -= diff;
+            Length -= diff;
 
             // update consequent parts
-            for (var i = partIdx + 1; i < this.parts.Length; i++)
+            for (var i = partIdx + 1; i < parts.Length; i++)
             {
-                var p = this.parts[i];
+                var p = parts[i];
                 p.Start -= diff;
             }
         }
@@ -117,7 +117,7 @@ namespace TeammateRevive.ProgressBar
         private void InternalSetPaddedFloatPart(int partIdx, int value)
         {
             if (value > DIGITS_MULT) value = DIGITS_MULT;
-            var part = this.parts[partIdx];
+            var part = parts[partIdx];
             UpdatePartLen(part, DIGITS_COUNT + 1, partIdx);
             var idx = part.Start;
 
@@ -153,12 +153,12 @@ namespace TeammateRevive.ProgressBar
 
         public override string ToString()
         {
-            return new string(this.Buffer, 0, Length);
+            return new string(Buffer, 0, Length);
         }
 
         public string TraceParts()
         {
-            return string.Join("", this.parts.Select((p, i) => $"[{i}>" + new string(this.Buffer, p.Start, p.Len)));
+            return string.Join("", parts.Select((p, i) => $"[{i}>" + new string(Buffer, p.Start, p.Len)));
         }
     }
 }

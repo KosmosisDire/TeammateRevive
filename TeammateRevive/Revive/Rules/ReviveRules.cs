@@ -29,8 +29,8 @@ namespace TeammateRevive.Revive.Rules
             instance = this;
             this.run = run;
             this.pluginConfig = pluginConfig;
-            this.run.RunStarted += OnRunStarted;
-            this.pluginConfig.RuleValuesBindCollection.OnChanged +=  ApplyConfigValues;
+            run.RunStarted += OnRunStarted;
+            pluginConfig.RuleValuesBindCollection.OnChanged +=  ApplyConfigValues;
         }
 
         private void OnRunStarted(RunTracker sender)
@@ -48,18 +48,18 @@ namespace TeammateRevive.Revive.Rules
 
         public void ApplyValues(ReviveRuleValues newValues)
         {
-            var oldValues = this.Values;
+            var oldValues = Values;
             
-            this.Values = newValues;
-            this.ReduceReviveProgressSpeed = -(1f / newValues.ReviveTimeSeconds * newValues.ReduceReviveProgressFactor);
-            this.ReviveLinkBuffTime = newValues.ReviveTimeSeconds / newValues.ReduceReviveProgressFactor * newValues.ReviveLinkBuffTimeFactor;
+            Values = newValues;
+            ReduceReviveProgressSpeed = -(1f / newValues.ReviveTimeSeconds * newValues.ReduceReviveProgressFactor);
+            ReviveLinkBuffTime = newValues.ReviveTimeSeconds / newValues.ReduceReviveProgressFactor * newValues.ReviveLinkBuffTimeFactor;
             
-            this.ValuesChanged?.Invoke(oldValues, newValues);
+            ValuesChanged?.Invoke(oldValues, newValues);
         }
 
         public void SendValues()
         {
-            new SetRulesMessage(this.Values).Send(NetworkDestination.Clients);
+            new SetRulesMessage(Values).Send(NetworkDestination.Clients);
         }
 
         public float CalculateDeathTotemRadius(Player dead)
@@ -71,15 +71,15 @@ namespace TeammateRevive.Revive.Rules
         }
         public float CalculateDeathTotemRadius(int itemCount, int playersCount)
         {
-            var range = this.Values.BaseTotemRange;
+            var range = Values.BaseTotemRange;
 
-            if (this.run.IsDeathCurseEnabled)
+            if (run.IsDeathCurseEnabled)
             {
-                var obolRangeBonus = this.Values.BaseTotemRange * itemCount * this.Values.ItemIncreaseRangeFactor;
+                var obolRangeBonus = Values.BaseTotemRange * itemCount * Values.ItemIncreaseRangeFactor;
                 range += obolRangeBonus;
             }
             
-            var playersCountBonus = this.Values.BaseTotemRange * this.Values.IncreaseRangeWithPlayersFactor * playersCount;
+            var playersCountBonus = Values.BaseTotemRange * Values.IncreaseRangeWithPlayersFactor * playersCount;
             range += playersCountBonus;
             
             return range;
@@ -89,27 +89,27 @@ namespace TeammateRevive.Revive.Rules
         public float GetReviveSpeed(Player reviver, int playersInRange)
         {
             var obolsCount = reviver.master.master.inventory.GetItemCount(CharonsObol.Index);
-            var reviveEverywhereCount = reviver.master.master.inventory.GetItemCount(ReviveEverywhereItem.Index);
+            var reviveEverywhereCount = reviver.master.master.inventory.GetItemCount(DeadMansHandItem.Index);
             return GetReviveSpeed(obolsCount, reviveEverywhereCount, playersInRange);
         }
         
         public float GetReviveSpeed(int obolsCount, int reviveEverywhereCount, int playersInRange)
         {
-            var speed = (1f / this.Values.ReviveTimeSeconds / playersInRange);
+            var speed = (1f / Values.ReviveTimeSeconds / playersInRange);
             if (reviveEverywhereCount > 0) speed /= 2;
 
-            if (this.run.IsDeathCurseEnabled)
+            if (run.IsDeathCurseEnabled)
             {
-                var obolFactor = this.Values.ReviveTimeSeconds / (this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount + reviveEverywhereCount));
+                var obolFactor = Values.ReviveTimeSeconds / (Values.ReviveTimeSeconds / Mathf.Pow(Values.ObolReviveFactor, obolsCount + reviveEverywhereCount));
                 speed *= obolFactor;
             }
             
             return speed;
         }
-        public float GetReviveIncrease(int obolsCount) => this.Values.ReviveTimeSeconds / Mathf.Pow(this.Values.ObolReviveFactor, obolsCount);
+        public float GetReviveIncrease(int obolsCount) => Values.ReviveTimeSeconds / Mathf.Pow(Values.ObolReviveFactor, obolsCount);
 
-        public float GetReviveTime(int obolsCount, int reviveEverywhereCount) => this.Values.ReviveTimeSeconds /
-            this.GetReviveSpeed(obolsCount, reviveEverywhereCount, 1);
+        public float GetReviveTime(int obolsCount, int reviveEverywhereCount) => Values.ReviveTimeSeconds /
+            GetReviveSpeed(obolsCount, reviveEverywhereCount, 1);
 
         public float GetReviveTimeIncrease(int obolsCount, int reviveEverywhereCount) =>
             GetReviveSpeed(obolsCount, 0, 1) / GetReviveSpeed(obolsCount, reviveEverywhereCount, 1);
@@ -125,8 +125,8 @@ namespace TeammateRevive.Revive.Rules
         public float GetDamageSpeed(int playersInRange, float playerMaxHealth, int deadPlayerObolsCount, int reviverEverywhereObolCount)
         {
             // aim to leave 15% max HP
-            float damageSpeed = ((playerMaxHealth * 0.85f) / this.Values.ReviveTimeSeconds / playersInRange);
-            if (this.run.IsDeathCurseEnabled)
+            float damageSpeed = ((playerMaxHealth * 0.85f) / Values.ReviveTimeSeconds / playersInRange);
+            if (run.IsDeathCurseEnabled)
             {
                 damageSpeed *= GetReviveReduceDamageFactor(deadPlayerObolsCount, reviverEverywhereObolCount);
             }
@@ -135,10 +135,10 @@ namespace TeammateRevive.Revive.Rules
 
         public float GetReviveReduceDamageFactor(int deadPlayerObolsCount, int reviverEverywhereObolCount)
         {
-            return 1 / Mathf.Pow(this.Values.ObolDamageReduceFactor, deadPlayerObolsCount);
+            return 1 / Mathf.Pow(Values.ObolDamageReduceFactor, deadPlayerObolsCount);
         }
 
         public float GetCurseReduceHpFactor(int reducesCount) =>
-            Mathf.Pow(this.Values.ReduceHpFactor, reducesCount) + this.Values.BaseReduceHpFactor;
+            Mathf.Pow(Values.ReduceHpFactor, reducesCount) + Values.BaseReduceHpFactor;
     }
 }

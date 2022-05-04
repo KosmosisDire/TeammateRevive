@@ -1,7 +1,12 @@
 using UnityEngine;
+namespace TeammateRevive.Common{
+
+
 
 public static class RectTransformExtensions
 {
+    #region Local Pivots
+
     public static Vector2 GetLocalPivotInPixels(this RectTransform rt)
     {
         return new Vector2(rt.pivot.x * rt.rect.width, rt.pivot.y * rt.rect.height);
@@ -12,7 +17,7 @@ public static class RectTransformExtensions
         return rt.GetLocalPivotInPixels().MirrorY(rt, negateY);
     }
 
-    public static Vector2 GetLocalPivotFromBottomLeftInPixels(this RectTransform rt, bool negateY = false)
+    public static Vector2 GetLocalPivotFromBottomLeftInPixels(this RectTransform rt)
     {
         return rt.GetLocalPivotInPixels();
     }
@@ -22,10 +27,14 @@ public static class RectTransformExtensions
         return rt.GetLocalPivotInPixels().MirrorY(rt, negateY).MirrorX(rt, true);
     }
 
-    public static Vector2 GetLocalPivotFromBottomRightInPixels(this RectTransform rt, bool negateY = false)
+    public static Vector2 GetLocalPivotFromBottomRightInPixels(this RectTransform rt)
     {
         return rt.GetLocalPivotInPixels().MirrorX(rt, true);
     }
+
+    #endregion
+
+    #region Set Corner Positions
 
     ///<summary>
     /// Sets the absolute offset between the parent's top left corner, and it's own top left corner. Regardless of the pivot or anchors. Preserves the width and height.
@@ -55,26 +64,7 @@ public static class RectTransformExtensions
         transform.localPosition += new Vector3(direction == RectTransform.Axis.Horizontal ? finalOffset.x : 0, direction == RectTransform.Axis.Vertical ? finalOffset.y : 0);
     }
 
-    /// <summary>
-    /// The absolute offset between the parent's top left corner, and it's own top left corner. Regardless of the pivot or anchors.
-    /// </summary>
-    public static Vector2 GetTopLeftOffset(this RectTransform transform)
-    {
-        RectTransform parent = transform.parent as RectTransform;
-        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels().MirrorY(transform) - new Vector3(0, parent.rect.height, 0);
-        return offset.MultiplyComponent(new Vector2(1, -1));
-    }
-
-    /// <summary>
-    /// The absolute offset between the parent's top left corner, and it's own bottom right corner. Regardless of the pivot or anchors.
-    /// </summary>
-    public static Vector2 GetBottomRightOffset(this RectTransform transform)
-    {
-        RectTransform parent = transform.parent as RectTransform;
-        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels().MirrorX(transform) - new Vector3(0, parent.rect.height, 0);
-        return offset.MultiplyComponent(new Vector2(1, -1));
-    }
-
+    
 
     ///<summary>
     /// Sets the absolute offset between the parent's bottom right corner, and it's own bottom right corner. Regardless of the pivot or anchors. Preserves the width and height.
@@ -86,7 +76,7 @@ public static class RectTransformExtensions
         Vector3 reorientedTarget = new Vector2(x, y).MirrorX(parent, false);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomRightInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomRightInPixels();
         transform.localPosition += finalOffset;
     }
 
@@ -100,19 +90,11 @@ public static class RectTransformExtensions
         Vector3 reorientedTarget = new Vector2(distance, distance).MirrorX(parent, false);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomRightInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomRightInPixels();
         transform.localPosition += new Vector3(direction == RectTransform.Axis.Horizontal ? finalOffset.x : 0, direction == RectTransform.Axis.Vertical ? finalOffset.y : 0);
     }
 
-    /// <summary>
-    /// The absolute offset between the parent's top left corner, and it's own top right corner. Regardless of the pivot or anchors.
-    /// </summary>
-    public static Vector2 GetTopRightOffset(this RectTransform transform)
-    {
-        RectTransform parent = transform.parent as RectTransform;
-        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels().MirrorX(transform) - new Vector3(parent.rect.width, 0, 0);
-        return offset.MultiplyComponent(new Vector2(1, -1));
-    }
+
 
     /// <summary>
     /// Sets the absolute offset between the parent's top right corner, and it's own top right corner. Regardless of the pivot or anchors. Preserves the width and height.
@@ -142,15 +124,7 @@ public static class RectTransformExtensions
         transform.localPosition += new Vector3(direction == RectTransform.Axis.Horizontal ? finalOffset.x : 0, direction == RectTransform.Axis.Vertical ? finalOffset.y : 0);
     }
 
-    /// <summary>
-    /// The absolute offset between the parent's top left corner, and it's own bottom left corner. Regardless of the pivot or anchors.
-    /// </summary>
-    public static Vector2 GetBottomLeftOffset(this RectTransform transform)
-    {
-        RectTransform parent = transform.parent as RectTransform;
-        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels().MirrorY(transform) - new Vector3(0, parent.rect.height, 0);
-        return offset.MultiplyComponent(new Vector2(1, -1));
-    }
+    
 
     /// <summary>
     /// Sets the absolute offset between the parent's bottom left corner, and it's own bottom left corner. Regardless of the pivot or anchors. Preserves the width and height.
@@ -162,7 +136,7 @@ public static class RectTransformExtensions
         Vector3 reorientedTarget = new Vector2(x, y);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomLeftInPixels();
         transform.localPosition += finalOffset;
     }
 
@@ -176,20 +150,56 @@ public static class RectTransformExtensions
         Vector3 reorientedTarget = new Vector2(distance, distance);
         Vector3 parentPivotToTarget = reorientedTarget - (Vector3)parent.GetLocalPivotInPixels();
         Vector3 localPivotToTarget = parentPivotToTarget - transform.localPosition;
-        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomLeftInPixels(true);
+        Vector3 finalOffset = localPivotToTarget + (Vector3)transform.GetLocalPivotFromBottomLeftInPixels();
         transform.localPosition += new Vector3(direction == RectTransform.Axis.Horizontal ? finalOffset.x : 0, direction == RectTransform.Axis.Vertical ? finalOffset.y : 0);
     }
 
-    public static Vector2 GetWorldSpaceCenter(this RectTransform transform)
+    #endregion
+    
+    #region Get Corner Positions
+    /// <summary>
+    /// The absolute offset between the parent's top right corner, and it's own top right corner. Regardless of the pivot or anchors.
+    /// </summary>
+    public static Vector2 GetTopRightOffset(this RectTransform transform)
     {
-        return transform.TransformPoint(transform.rect.center);
+        RectTransform parent = transform.parent as RectTransform;
+        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels().MirrorX(transform) - new Vector3(parent.rect.width, 0, 0);
+        return offset.MultiplyComponent(new Vector2(1, -1));
     }
 
-    public static Vector2 GetWorldSpaceSize(this RectTransform transform)
+    /// <summary>
+    /// The absolute offset between the parent's top left corner, and it's own top left corner. Regardless of the pivot or anchors.
+    /// </summary>
+    public static Vector2 GetTopLeftOffset(this RectTransform transform)
     {
-        return transform.TransformVector(transform.rect.size);
+        RectTransform parent = transform.parent as RectTransform;
+        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels().MirrorY(transform) - new Vector3(0, parent.rect.height, 0);
+        return offset.MultiplyComponent(new Vector2(1, -1));
     }
 
+    /// <summary>
+    /// The absolute offset between the parent's bottom right corner, and it's own bottom right corner. Regardless of the pivot or anchors.
+    /// </summary>
+    public static Vector2 GetBottomRightOffset(this RectTransform transform)
+    {
+        RectTransform parent = transform.parent as RectTransform;
+        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels().MirrorX(transform) - new Vector3(parent.rect.width, 0, 0);
+        return offset.MultiplyComponent(new Vector2(-1, 1));
+    }
+
+    /// <summary>
+    /// The absolute offset between the parent's bottom left corner, and it's own bottom left corner. Regardless of the pivot or anchors.
+    /// </summary>
+    public static Vector2 GetBottomLeftOffset(this RectTransform transform)
+    {
+        RectTransform parent = transform.parent as RectTransform;
+        Vector3 offset = (Vector3)parent.GetLocalPivotInPixels() + transform.localPosition - (Vector3)transform.GetLocalPivotInPixels() - new Vector3(0, 0, parent.rect.height);
+        return offset;
+    }
+
+    #endregion
+
+    #region Set Size
     public static void SetWidthInPixels(this RectTransform transform, float width)
     {
         transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
@@ -205,5 +215,24 @@ public static class RectTransformExtensions
         transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
         transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
     }
+
+    #endregion
+
+    #region World Space
+    public static Vector2 GetWorldSpaceCenter(this RectTransform transform)
+    {
+        return transform.TransformPoint(transform.rect.center);
+    }
+
+    public static Vector2 GetWorldSpaceSize(this RectTransform transform)
+    {
+        return transform.TransformVector(transform.rect.size);
+    }
+    #endregion
+
+    
+
+}
+
 
 }

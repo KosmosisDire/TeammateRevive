@@ -38,10 +38,10 @@ public class RiskOfOptionsIntegration
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     void RegisterOptions()
     {
-        var registeredCount = RegisterBindCollection(this.config.RuleValuesBindCollection);
-        registeredCount += RegisterBindCollection(this.config.MiscBindCollection);
+        var registeredCount = RegisterBindCollection(config.RuleValuesBindCollection);
+        registeredCount += RegisterBindCollection(config.MiscBindCollection);
 #if DEBUG
-        registeredCount += RegisterBindCollection(this.config.DebugBindCollection);
+        registeredCount += RegisterBindCollection(config.DebugBindCollection);
 #endif
 
         Log.Info($"RiskOfOptions integration: OK! (Options: {registeredCount})");

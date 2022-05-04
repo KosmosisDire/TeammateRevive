@@ -47,7 +47,7 @@ namespace TeammateRevive.Integrations
                         (value, ctx) => $"Revive speed increased by {value.FormatPercentage(signed: true, decimalPlaces: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.rules.GetReviveTime((int)itemCount, ctx.CountItems(ReviveEverywhereItem.Index)),
+                        (itemCount, ctx) => this.rules.GetReviveTime((int)itemCount, ctx.CountItems(DeadMansHandItem.Index)),
                         (value, ctx) => $"Time to revive alone: {value.FormatInt(postfix: "s", decimals: 1)}"
                     ),
                     new(
@@ -61,7 +61,7 @@ namespace TeammateRevive.Integrations
                 }
             });
 
-            ItemStatsMod.AddCustomItemStatDef(ReviveEverywhereItem.Index, new ItemStatDef
+            ItemStatsMod.AddCustomItemStatDef(DeadMansHandItem.Index, new ItemStatDef
             {
                 Stats = new List<ItemStat>
                 {

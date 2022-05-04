@@ -5,7 +5,7 @@ using static TeammateRevive.Common.TextFormatter;
 
 namespace TeammateRevive.Content
 {
-    public class ReviveEverywhereItem : ContentBase
+    public class DeadMansHandItem : ContentBase
     {
         public static string Name = "ITEM_ReviveEverywhere";
         public static string NameToken = "Dead Man's Hand";

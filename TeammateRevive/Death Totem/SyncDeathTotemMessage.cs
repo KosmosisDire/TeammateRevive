@@ -26,7 +26,7 @@ namespace TeammateRevive.DeathTotem
         {
             this.totemId = totemId;
             this.deadPlayerId = deadPlayerId;
-            this.insideCount = insideIDs.Count;
+            insideCount = insideIDs.Count;
             this.insideIDs = insideIDs;
             this.radius = radius;
             this.fractionPerSecond = fractionPerSecond;
@@ -34,38 +34,38 @@ namespace TeammateRevive.DeathTotem
 
         public void Serialize(NetworkWriter writer)
         {
-            writer.Write(this.totemId);
-            writer.Write(this.deadPlayerId);
-            writer.Write(this.insideCount);
-            for (int i = 0; i < this.insideCount; i++)
+            writer.Write(totemId);
+            writer.Write(deadPlayerId);
+            writer.Write(insideCount);
+            for (int i = 0; i < insideCount; i++)
             {
-                writer.Write(this.insideIDs[i]);
+                writer.Write(insideIDs[i]);
             }
-            writer.Write(this.radius);
-            writer.Write(this.fractionPerSecond);
+            writer.Write(radius);
+            writer.Write(fractionPerSecond);
         }
 
         public void Deserialize(NetworkReader reader)
         {
-            this.totemId = reader.ReadNetworkId();
-            this.deadPlayerId = reader.ReadNetworkId();
-            this.insideCount = reader.ReadInt32();
-            this.insideIDs.Clear();
-            for (int i = 0; i < this.insideCount; i++)
+            totemId = reader.ReadNetworkId();
+            deadPlayerId = reader.ReadNetworkId();
+            insideCount = reader.ReadInt32();
+            insideIDs.Clear();
+            for (int i = 0; i < insideCount; i++)
             {
-                this.insideIDs.Add(reader.ReadNetworkId());
+                insideIDs.Add(reader.ReadNetworkId());
             }
-            this.radius = reader.ReadSingle();
-            this.fractionPerSecond = reader.ReadSingle();
+            radius = reader.ReadSingle();
+            fractionPerSecond = reader.ReadSingle();
         }
 
         public void OnReceived()
         {
             if (NetworkServer.active) return;
-            DeathTotemBehavior totemComp = Util.FindNetworkObject(this.totemId)?.GetComponent<DeathTotemBehavior>();
+            DeathTotemBehavior totemComp = Util.FindNetworkObject(totemId)?.GetComponent<DeathTotemBehavior>();
             if (totemComp == null)
             {
-                Log.Debug("Couldn't find totem " + this.totemId);
+                Log.Debug("Couldn't find totem " + totemId);
                 MainTeammateRevival.instance.DoCoroutine(DelayedApply(totemComp));
                 return;
             }
@@ -81,16 +81,16 @@ namespace TeammateRevive.DeathTotem
 
         private void Apply(DeathTotemBehavior totemComp)
         {
-            totemComp = totemComp ? totemComp : Util.FindNetworkObject(this.totemId)?.GetComponent<DeathTotemBehavior>();
+            totemComp = totemComp ? totemComp : Util.FindNetworkObject(totemId)?.GetComponent<DeathTotemBehavior>();
             if (totemComp == null)
             {
-                Log.Debug("Couldn't find totem after delay " + this.totemId);
+                Log.Debug("Couldn't find totem after delay " + totemId);
                 return;
             }
         
             totemComp.gameObject.SetActive(true);
-            Log.DebugMethod($"Fraction: {this.fractionPerSecond}");
-            if (totemComp) totemComp.SetValuesReceive(this.deadPlayerId, this.insideIDs, this.radius, this.fractionPerSecond);
+            Log.DebugMethod($"Fraction: {fractionPerSecond}");
+            if (totemComp) totemComp.SetValuesReceive(deadPlayerId, insideIDs, radius, fractionPerSecond);
         }
     }
 }

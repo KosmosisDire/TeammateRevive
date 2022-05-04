@@ -61,7 +61,7 @@ namespace TeammateRevive.Content
         
         private void OnCharacterBodyRecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
         {
-            if (self.inventory == null || !this.run.IsDeathCurseEnabled)
+            if (self.inventory == null || !run.IsDeathCurseEnabled)
             {
                 orig(self);
                 return;
@@ -78,7 +78,7 @@ namespace TeammateRevive.Content
             if (reducesCount == 0)
                 return;
 
-            var actualReduceFactor = this.rules.GetCurseReduceHpFactor(reducesCount);
+            var actualReduceFactor = rules.GetCurseReduceHpFactor(reducesCount);
             var hpReduce = self.maxHealth - self.maxHealth / actualReduceFactor;
             var shieldReduce = self.maxShield - self.maxShield / actualReduceFactor;
 

@@ -94,7 +94,7 @@ namespace TeammateRevive.Logging
 
         public void Write(LogLevel level, object msg)
         {
-            foreach (var target in this.Targets)
+            foreach (var target in Targets)
             {
                 try
                 {

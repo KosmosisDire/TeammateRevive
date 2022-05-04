@@ -30,13 +30,13 @@ namespace TeammateRevive
                 return;
             }
             
-            var isDeathCurseEnabled = this.run.IsDeathCurseEnabled ||
-                                      (NetworkHelper.IsServer && this.rules.Values.ForceDeathCurseRule);
+            var isDeathCurseEnabled = run.IsDeathCurseEnabled ||
+                                      (NetworkHelper.IsServer && rules.Values.ForceDeathCurseRule);
 
             if (!isDeathCurseEnabled)
             {
                 RemoveItem(CharonsObol.Index, self.availableTier2DropList, CharonsObol.Name);
-                RemoveItem(ReviveEverywhereItem.Index, self.availableLunarItemDropList, ReviveEverywhereItem.Name);
+                RemoveItem(DeadMansHandItem.Index, self.availableLunarItemDropList, DeadMansHandItem.Name);
             }
         }
 

@@ -15,10 +15,10 @@ namespace TeammateRevive.Revive
         
         public ReviveLinkBuffIconManager()
         {
-            On.RoR2.UI.BuffIcon.Update += hook_Update;
+            On.RoR2.UI.BuffIcon.Update += Hook_Update;
         }
 
-        private void hook_Update(On.RoR2.UI.BuffIcon.orig_Update orig, BuffIcon buffIcon)
+        private void Hook_Update(On.RoR2.UI.BuffIcon.orig_Update orig, BuffIcon buffIcon)
         {
             orig(buffIcon);
 
@@ -39,7 +39,7 @@ namespace TeammateRevive.Revive
             
             Color start;
             Color target;
-            if (this.decreasing)
+            if (decreasing)
             {
                 start = new Color(currentColor.r, currentColor.g, currentColor.b, 1);
                 target = new Color(currentColor.r, currentColor.g, currentColor.b, MIN_OPACITY);
@@ -49,13 +49,13 @@ namespace TeammateRevive.Revive
                 start = new Color(currentColor.r, currentColor.g, currentColor.b, MIN_OPACITY);
                 target = new Color(currentColor.r, currentColor.g, currentColor.b, 1);
             }
-            image.color = Color.Lerp(start, target, EaseInCubic(this.elapsedTime / OPACITY_CHANGE_TIME));
+            image.color = Color.Lerp(start, target, EaseInCubic(elapsedTime / OPACITY_CHANGE_TIME));
 
-            this.elapsedTime += Time.deltaTime;
-            while (this.elapsedTime > OPACITY_CHANGE_TIME)
+            elapsedTime += Time.deltaTime;
+            while (elapsedTime > OPACITY_CHANGE_TIME)
             {
-                this.elapsedTime -= OPACITY_CHANGE_TIME;
-                this.decreasing = !this.decreasing;
+                elapsedTime -= OPACITY_CHANGE_TIME;
+                decreasing = !decreasing;
             }
         }
 
