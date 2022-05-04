@@ -8,7 +8,7 @@ namespace TeammateRevive.ProgressBar
     /// </summary>
     public class CharArrayBuilder
     {
-        private struct Part
+        private class Part
         {
             public int Start;
             public int Len;
@@ -64,11 +64,11 @@ namespace TeammateRevive.ProgressBar
         public void UpdatePart(int idx, string value)
         {
             var part = this.parts[idx];
-            UpdatePartLen(ref part, value.Length, idx);
+            UpdatePartLen(part, value.Length, idx);
             value.CopyTo(0, this.Buffer, part.Start, value.Length);
         }
 
-        private void UpdatePartLen(ref Part part, int len, int partIdx)
+        private void UpdatePartLen(Part part, int len, int partIdx)
         {
             var diff = part.Len - len;
 
@@ -99,7 +99,7 @@ namespace TeammateRevive.ProgressBar
             // update consequent parts
             for (var i = partIdx + 1; i < this.parts.Length; i++)
             {
-                ref var p = ref this.parts[i];
+                var p = this.parts[i];
                 p.Start -= diff;
             }
         }
@@ -117,8 +117,8 @@ namespace TeammateRevive.ProgressBar
         private void InternalSetPaddedFloatPart(int partIdx, int value)
         {
             if (value > DIGITS_MULT) value = DIGITS_MULT;
-            ref var part = ref this.parts[partIdx];
-            UpdatePartLen(ref part, DIGITS_COUNT + 1, partIdx);
+            var part = this.parts[partIdx];
+            UpdatePartLen(part, DIGITS_COUNT + 1, partIdx);
             var idx = part.Start;
 
             // pad buffer

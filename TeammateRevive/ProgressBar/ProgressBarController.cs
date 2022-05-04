@@ -20,6 +20,7 @@ namespace TeammateRevive.ProgressBar
         private string currentName = DefaultName;
         private readonly CharArrayBuilder charArrayBuilder;
         public bool showing = false;
+        public bool inited = false;
         Slider progressBar;
         public float progress;
         RoR2.UI.HUD hudRef;
@@ -85,6 +86,11 @@ namespace TeammateRevive.ProgressBar
 
         public void Hide()
         {
+            if (!this.inited)
+            {
+                return;
+            }
+            
             currentName = DefaultName;
             progressBar.GetComponent<CanvasGroup>().alpha = 0;
             showing = false;
@@ -92,6 +98,14 @@ namespace TeammateRevive.ProgressBar
 
         public void Show()
         {
+            if (!this.inited)
+            {
+                AttachProgressBar(this.hudRef);
+                if (!this.inited)
+                {
+                    return;
+                }
+            }
             if (this.showing) 
                 return;
             
@@ -106,16 +120,26 @@ namespace TeammateRevive.ProgressBar
 
             hudRef = hud;
             
+            var healthBarRoot = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot");
+            var barRoots = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots");
+
+            if (healthBarRoot == null || barRoots == null)
+            {
+                this.inited = false;
+                return;
+            }
+            
             progressBar = CustomResources.progressBarPrefab.InstantiateClone("Revival Progress Bar").GetComponent<Slider>();
             progressBar.transform.SetParent(hud.mainUIPanel.transform.Find("SpringCanvas/BottomCenterCluster"));
-
-            this.healthbarTransform = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot").GetComponent<RectTransform>();
-            this.barRootTransform = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots").GetComponent<RectTransform>();
+            
+            this.healthbarTransform = healthBarRoot.GetComponent<RectTransform>();
+            this.barRootTransform = barRoots.Find("SpringCanvas/BottomLeftCluster/BarRoots").GetComponent<RectTransform>();
             this.progressBarTransform = progressBar.GetComponent<RectTransform>();
 
             textComponent = progressBar.GetComponentInChildren<TextMeshProUGUI>();
             textComponent.font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
             Hide();
+            this.inited = true;
         }
 
         public void Destroy()
