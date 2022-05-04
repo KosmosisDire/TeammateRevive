@@ -4,7 +4,6 @@ using TeammateRevive.Common;
 using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Revive.Rules;
-using Run = On.RoR2.Run;
 
 namespace TeammateRevive
 {
@@ -19,9 +18,20 @@ namespace TeammateRevive
             this.rules = rules;
 
             On.RoR2.Run.BuildDropTable += OnBuildDropTable;
+            On.RoR2.ItemCatalog.AllItemsEnumerator.MoveNext += OnNextItemIterator;
         }
 
-        private void OnBuildDropTable(Run.orig_BuildDropTable orig, RoR2.Run self)
+        private bool OnNextItemIterator(On.RoR2.ItemCatalog.AllItemsEnumerator.orig_MoveNext orig, ref RoR2.ItemCatalog.AllItemsEnumerator self)
+        {
+            while (this.run.IsDeathCurseEnabled && (self.position == CharonsObol.Index - 1 || self.position == ReviveEverywhereItem.Index - 1))
+            {
+                self.position++;
+            }
+
+            return orig(ref self);
+        }
+
+        private void OnBuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, RoR2.Run self)
         {
             orig(self);
             if (!ContentManager.ContentInited)
@@ -36,7 +46,9 @@ namespace TeammateRevive
             if (!isDeathCurseEnabled)
             {
                 RemoveItem(CharonsObol.Index, self.availableTier2DropList, CharonsObol.Name);
+                
                 RemoveItem(ReviveEverywhereItem.Index, self.availableLunarItemDropList, ReviveEverywhereItem.Name);
+                RemoveItem(ReviveEverywhereItem.Index, self.availableLunarCombinedDropList, ReviveEverywhereItem.Name);
             }
         }
 
