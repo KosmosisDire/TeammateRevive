@@ -11,7 +11,7 @@ namespace TeammateRevive.Revive.Rules
 
         public SetRulesMessage()
         {
-            this.ruleValues = new ReviveRuleValues();
+            ruleValues = new ReviveRuleValues();
         }
 
         public SetRulesMessage(ReviveRuleValues ruleValues)
@@ -21,41 +21,41 @@ namespace TeammateRevive.Revive.Rules
         
         public void Serialize(NetworkWriter writer)
         {
-            writer.Write(this.ruleValues.BaseTotemRange);
-            writer.Write(this.ruleValues.IncreaseRangeWithPlayersFactor);
-            writer.Write(this.ruleValues.ItemIncreaseRangeFactor);
-            writer.Write(this.ruleValues.ReviveTimeSeconds);
-            writer.Write(this.ruleValues.ObolReviveFactor);
-            writer.Write(this.ruleValues.ReduceHpFactor);
-            writer.Write(this.ruleValues.BaseReduceHpFactor);
-            writer.Write(this.ruleValues.ReduceReviveProgressFactor);
-            writer.Write(this.ruleValues.ReviveLinkBuffTimeFactor);
-            writer.Write(this.ruleValues.ObolDamageReduceFactor);
-            writer.Write(this.ruleValues.ForceDeathCurseRule);
-            writer.Write(this.ruleValues.DebugKeepTotem);
-            writer.Write(this.ruleValues.EnableRevivalToken);
-            writer.Write(this.ruleValues.CutReviveeHp);
-            writer.Write(this.ruleValues.PostReviveRegenDurationSec);
+            writer.Write(ruleValues.BaseTotemRange);
+            writer.Write(ruleValues.IncreaseRangeWithPlayersFactor);
+            writer.Write(ruleValues.ItemIncreaseRangeFactor);
+            writer.Write(ruleValues.ReviveTimeSeconds);
+            writer.Write(ruleValues.ObolReviveFactor);
+            writer.Write(ruleValues.ReduceHpFactor);
+            writer.Write(ruleValues.BaseReduceHpFactor);
+            writer.Write(ruleValues.ReduceReviveProgressFactor);
+            writer.Write(ruleValues.ReviveLinkBuffTimeFactor);
+            writer.Write(ruleValues.ObolDamageReduceFactor);
+            writer.Write(ruleValues.ForceDeathCurseRule);
+            writer.Write(ruleValues.DebugKeepTotem);
+            writer.Write(ruleValues.EnableRevivalToken);
+            writer.Write(ruleValues.CutReviveeHp);
+            writer.Write(ruleValues.PostReviveRegenDurationSec);
             Log.Info("Sending new rule values");
         }
 
         public void Deserialize(NetworkReader reader)
         {
-            this.ruleValues.BaseTotemRange = reader.ReadSingle();
-            this.ruleValues.IncreaseRangeWithPlayersFactor = reader.ReadSingle();
-            this.ruleValues.ItemIncreaseRangeFactor = reader.ReadSingle();
-            this.ruleValues.ReviveTimeSeconds = reader.ReadSingle();
-            this.ruleValues.ObolReviveFactor = reader.ReadSingle();
-            this.ruleValues.ReduceHpFactor = reader.ReadSingle();
-            this.ruleValues.BaseReduceHpFactor = reader.ReadSingle();
-            this.ruleValues.ReduceReviveProgressFactor = reader.ReadSingle();
-            this.ruleValues.ReviveLinkBuffTimeFactor = reader.ReadSingle();
-            this.ruleValues.ObolDamageReduceFactor = reader.ReadSingle();
-            this.ruleValues.ForceDeathCurseRule = reader.ReadBoolean();
-            this.ruleValues.DebugKeepTotem = reader.ReadBoolean();
-            this.ruleValues.EnableRevivalToken = reader.ReadBoolean();
-            this.ruleValues.CutReviveeHp = reader.ReadBoolean();
-            this.ruleValues.PostReviveRegenDurationSec = reader.ReadSingle();
+            ruleValues.BaseTotemRange = reader.ReadSingle();
+            ruleValues.IncreaseRangeWithPlayersFactor = reader.ReadSingle();
+            ruleValues.ItemIncreaseRangeFactor = reader.ReadSingle();
+            ruleValues.ReviveTimeSeconds = reader.ReadSingle();
+            ruleValues.ObolReviveFactor = reader.ReadSingle();
+            ruleValues.ReduceHpFactor = reader.ReadSingle();
+            ruleValues.BaseReduceHpFactor = reader.ReadSingle();
+            ruleValues.ReduceReviveProgressFactor = reader.ReadSingle();
+            ruleValues.ReviveLinkBuffTimeFactor = reader.ReadSingle();
+            ruleValues.ObolDamageReduceFactor = reader.ReadSingle();
+            ruleValues.ForceDeathCurseRule = reader.ReadBoolean();
+            ruleValues.DebugKeepTotem = reader.ReadBoolean();
+            ruleValues.EnableRevivalToken = reader.ReadBoolean();
+            ruleValues.CutReviveeHp = reader.ReadBoolean();
+            ruleValues.PostReviveRegenDurationSec = reader.ReadSingle();
         }
 
         public void OnReceived()
@@ -63,7 +63,7 @@ namespace TeammateRevive.Revive.Rules
             Log.Info("Received new rule values");
             if (NetworkHelper.IsClient())
             {
-                ReviveRules.instance.ApplyValues(this.ruleValues);
+                ReviveRules.instance.ApplyValues(ruleValues);
                 Log.Info("Applied new rule values");
             }
         }

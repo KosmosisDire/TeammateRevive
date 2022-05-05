@@ -8,14 +8,14 @@ public class FloatMetadata : EntryMetadata
 
     public FloatMetadata(float minValue, float maxValue)
     {
-        this.MinValue = minValue;
-        this.MaxValue = maxValue;
+        MinValue = minValue;
+        MaxValue = maxValue;
     }
 
     public FloatMetadata(float minValue, float maxValue, float step)
     {
-        this.MinValue = minValue;
-        this.MaxValue = maxValue;
-        this.Step = step;
+        MinValue = minValue;
+        MaxValue = maxValue;
+        Step = step;
     }
 }

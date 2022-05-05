@@ -9,7 +9,6 @@ using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.ProgressBar;
-using TeammateRevive.Resources;
 using TeammateRevive.Revive.Rules;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -104,12 +103,12 @@ namespace TeammateRevive.DeathTotem
             GlobalOnCreated?.Invoke(this);
         }
 
-        public void SetValuesReceive(NetworkInstanceId deadPlayerId,
-            List<NetworkInstanceId> _insidePlayerIDs, float scale, float fractionPerSecond)
+        public void SetValuesReceive(NetworkInstanceId _deadPlayerId,
+            List<NetworkInstanceId> _insidePlayerIDs, float scale, float _fractionPerSecond)
         {
             Log.Debug($"Received death totem values. Rad: {scale}");
-            deadPlayerId = deadPlayerId;
-            fractionPerSecond = fractionPerSecond;
+            deadPlayerId = _deadPlayerId;
+            fractionPerSecond = _fractionPerSecond;
             insidePlayerIDs = _insidePlayerIDs;
             cachedRadius = scale;
             animation.AnimateTo(Vector3.one * scale);

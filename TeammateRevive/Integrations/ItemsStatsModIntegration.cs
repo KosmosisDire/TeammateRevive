@@ -43,19 +43,19 @@ namespace TeammateRevive.Integrations
                 Stats = new List<ItemStat>
                 {
                     new(
-                        (itemCount, ctx) => this.rules.GetReviveIncrease((int)itemCount),
+                        (itemCount, ctx) => rules.GetReviveIncrease((int)itemCount),
                         (value, ctx) => $"Revive speed increased by {value.FormatPercentage(signed: true, decimalPlaces: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.rules.GetReviveTime((int)itemCount, ctx.CountItems(DeadMansHandItem.Index)),
+                        (itemCount, ctx) => rules.GetReviveTime((int)itemCount, ctx.CountItems(DeadMansHandItem.Index)),
                         (value, ctx) => $"Time to revive alone: {value.FormatInt(postfix: "s", decimals: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.rules.CalculateDeathTotemRadius((int)itemCount, 1),
+                        (itemCount, ctx) => rules.CalculateDeathTotemRadius((int)itemCount, 1),
                         (value, ctx) => $"Revive circle range: {value.FormatInt(postfix: "m", decimals: 1)}"
                     ),
                     new(
-                        (itemCount, ctx) => this.rules.GetReviveReduceDamageFactor((int)itemCount, 0) - 1,
+                        (itemCount, ctx) => rules.GetReviveReduceDamageFactor((int)itemCount, 0) - 1,
                         (value, ctx) => $"Damage from your circle: {value.FormatPercentage(decimalPlaces: 1, signed: true)}"
                     )
                 }
@@ -66,7 +66,7 @@ namespace TeammateRevive.Integrations
                 Stats = new List<ItemStat>
                 {
                     new(
-                        (itemCount, ctx) => this.rules.GetReviveTimeIncrease(ctx.CountItems(CharonsObol.Index), (int)itemCount),
+                        (itemCount, ctx) => rules.GetReviveTimeIncrease(ctx.CountItems(CharonsObol.Index), (int)itemCount),
                         (value, ctx) => $"Revive time increase: {value.FormatPercentage(decimalPlaces: 1, signed: true)}"
                     )
                 }

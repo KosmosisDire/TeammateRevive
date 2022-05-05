@@ -29,9 +29,9 @@ namespace TeammateRevive.Artifact
             // disable artifact if single player
             if (Run.instance.participatingPlayerCount == 1 
                 && !rules.Values.ForceEnableDeathCurseForSinglePlayer
-                && RunArtifactManager.instance.IsArtifactEnabled(this.ArtifactDef))
+                && RunArtifactManager.instance.IsArtifactEnabled(ArtifactDef))
             {
-                RunArtifactManager.instance.SetArtifactEnabledServer(this.ArtifactDef, false);
+                RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactDef, false);
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
                     baseToken = TextFormatter.Yellow("Artifact of Death Curse is disabled because run started in single player.")
@@ -43,11 +43,11 @@ namespace TeammateRevive.Artifact
             if (
                 (Run.instance.participatingPlayerCount > 1 || rules.Values.ForceEnableDeathCurseForSinglePlayer)
                 && rules.Values.ForceDeathCurseRule
-                && !this.ArtifactEnabled
+                && !ArtifactEnabled
                 && NetworkHelper.IsServer
             ) {
                 var message = "Artifact of Death Curse is enforced by server.";
-                RunArtifactManager.instance.SetArtifactEnabledServer(this.ArtifactDef, true);
+                RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactDef, true);
                 Log.Info(message);
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {

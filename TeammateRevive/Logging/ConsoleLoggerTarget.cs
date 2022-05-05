@@ -13,7 +13,7 @@ namespace TeammateRevive.Logging
 
         public void Write(LogLevel level, object msg)
         {
-            this.log.Log(level, msg);
+            log.Log(level, msg);
         }
     }
 }
