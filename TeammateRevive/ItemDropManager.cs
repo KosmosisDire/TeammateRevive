@@ -23,7 +23,7 @@ namespace TeammateRevive
 
         private bool OnNextItemIterator(On.RoR2.ItemCatalog.AllItemsEnumerator.orig_MoveNext orig, ref RoR2.ItemCatalog.AllItemsEnumerator self)
         {
-            while (this.run.IsDeathCurseEnabled && (self.position == CharonsObol.Index - 1 || self.position == ReviveEverywhereItem.Index - 1))
+            while (run.IsDeathCurseEnabled && (self.position == CharonsObol.Index - 1 || self.position == DeadMansHandItem.Index - 1))
             {
                 self.position++;
             }
