@@ -50,7 +50,6 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 * First item **increases** revival time by x2
 * Every subsequent item **decreases** revival time when you are reviving
 
-
 <br> <br>
 
 ## Change Notes:
@@ -61,7 +60,15 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 
 <br>
 
-### 4.1.2 - Latest Update
+### 4.1.3 - Latest Update
+* Fixed possible incompatibility with mods that modify the HUD
+* Fixed bug where curse mode items always dropped, even in normal mode.
+* Progress bar visual changes, and better alignment with healthbar.
+* code cleanup
+ 
+<br>
+
+### 4.1.2
 * Fixed missing **Risk Of Options** integration.
 * Fixed **artifact** not being **disabled** when turned off in options.
 
