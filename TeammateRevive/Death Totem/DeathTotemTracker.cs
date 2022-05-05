@@ -21,7 +21,7 @@ namespace TeammateRevive.DeathTotem
         
         public readonly HashSet<DeathTotemBehavior> totems = new();
 
-        public bool HasAnyTotems => this.totems.Count > 0;
+        public bool HasAnyTotems => totems.Count > 0;
 
         public DeathTotemTracker(PlayersTracker players, RunTracker run, ReviveRules rules)
         {
@@ -40,7 +40,7 @@ namespace TeammateRevive.DeathTotem
 
         public void Clear()
         {
-            this.totems.Clear();
+            totems.Clear();
         }
         
         void OnPlayerDead(Player player)
@@ -53,7 +53,7 @@ namespace TeammateRevive.DeathTotem
             var totem = dead.deathTotem;
             
             // recalculating range, since it could have been changed after alive/dead interactions
-            var actualRange = this.rules.CalculateDeathTotemRadius(dead);
+            var actualRange = rules.CalculateDeathTotemRadius(dead);
             
             // if players inside changed, forcing update
             var forceUpdate = totem.GetInsidePlayersHash() != insidePlayersBefore;
@@ -70,19 +70,19 @@ namespace TeammateRevive.DeathTotem
 
                 // if no characters are in range, reduce revive progress
                 dead.reviveProgress =
-                    Mathf.Clamp01(dead.reviveProgress + this.rules.ReduceReviveProgressSpeed * Time.deltaTime);
+                    Mathf.Clamp01(dead.reviveProgress + rules.ReduceReviveProgressSpeed * Time.deltaTime);
 
                 // if reviving progress become 0, remove revive links from all players
                 if (prevReviveProgress != 0 && dead.reviveProgress == 0)
                 {
-                    foreach (var player in this.players.All)
+                    foreach (var player in players.All)
                     {
                         player.RemoveReviveLink(dead);
                     }
                 }
 
                 totem.progress = dead.reviveProgress;
-                totem.SetValuesSend(this.rules.ReduceReviveProgressSpeed, actualRange, forceUpdate);
+                totem.SetValuesSend(rules.ReduceReviveProgressSpeed, actualRange, forceUpdate);
             }
         }
         
@@ -94,7 +94,7 @@ namespace TeammateRevive.DeathTotem
             totem.transform.position = player.groundPosition;
             totem.transform.rotation = Quaternion.identity;
             
-            if (this.run.IsDeathCurseEnabled)
+            if (run.IsDeathCurseEnabled)
             {
                 CreateInteraction(totem.gameObject);
             }
@@ -109,7 +109,7 @@ namespace TeammateRevive.DeathTotem
         
         void OnClientTotemSpawned(DeathTotemBehavior totem)
         {
-            if (!this.run.IsDeathCurseEnabled) return;
+            if (!run.IsDeathCurseEnabled) return;
             CreateInteraction(totem.gameObject);
         }
         
@@ -137,18 +137,18 @@ namespace TeammateRevive.DeathTotem
         private void OnTotemUpdate(DeathTotemBehavior obj)
         {
             Log.Debug("Totem updated! " + string.Join(", ", obj.insidePlayerIDs.Select(i => i.ToString())));
-            this.totems.Add(obj);
+            totems.Add(obj);
         }
 
         private void OnTotemDestroy(DeathTotemBehavior obj)
         {
             Log.Debug("Totem destroyed! " + string.Join(", ", obj.insidePlayerIDs.Select(i => i.ToString())));
-            this.totems.Remove(obj);
+            totems.Remove(obj);
         }
 
         public DeathTotemBehavior GetDeathTotemInRange(NetworkInstanceId userBodyId)
         {
-            var totem = this.totems.FirstOrDefault(s => s.insidePlayerIDs.Contains(userBodyId));
+            var totem = totems.FirstOrDefault(s => s.insidePlayerIDs.Contains(userBodyId));
             return totem;
         }
     }

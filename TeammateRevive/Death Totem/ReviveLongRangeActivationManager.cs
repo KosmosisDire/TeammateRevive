@@ -22,7 +22,7 @@ namespace TeammateRevive.DeathTotem
         private GameObject hook_Interactor_FindBestInteractableObject(On.RoR2.Interactor.orig_FindBestInteractableObject orig, RoR2.Interactor self, Ray raycastRay, float maxRaycastDistance, Vector3 overlapposition, float overlapradius)
         {
             var go = orig(self, raycastRay, maxRaycastDistance, overlapposition, overlapradius);
-            if (go != null || !this.run.IsDeathCurseEnabled) return go;
+            if (go != null || !run.IsDeathCurseEnabled) return go;
 
             maxRaycastDistance = GetMaxReviveDistance();
             if (maxRaycastDistance == 0) return go;
@@ -47,8 +47,8 @@ namespace TeammateRevive.DeathTotem
 
         float GetMaxReviveDistance()
         {
-            if (this.deathTotemTracker.totems.Count == 0) return 0;
-            return this.deathTotemTracker.totems.Max(totem => totem.cachedRadius + RaycastExtraRadius);
+            if (deathTotemTracker.totems.Count == 0) return 0;
+            return deathTotemTracker.totems.Max(totem => totem.cachedRadius + RaycastExtraRadius);
         }
 
         bool CheckDeathTotemRangeAllowed(GameObject gameObject, RaycastHit hitInfo)

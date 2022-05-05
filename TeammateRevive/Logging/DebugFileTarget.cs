@@ -17,13 +17,13 @@ namespace TeammateRevive.Logging
             if (string.IsNullOrEmpty(path)) path = DefaultPath;
             try
             {
-                this.filePath = NormalizeAndVerifyPath(path);
+                filePath = NormalizeAndVerifyPath(path);
             }
             catch
             {
                 consoleLogger.LogError(
                     $"Couldn't write to specified file logging path! Will write to \"{DefaultPath}\" instead --------------------------------------------");
-                this.filePath = DefaultPath;
+                filePath = DefaultPath;
             }
 
             try
@@ -33,7 +33,7 @@ namespace TeammateRevive.Logging
             catch
             {
                 consoleLogger.LogWarning("Log file location unavailable!");
-                this.IsEnabled = false;
+                IsEnabled = false;
             }
         }
 
@@ -55,9 +55,9 @@ namespace TeammateRevive.Logging
 
         public void Write(LogLevel level, object msg)
         {
-            if (!this.IsEnabled) return;
+            if (!IsEnabled) return;
             
-            using var writer = new StreamWriter(this.filePath, true);
+            using var writer = new StreamWriter(filePath, true);
             writer.WriteLine($"[{level.ToString("G").ToUpper()}] [{DateTime.Now}] {msg} \n");
         }
     }

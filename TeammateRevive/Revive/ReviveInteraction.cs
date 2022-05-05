@@ -32,7 +32,7 @@ namespace TeammateRevive.Revive
         public void OnInteractionBegin(Interactor interactor)
         {
             Log.DebugMethod("Interaction! " + interactor.name);
-            var totemId = this.gameObject.GetComponent<NetworkBehaviour>().netId;
+            var totemId = gameObject.GetComponent<NetworkBehaviour>().netId;
             Log.DebugMethod($"Totem Id " + totemId);
             HandleInteraction(interactor.netId, totemId);
         }

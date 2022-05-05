@@ -27,7 +27,7 @@ namespace TeammateRevive.Players
         public event Action<Player> OnPlayerRespawned;
 
         public PlayerCharacterMasterController CurrentUserPlayerCharacterMasterController { get; set; }
-        public NetworkInstanceId? CurrentUserBodyId => this.CurrentUserPlayerCharacterMasterController?.master.GetBody()?.netId;
+        public NetworkInstanceId? CurrentUserBodyId => CurrentUserPlayerCharacterMasterController?.master.GetBody()?.netId;
 
         public List<Player> Alive = new();
         public List<Player> Dead = new();
@@ -52,7 +52,7 @@ namespace TeammateRevive.Players
         {
             if (NetworkHelper.IsClient()) return;
 
-            if (!this.Dead.Contains(player)) return;
+            if (!Dead.Contains(player)) return;
 
             bool playerConnected = player.master.isConnected;
             if (playerConnected)
@@ -74,18 +74,18 @@ namespace TeammateRevive.Players
 
         public void Reset()
         {
-            this.Setup = false;
-            this.Alive.Clear();
-            this.Dead.Clear();
-            this.All.Clear();
-            this.TotalCount = 0;
-            this.numPlayersSetup = 0;
-            this.playerSetupTimer = 0;
+            Setup = false;
+            Alive.Clear();
+            Dead.Clear();
+            All.Clear();
+            TotalCount = 0;
+            numPlayersSetup = 0;
+            playerSetupTimer = 0;
         }
         
         public Player FindByCharacterMasterControllerId(NetworkInstanceId id) 
         {
-            foreach (var p in this.All) 
+            foreach (var p in All) 
             {
                 if(p.master && p.master.netId == id)
                 {
@@ -97,7 +97,7 @@ namespace TeammateRevive.Players
         
         public Player FindByBodyId(NetworkInstanceId id) 
         {
-            foreach (var p in this.Alive)
+            foreach (var p in Alive)
             {
                 p.GetBody();
                 if (p.BodyId == id) return p;
@@ -114,17 +114,17 @@ namespace TeammateRevive.Players
                 return;
             }
 
-            if (!this.run.IsStarted) 
+            if (!run.IsStarted) 
             {
                 Log.Info(user.userName + " left while run wasn't in session.");
             }
 
             Player leavingPlayer = FindByCharacterMasterControllerId(user.masterController.netId);
-            if (this.All.Contains(leavingPlayer))
+            if (All.Contains(leavingPlayer))
             {
-                this.All.Remove(leavingPlayer);
-                if (this.Dead.Contains(leavingPlayer)) this.Dead.Remove(leavingPlayer);
-                if (this.Alive.Contains(leavingPlayer)) this.Alive.Remove(leavingPlayer);
+                All.Remove(leavingPlayer);
+                if (Dead.Contains(leavingPlayer)) Dead.Remove(leavingPlayer);
+                if (Alive.Contains(leavingPlayer)) Alive.Remove(leavingPlayer);
 
                 Log.Info(user.userName + " Left!");
                 return;
@@ -141,7 +141,7 @@ namespace TeammateRevive.Players
             if (NetworkHelper.IsServer)
             {
                 Player victim = FindByBodyId(victimNetworkUser.GetCurrentBody().netId);
-                if (this.Alive.Contains(victim))
+                if (Alive.Contains(victim))
                 {
                     PlayerDead(victim);
                     Log.Info(victimNetworkUser.userName + " Died!");
@@ -161,40 +161,40 @@ namespace TeammateRevive.Players
 
             if (self.networkUser.isLocalPlayer)
             {
-                this.CurrentUserPlayerCharacterMasterController = self;
-                Log.Debug($"Set local player body to {this.CurrentUserBodyId} ({this.CurrentUserBodyId})");
+                CurrentUserPlayerCharacterMasterController = self;
+                Log.Debug($"Set local player body to {CurrentUserBodyId} ({CurrentUserBodyId})");
             }
 
             if (NetworkHelper.IsClient())
                 return;
 
-            if (this.All.Any(p => p.master == self))
+            if (All.Any(p => p.master == self))
             {
                 Log.Info($"BodyStart: {self.networkUser.userName} player already exists.");
                 return;
             }
 
             Player p = new Player(self);
-            if (this.config.GodMode)
+            if (config.GodMode)
             {
                 p.GetBody().baseDamage = 120;
                 p.networkUser.GetCurrentBody().baseMoveSpeed = 30;
                 p.GetBody().baseAttackSpeed = 200;
             }
 
-            this.Alive.Add(p);
-            this.All.Add(p);
+            Alive.Add(p);
+            All.Add(p);
             p.isDead = false;
             
-            this.numPlayersSetup++;
+            numPlayersSetup++;
             Log.Info(self.networkUser.userName + " Setup");
-            this.TotalCount = NetworkManager.singleton.numPlayers;
-            this.playerSetupTimer = 0;
+            TotalCount = NetworkManager.singleton.numPlayers;
+            playerSetupTimer = 0;
 
-            if (this.numPlayersSetup == this.TotalCount)
+            if (numPlayersSetup == TotalCount)
             {
-                this.Setup = true;
-                Log.Info("All " + this.TotalCount + " Players Setup Successfully");
+                Setup = true;
+                Log.Info("All " + TotalCount + " Players Setup Successfully");
                 OnSetupFinished?.Invoke();
             }
         }
@@ -203,53 +203,53 @@ namespace TeammateRevive.Players
         {
             RemoveDuplicates();
             LogPlayers($"Player dead: {p.networkUser.userName}");
-            if (this.Alive.Contains(p)) this.Alive.Remove(p);
-            if(!this.Dead.Contains(p)) this.Dead.Add(p);
+            if (Alive.Contains(p)) Alive.Remove(p);
+            if(!Dead.Contains(p)) Dead.Add(p);
             p.isDead = true;
             p.reviveProgress = 0;
             
             if (NetworkHelper.IsClient()) return;
-            this.OnPlayerDead?.Invoke(p);
+            OnPlayerDead?.Invoke(p);
         }
         
         public void PlayerAlive(Player p)
         {
             RemoveDuplicates();
             LogPlayers($"Player alive: {p.networkUser.userName}");
-            if (!this.Alive.Contains(p)) this.Alive.Add(p);
-            if (this.Dead.Contains(p)) this.Dead.Remove(p);
+            if (!Alive.Contains(p)) Alive.Add(p);
+            if (Dead.Contains(p)) Dead.Remove(p);
             p.isDead = false;
             p.reviveProgress = 0;
             NetworkServer.Destroy(p.deathTotem.gameObject);
-            this.OnPlayerAlive?.Invoke(p);
+            OnPlayerAlive?.Invoke(p);
         }
 
         // this is needed only during debug when reviving self
         [Conditional("DEBUG")]
         void RemoveDuplicates()
         {
-            this.Alive = this.Alive.Distinct().ToList();
-            this.Dead = this.Dead.Distinct().ToList();
+            Alive = Alive.Distinct().ToList();
+            Dead = Dead.Distinct().ToList();
         }
 
         void LogPlayers(string prefix)
         {
-            var alives = string.Join(", ", this.Alive.Select(p => p.networkUser.userName));
-            var deads = string.Join(", ", this.Dead.Select(p => p.networkUser.userName));
+            var alives = string.Join(", ", Alive.Select(p => p.networkUser.userName));
+            var deads = string.Join(", ", Dead.Select(p => p.networkUser.userName));
             Log.Info($"{prefix}; Alive: {alives} | Dead: {deads}");
         }
 
         public void Update()
         {
-            if (NetworkHelper.IsServer && !this.Setup)
+            if (NetworkHelper.IsServer && !Setup)
             {
-                if (this.numPlayersSetup > 0)
+                if (numPlayersSetup > 0)
                 {
-                    this.playerSetupTimer += Time.deltaTime;
-                    if (this.playerSetupTimer >= 3)
+                    playerSetupTimer += Time.deltaTime;
+                    if (playerSetupTimer >= 3)
                     {
-                        this.Setup = true;
-                        Log.Error("The " + this.TotalCount + " total players were not all setup, falling back. Consider filing an issue on Github.");
+                        Setup = true;
+                        Log.Error("The " + TotalCount + " total players were not all setup, falling back. Consider filing an issue on Github.");
                     }
                 }
             }

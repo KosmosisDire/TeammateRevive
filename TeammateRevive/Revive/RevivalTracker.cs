@@ -47,7 +47,7 @@ namespace TeammateRevive.Revive
         
         void OnPlayerAlive(Player player)
         {
-            foreach (var otherPlayer in this.players.All)
+            foreach (var otherPlayer in players.All)
             {
                 otherPlayer.RemoveReviveLink(player);
             }
@@ -58,14 +58,14 @@ namespace TeammateRevive.Revive
             orig(self);
             var sceneName = self.sceneDef.cachedName;
             Log.Debug($"Stage start: {self.sceneDef.cachedName}");
-            this.deathTotemTracker.Clear();
+            deathTotemTracker.Clear();
             
-            foreach (var player in this.players.All)
+            foreach (var player in players.All)
             {
                 player.ClearReviveLinks();
             }
 
-            if (NetworkHelper.IsClient() || IgnoredStages.Contains(sceneName) || !this.run.IsDeathCurseEnabled)
+            if (NetworkHelper.IsClient() || IgnoredStages.Contains(sceneName) || !run.IsDeathCurseEnabled)
                 return;
 
             foreach (var networkUser in NetworkUser.readOnlyInstancesList)
@@ -81,24 +81,24 @@ namespace TeammateRevive.Revive
         public void Update()
         {
             // nothing to do if run didn't start yet
-            if (!this.run.IsStarted) return;
+            if (!run.IsStarted) return;
             
             // for client, we'll need to update progress bar display only
             if (NetworkHelper.IsClient())
             {
-                this.reviveProgressBarTracker.Update();
+                reviveProgressBarTracker.Update();
                 return;
             }
 
             // if players didn't finish setup yet, we cannot do any updates
-            if (!this.players.Setup) return;
+            if (!players.Setup) return;
             
             UpdatePlayersGroundPosition();
 
             // interactions between dead and alive players
-            for (var deadIdx = 0; deadIdx < this.players.Dead.Count; deadIdx++)
+            for (var deadIdx = 0; deadIdx < players.Dead.Count; deadIdx++)
             {
-                var dead = this.players.Dead[deadIdx];
+                var dead = players.Dead[deadIdx];
                 var deathTotem = dead.deathTotem;
 
                 if (deathTotem == null)
@@ -108,22 +108,22 @@ namespace TeammateRevive.Revive
                 }
                 
                 //have they been revived by other means?
-                if (dead.CheckAlive() && !this.rules.Values.DebugKeepTotem)
+                if (dead.CheckAlive() && !rules.Values.DebugKeepTotem)
                 {
                     Log.Info("Removing totem revived by other means");
-                    this.players.PlayerAlive(dead);
+                    players.PlayerAlive(dead);
                     continue;
                 }
                 var totalReviveSpeed = 0f;
                 var playersInRange = 0;
 
                 var insidePlayersHash = deathTotem.GetInsidePlayersHash();
-                var actualRange = this.rules.CalculateDeathTotemRadius(dead);
+                var actualRange = rules.CalculateDeathTotemRadius(dead);
 
                 // ReSharper disable once ForCanBeConvertedToForeach - array can be changed during iteration
-                for (var aliveIdx = 0; aliveIdx < this.players.Alive.Count; aliveIdx++)
+                for (var aliveIdx = 0; aliveIdx < players.Alive.Count; aliveIdx++)
                 {
-                    var reviver = this.players.Alive[aliveIdx];
+                    var reviver = players.Alive[aliveIdx];
                     if (reviver.CheckDead()) continue;
 
                     var playerBody = reviver.GetBody();
@@ -138,13 +138,13 @@ namespace TeammateRevive.Revive
                             deathTotem.insidePlayerIDs.Add(playerBody.netId);
                         
                         // revive progress
-                        var reviveSpeed = this.rules.GetReviveSpeed(reviver, deathTotem.insidePlayerIDs.Count);
+                        var reviveSpeed = rules.GetReviveSpeed(reviver, deathTotem.insidePlayerIDs.Count);
                         totalReviveSpeed += reviveSpeed;
                         dead.reviveProgress += reviveSpeed * Time.deltaTime;
                         dead.reviveProgress = Mathf.Clamp01(dead.reviveProgress);
                         
                         // if player in range, update revive revive links
-                        reviver.IncreaseReviveLinkDuration(dead, Time.deltaTime + Time.deltaTime  / this.rules.Values.ReduceReviveProgressFactor * this.rules.Values.ReviveLinkBuffTimeFactor);
+                        reviver.IncreaseReviveLinkDuration(dead, Time.deltaTime + Time.deltaTime  / rules.Values.ReduceReviveProgressFactor * rules.Values.ReviveLinkBuffTimeFactor);
 
                         DamageReviver(playerBody, dead);
                     }
@@ -162,49 +162,49 @@ namespace TeammateRevive.Revive
                     continue;
                 }
 
-                this.deathTotemTracker.UpdateTotem(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
+                deathTotemTracker.UpdateTotem(dead, insidePlayersHash, playersInRange, totalReviveSpeed);
             }
             
             // update revive link buffs
             // NOTE: revive links are tracked in Normal Mode, but no buff is displayed
-            if (this.run.IsDeathCurseEnabled) 
+            if (run.IsDeathCurseEnabled) 
                 UpdateReviveLinkBuffs();
             
             // progress bar
-            this.reviveProgressBarTracker.Update();
+            reviveProgressBarTracker.Update();
         }
 
         void Revive(Player dead)
         {
-            var linkedPlayers = this.players.Alive
+            var linkedPlayers = players.Alive
                 .Where(p => p.IsLinkedTo(dead))
                 .ToArray();
 
             ScheduleCutReviveeHp(dead);
-            this.players.Respawn(dead);
+            players.Respawn(dead);
 
             // add Death Curse to every linked character
-            if (this.run.IsDeathCurseEnabled)
+            if (run.IsDeathCurseEnabled)
             {
                 ApplyDeathCurses(dead, linkedPlayers);
             }
             
             // remove revive links from all players
-            foreach (var player in this.players.All) 
+            foreach (var player in players.All) 
                 player.RemoveReviveLink(dead);
             
             // add post-revive regeneration to revivers
-            if (this.rules.Values.PostReviveRegenDurationSec != 0)
+            if (rules.Values.PostReviveRegenDurationSec != 0)
             {
                 foreach (var player in linkedPlayers)
-                    player.GetBody().AddTimedBuff(ReviveRegen.Index, this.rules.Values.PostReviveRegenDurationSec);
+                    player.GetBody().AddTimedBuff(ReviveRegen.Index, rules.Values.PostReviveRegenDurationSec);
             }
         }
 
         private void ApplyDeathCurses(Player dead, Player[] linkedPlayers)
         {
             // invert - from "chance to get curse" to "chance to avoid curse"
-            var percentChance = Mathf.Clamp(100 - this.rules.Values.DeathCurseChance, 0, 100);
+            var percentChance = Mathf.Clamp(100 - rules.Values.DeathCurseChance, 0, 100);
             
             bool RollCurse(Player player, float extraLuck)
             {
@@ -246,7 +246,7 @@ namespace TeammateRevive.Revive
                 }
             }
 
-            if (this.rules.Values.EnableRevivalToken)
+            if (rules.Values.EnableRevivalToken)
             {
                 dead.GiveItem(RevivalToken.Index);
             }
@@ -297,7 +297,7 @@ namespace TeammateRevive.Revive
 
         float CalcDamageResult(float max, float current, float dmgThreshold, Player dead, int reviverReviveEverywhereCount)
         {
-            var damageSpeed = this.rules.GetDamageSpeed(max, dead, reviverReviveEverywhereCount);
+            var damageSpeed = rules.GetDamageSpeed(max, dead, reviverReviveEverywhereCount);
             var damageAmount = damageSpeed * Time.deltaTime;
             
             var minValue = max * dmgThreshold;
@@ -312,7 +312,7 @@ namespace TeammateRevive.Revive
         }
         void UpdatePlayersGroundPosition()
         {
-            foreach (var player in this.players.Alive)
+            foreach (var player in players.Alive)
             {
                 if (player.GetBody() == null)
                 {
@@ -345,7 +345,7 @@ namespace TeammateRevive.Revive
 
         void UpdateReviveLinkBuffs()
         {
-            foreach (var player in this.players.Alive)
+            foreach (var player in players.Alive)
             {
                 var characterBody = player.GetBody();
                 if (characterBody == null) continue;

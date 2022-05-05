@@ -35,11 +35,11 @@ namespace TeammateRevive.Integrations
                 {
                     DisplayName = MainTeammateRevival.PluginName
                 };
-                AddSection(configEntry, this.pluginConfig.RuleValuesBindCollection);
+                AddSection(configEntry, pluginConfig.RuleValuesBindCollection);
             
 #if DEBUG
                 // Adding debug section only for debug builds - why tempt players? :)
-                AddSection(configEntry, this.pluginConfig.DebugBindCollection);
+                AddSection(configEntry, pluginConfig.DebugBindCollection);
 #endif
             
                 InLobbyConfig.ModConfigCatalog.Add(configEntry);

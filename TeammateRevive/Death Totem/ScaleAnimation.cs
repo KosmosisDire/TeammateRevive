@@ -21,24 +21,24 @@ namespace TeammateRevive.DeathTotem
 
         public void AnimateTo(Vector3 targetValue)
         {
-            this.elapsedTime = 0;
+            elapsedTime = 0;
             this.targetValue = targetValue;
-            this.finished = false;
-            this.startValue = this.target.localScale;
+            finished = false;
+            startValue = target.localScale;
         }
 
         public void Update()
         {
-            if (this.finished) return;
+            if (finished) return;
             
-            this.elapsedTime += Time.deltaTime;
-            if (this.elapsedTime >= this.duration)
+            elapsedTime += Time.deltaTime;
+            if (elapsedTime >= duration)
             {
-                this.finished = true;
-                this.elapsedTime = this.duration;
+                finished = true;
+                elapsedTime = duration;
             }
 
-            this.target.localScale = Vector3.Lerp(this.startValue, this.targetValue, this.elapsedTime / this.duration);
+            target.localScale = Vector3.Lerp(startValue, targetValue, elapsedTime / duration);
         }
     }
 }
