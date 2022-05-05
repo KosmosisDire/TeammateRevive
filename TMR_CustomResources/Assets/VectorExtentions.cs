@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-namespace TeammateRevive.Common{
-
 
 public static class VectorExtentions
 {
@@ -76,6 +74,4 @@ public static class VectorExtentions
     }
 
     
-}
-
 }

@@ -26,8 +26,8 @@ namespace TeammateRevive.Configuration
         public BindCollection(ConfigFile config, string section)
         {
             this.config = config;
-            this.Section = section;
-            this.config.SettingChanged += OnSettingChanged;
+            Section = section;
+            config.SettingChanged += OnSettingChanged;
         }
 
         private void OnSettingChanged(object sender, SettingChangedEventArgs e)
@@ -45,14 +45,14 @@ namespace TeammateRevive.Configuration
             TValue defaultValue = default,
             EntryMetadata metadata = null)
         {
-            var binding = this.config.Bind(this.Section, key, description: description,
+            var binding = config.Bind(Section, key, description: description,
                 defaultValue: defaultValue);
             set(binding.Value);
-            this.Bindings.Add(binding);
+            Bindings.Add(binding);
             UpdateCallbacks.Add(binding, () => set(binding.Value));
             if (metadata != null)
             {
-                this.Metadatas.Add(binding, metadata);
+                Metadatas.Add(binding, metadata);
             }
             return this;
         }
@@ -62,16 +62,16 @@ namespace TeammateRevive.Configuration
             Action<TValue> set,
             TValue defaultValue = default)
         {
-            var binding = this.config.Bind(this.Section, key, defaultValue, configDescription);
+            var binding = config.Bind(Section, key, defaultValue, configDescription);
             set(binding.Value);
-            this.Bindings.Add(binding);
+            Bindings.Add(binding);
             UpdateCallbacks.Add(binding, () => set(binding.Value));
             return this;
         }
 
         public bool TryGetMetadata(ConfigEntryBase entry, out EntryMetadata value)
         {
-            return this.Metadatas.TryGetValue(entry, out value);
+            return Metadatas.TryGetValue(entry, out value);
         }
     }
 }

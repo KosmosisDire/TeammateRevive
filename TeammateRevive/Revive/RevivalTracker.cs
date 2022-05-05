@@ -127,7 +127,7 @@ namespace TeammateRevive.Revive
                     if (reviver.CheckDead()) continue;
 
                     var playerBody = reviver.GetBody();
-                    var hasReviveEverywhere = playerBody.inventory.GetItemCount(ReviveEverywhereItem.Index) > 0;
+                    var hasReviveEverywhere = playerBody.inventory.GetItemCount(DeadMansHandItem.Index) > 0;
                     var inRange = hasReviveEverywhere || Vector3.Distance(playerBody.transform.position, deathTotem.transform.position) < (actualRange * .5);
                     if (inRange)
                     {
@@ -277,7 +277,7 @@ namespace TeammateRevive.Revive
                     playerBody.healthComponent.shield,
                     0.1f,
                     dead,
-                    playerBody.inventory.GetItemCount(ReviveEverywhereItem.Index)
+                    playerBody.inventory.GetItemCount(DeadMansHandItem.Index)
                 );
             }
             else
@@ -287,7 +287,7 @@ namespace TeammateRevive.Revive
                     playerBody.healthComponent.health,
                     0.05f,
                     dead,
-                    playerBody.inventory.GetItemCount(ReviveEverywhereItem.Index)
+                    playerBody.inventory.GetItemCount(DeadMansHandItem.Index)
                 );
             }
 

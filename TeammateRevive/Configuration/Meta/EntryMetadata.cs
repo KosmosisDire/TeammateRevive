@@ -6,7 +6,7 @@ public class EntryMetadata
 
     public EntryMetadata(bool restartRequired)
     {
-        this.RestartRequired = restartRequired;
+        RestartRequired = restartRequired;
     }
 
     public EntryMetadata()

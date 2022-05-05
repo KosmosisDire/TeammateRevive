@@ -50,7 +50,7 @@ namespace TeammateRevive
                 Log.Error($"{nameof(BuffsOnInit)} called before content was inited!");
             }
             
-            foreach (var content in this.addedContent)
+            foreach (var content in addedContent)
             {
                 try
                 {
@@ -70,7 +70,7 @@ namespace TeammateRevive
             {
                 Log.Error($"{nameof(ItemsOnInit)} called before content was inited!");
             }
-            foreach (var content in this.addedContent)
+            foreach (var content in addedContent)
             {
                 try
                 {
@@ -86,22 +86,22 @@ namespace TeammateRevive
         public void Init()
         {
             LoadAddedContent();
-            this.deathCurseArtifact.Init();
+            deathCurseArtifact.Init();
         }
         
         public void LoadAddedContent()
         {
-            this.addedContent = new List<ContentBase>
+            addedContent = new List<ContentBase>
             {
-                new DeathCurse(this.rules, this.run),
+                new DeathCurse(rules, run),
                 new CharonsObol(),
-                new ReviveEverywhereItem(),
+                new DeadMansHandItem(),
                 new ReviveLink(),
-                new ReviveRegen(this.rules),
+                new ReviveRegen(rules),
                 new RevivalToken()
             };
             
-            foreach (var content in this.addedContent)
+            foreach (var content in addedContent)
             {
                 content.Init();
                 content.GetType().GetField("instance")

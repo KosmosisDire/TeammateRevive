@@ -198,7 +198,7 @@ namespace TeammateRevive.DeathTotem
                     continue;
                 
                 var deadPlayerObolsCount = body.master.inventory.GetItemCount(CharonsObol.Index);
-                var reviverReviveEverywhereItemCount = body.master.inventory.GetItemCount(ReviveEverywhereItem.Index);
+                var reviverReviveEverywhereItemCount = body.master.inventory.GetItemCount(DeadMansHandItem.Index);
                 var damageSpeed = rules.GetDamageSpeed(insidePlayerIDs.Count, body.maxHealth, deadPlayerObolsCount, reviverReviveEverywhereItemCount);
 
                 DamageNumberManager.instance.SpawnDamageNumber(damageSpeed * damageNumberElapsed, body.transform.position + Vector3.up * 0.7f, false, TeamIndex.Player, DamageColorIndex.Bleed);

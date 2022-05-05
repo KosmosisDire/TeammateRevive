@@ -26,17 +26,17 @@ namespace TeammateRevive.Debugging
 
         public void Serialize(NetworkWriter writer)
         {
-            writer.Write(this.messageType);
+            writer.Write(messageType);
         }
 
         public void Deserialize(NetworkReader reader)
         {
-            this.messageType = reader.ReadString();
+            messageType = reader.ReadString();
         }
 
         public void OnReceived()
         {
-            typeof(DebugHelper).GetMethod(this.messageType)?.Invoke(null, Array.Empty<object>());
+            typeof(DebugHelper).GetMethod(messageType)?.Invoke(null, Array.Empty<object>());
         }
 
         public void SpawnTotem()

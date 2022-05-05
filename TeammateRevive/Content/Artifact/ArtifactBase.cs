@@ -12,24 +12,24 @@ namespace TeammateRevive.Artifact
         public abstract Sprite ArtifactEnabledIcon { get; }
         public abstract Sprite ArtifactDisabledIcon { get; }
         public ArtifactDef ArtifactDef;
-        public bool ArtifactEnabled => RunArtifactManager.instance?.IsArtifactEnabled(this.ArtifactDef) ?? false;
+        public bool ArtifactEnabled => RunArtifactManager.instance?.IsArtifactEnabled(ArtifactDef) ?? false;
         protected void CreateLang()
         {
-            LanguageAPI.Add("ARTIFACT_" + this.ArtifactLangTokenName + "_NAME", this.ArtifactName);
-            LanguageAPI.Add("ARTIFACT_" + this.ArtifactLangTokenName + "_DESCRIPTION", this.ArtifactDescription);
+            LanguageAPI.Add("ARTIFACT_" + ArtifactLangTokenName + "_NAME", ArtifactName);
+            LanguageAPI.Add("ARTIFACT_" + ArtifactLangTokenName + "_DESCRIPTION", ArtifactDescription);
         }
 
         public abstract void Init();
         
         protected void CreateArtifact()
         {
-            this.ArtifactDef = ScriptableObject.CreateInstance<ArtifactDef>();
-            this.ArtifactDef.cachedName = "ARTIFACT_" + this.ArtifactLangTokenName;
-            this.ArtifactDef.nameToken = "ARTIFACT_" + this.ArtifactLangTokenName + "_NAME";
-            this.ArtifactDef.descriptionToken = "ARTIFACT_" + this.ArtifactLangTokenName + "_DESCRIPTION";
-            this.ArtifactDef.smallIconSelectedSprite = this.ArtifactEnabledIcon;
-            this.ArtifactDef.smallIconDeselectedSprite = this.ArtifactDisabledIcon;
-            ContentAddition.AddArtifactDef(this.ArtifactDef);
+            ArtifactDef = ScriptableObject.CreateInstance<ArtifactDef>();
+            ArtifactDef.cachedName = "ARTIFACT_" + ArtifactLangTokenName;
+            ArtifactDef.nameToken = "ARTIFACT_" + ArtifactLangTokenName + "_NAME";
+            ArtifactDef.descriptionToken = "ARTIFACT_" + ArtifactLangTokenName + "_DESCRIPTION";
+            ArtifactDef.smallIconSelectedSprite = ArtifactEnabledIcon;
+            ArtifactDef.smallIconDeselectedSprite = ArtifactDisabledIcon;
+            ContentAddition.AddArtifactDef(ArtifactDef);
         }
     }
 }

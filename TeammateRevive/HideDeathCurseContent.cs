@@ -13,7 +13,7 @@ public static class HideDeathCurseContent
 {
     private static readonly string[] ItemsToHide = {
         CharonsObol.NameToken,
-        ReviveEverywhereItem.NameToken
+        DeadMansHandItem.NameToken
     };
         
     public static void Init(PluginConfig config)

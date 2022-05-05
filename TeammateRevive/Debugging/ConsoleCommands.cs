@@ -22,7 +22,7 @@ namespace TeammateRevive.Debugging
         {
             this.rules = rules;
             this.config = config;
-            this.conCommands = InitCommands();
+            conCommands = InitCommands();
             On.RoR2.Console.Awake += ConsoleOnAwake;
             
             #if DEBUG
@@ -38,7 +38,7 @@ namespace TeammateRevive.Debugging
             try
             {
                 var msg = Chat.readOnlyLog.LastOrDefault();
-                foreach (var pair in this.conCommands)
+                foreach (var pair in conCommands)
                 {
                     var cmdIdx = msg.IndexOf(pair.Key);
                     if (cmdIdx >= 0)
@@ -128,7 +128,7 @@ namespace TeammateRevive.Debugging
 
         private void ConsoleOnAwake(Console.orig_Awake orig, RoR2.Console self)
         {
-            foreach (var keyValuePair in this.conCommands)
+            foreach (var keyValuePair in conCommands)
             {
                 self.concommandCatalog[keyValuePair.Key] = keyValuePair.Value;
             }
@@ -139,8 +139,8 @@ namespace TeammateRevive.Debugging
         {
             if (NetworkHelper.IsClient()) return;
             
-            this.config.GodMode = !this.config.GodMode;
-            AddLog($"GodModeEnabled: {this.config.GodMode}");
+            config.GodMode = !config.GodMode;
+            AddLog($"GodModeEnabled: {config.GodMode}");
         }
         
         public void PrintRuleValues(ConCommandArgs args)
@@ -150,12 +150,12 @@ namespace TeammateRevive.Debugging
             
             foreach (var property in typeof(ReviveRuleValues).GetProperties())
             {
-                messages.Add($"{property.Name}: {property.GetValue(this.rules.Values):F2}");
+                messages.Add($"{property.Name}: {property.GetValue(rules.Values):F2}");
             }
             
             foreach (var property in typeof(ReviveRules).GetProperties().Where(p => p.PropertyType == typeof(float)))
             {
-                messages.Add($"[c] {property.Name}: {property.GetValue(this.rules):F2}");
+                messages.Add($"[c] {property.Name}: {property.GetValue(rules):F2}");
             }
             
             messages.Add($"[c] Death Curse enabled: {RunTracker.instance.IsDeathCurseEnabled}");
@@ -189,11 +189,11 @@ namespace TeammateRevive.Debugging
                 return;
             }
 
-            var values = this.rules.Values.Clone();
+            var values = rules.Values.Clone();
             propertyInfo.SetValue(values, value);
-            this.rules.ApplyValues(values);
+            rules.ApplyValues(values);
             AddLog($"Set '{name}' to {value}");
-            this.rules.SendValues();
+            rules.SendValues();
         }
         
         void AddLog(string message)

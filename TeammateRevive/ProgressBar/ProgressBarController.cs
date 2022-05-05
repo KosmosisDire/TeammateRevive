@@ -1,9 +1,10 @@
 ﻿using R2API;
-using TeammateRevive.Logging;
-using TeammateRevive.Resources;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TeammateRevive.Common;
+using TeammateRevive.Logging;
+using TeammateRevive.Resources;
 
 namespace TeammateRevive.ProgressBar
 {
@@ -13,17 +14,18 @@ namespace TeammateRevive.ProgressBar
     public class ProgressBarController
     {
         private const string DefaultName = "Player";
-        public static float WidthModifier = 1.25f;
+        public static float WidthModifier = 1;
         public static ProgressBarController Instance;
-        
+
         private TextMeshProUGUI textComponent;
         private string currentName = DefaultName;
         private readonly CharArrayBuilder charArrayBuilder;
         public bool showing = false;
+        public bool inited = false;
         Slider progressBar;
         public float progress;
         RoR2.UI.HUD hudRef;
-        
+
         RectTransform healthbarTransform;
         RectTransform barRootTransform;
         RectTransform progressBarTransform;
@@ -34,7 +36,7 @@ namespace TeammateRevive.ProgressBar
             On.RoR2.UI.HUD.Awake += HUDOnAwake;
             Instance = this;
             // NOTE: this string splitting is required so class can internally keep track of individual parts and update them efficiently
-            charArrayBuilder = new CharArrayBuilder("Reviving ", DefaultName, " (", "000.0", "%)...");
+            charArrayBuilder = new CharArrayBuilder("Reviving ", DefaultName, "  -  ", "000.0", "%");
         }
 
         public void UpdateText(string name, float progress = 0)
@@ -68,19 +70,63 @@ namespace TeammateRevive.ProgressBar
             Show();
         }
 
+        public (Vector3 bottomLeftOffset, Vector2 size) GetBarPositionAndSize()
+        {
+            //find and set parent to the center cluster
+            if(progressBar.transform.parent.name != "BottomCenterCluster")
+            {
+                var cluster = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomCenterCluster");
+                if(cluster != null)
+                {
+                    progressBar.transform.SetParent(cluster);
+                }
+                else
+                {
+                    //fallback to the main panel
+                    progressBar.transform.SetParent(hudRef.mainUIPanel.transform);
+                }
+            }
+
+            Vector2 parentSize = progressBarTransform.GetParentSize();
+
+            //fallback values in case healthbar is not found
+            Vector2 size = new Vector2(Screen.width/3.5f, Screen.height/27f);
+            Vector3 bottomLeftOffset = new Vector3(parentSize.x/2 - size.x/2, size.y * 6, 0);
+
+            var healthBarRoot = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot");
+            var barRoots = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots");
+
+            if (healthBarRoot == null || barRoots == null)
+            {
+                return (bottomLeftOffset, size);
+            }
+
+            if(healthbarTransform == null || barRootTransform == null)
+            {
+                healthbarTransform = healthBarRoot.GetComponent<RectTransform>();
+                barRootTransform = barRoots.GetComponent<RectTransform>();
+            }
+
+            size = new Vector2(parentSize.x * 0.8f, healthbarTransform.rect.height);
+
+            //use law of sines to get the depth of the healthbar after 6 degrees of rotation
+            float depthOffset = barRootTransform.rect.width
+                    / Mathf.Sin(90 * Mathf.Deg2Rad) 
+                    * Mathf.Sin(-barRoots.parent.rotation.eulerAngles.y * Mathf.Deg2Rad);
+                    
+            bottomLeftOffset = new Vector3(parentSize.x/2 - size.x/2, healthbarTransform.GetBottomLeftOffset().y, depthOffset);
+
+            return (bottomLeftOffset, size);
+        }
+
         public void UpdatePositionAndSize()
         {
-            Vector2 parentSize = this.progressBarTransform.GetParentSize();
+            var (bottomLeftOffset, size) = GetBarPositionAndSize();
 
-            float width = parentSize.x * 0.8f;
-            float height = this.healthbarTransform.rect.height;
-            //use law of sines to get the depth of the bar after 6 degrees of rotation
-            float depthOffset = (this.barRootTransform.rect.width * WidthModifier)/Mathf.Sin(90 * Mathf.Deg2Rad) * Mathf.Sin(6 * Mathf.Deg2Rad);
-
-            this.progressBarTransform.SetSizeInPixels(width, height);
-            this.progressBarTransform.SetBottomLeftOffset(parentSize.x/2 - width/2, 0);
-            this.progressBarTransform.localScale = Vector3.one;
-            this.progressBarTransform.localPosition = this.progressBarTransform.localPosition.SetZ(depthOffset);
+            progressBarTransform.SetSizeInPixels(size.x, size.y);
+            progressBarTransform.SetBottomLeftOffset(bottomLeftOffset.x, bottomLeftOffset.y);
+            progressBarTransform.localScale = Vector3.one;
+            progressBarTransform.localPosition = progressBarTransform.localPosition.SetZ(bottomLeftOffset.z);
         }
 
         public void Hide()
@@ -92,9 +138,8 @@ namespace TeammateRevive.ProgressBar
 
         public void Show()
         {
-            if (this.showing) 
-                return;
-            
+            if (showing) return;
+
             UpdatePositionAndSize();
             showing = true;
             progressBar.GetComponent<CanvasGroup>().alpha = 1;
@@ -105,14 +150,8 @@ namespace TeammateRevive.ProgressBar
             Log.Debug("AttachProgressBar");
 
             hudRef = hud;
-            
             progressBar = CustomResources.progressBarPrefab.InstantiateClone("Revival Progress Bar").GetComponent<Slider>();
-            progressBar.transform.SetParent(hud.mainUIPanel.transform.Find("SpringCanvas/BottomCenterCluster"));
-
-            this.healthbarTransform = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots/HealthbarRoot").GetComponent<RectTransform>();
-            this.barRootTransform = hudRef.mainUIPanel.transform.Find("SpringCanvas/BottomLeftCluster/BarRoots").GetComponent<RectTransform>();
-            this.progressBarTransform = progressBar.GetComponent<RectTransform>();
-
+            progressBarTransform = progressBar.GetComponent<RectTransform>();
             textComponent = progressBar.GetComponentInChildren<TextMeshProUGUI>();
             textComponent.font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
             Hide();
@@ -120,9 +159,9 @@ namespace TeammateRevive.ProgressBar
 
         public void Destroy()
         {
-            if (this.progressBar?.gameObject)
+            if (progressBar?.gameObject)
             {
-                Object.Destroy(this.progressBar.gameObject);
+                Object.Destroy(progressBar.gameObject);
             }
         }
 
@@ -130,7 +169,6 @@ namespace TeammateRevive.ProgressBar
         {
             Log.Debug("HUDOnAwake");
             orig(self);
-
             AttachProgressBar(self);
         }
     }

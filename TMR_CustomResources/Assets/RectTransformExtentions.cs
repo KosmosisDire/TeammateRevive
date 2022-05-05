@@ -1,7 +1,4 @@
 using UnityEngine;
-namespace TeammateRevive.Common{
-
-
 
 public static class RectTransformExtensions
 {
@@ -231,8 +228,5 @@ public static class RectTransformExtensions
     #endregion
 
     
-
-}
-
 
 }
