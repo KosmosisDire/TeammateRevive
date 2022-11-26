@@ -17,6 +17,7 @@ using TeammateRevive.Resources;
 using TeammateRevive.Revive;
 using TeammateRevive.Revive.Rules;
 using TeammateRevive.DeathTotem;
+using TeammateRevive.Localization;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -71,6 +72,7 @@ namespace TeammateRevive
         {
             instance = this;
             pluginConfig = PluginConfig.Load(Config);
+            LanguageManager.RegisterLanguages();
             
             NetworkingAPI.RegisterMessageType<SyncDeathTotemMessage>();
             NetworkingAPI.RegisterMessageType<SetRulesMessage>();

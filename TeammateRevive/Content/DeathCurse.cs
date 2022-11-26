@@ -1,6 +1,7 @@
 ﻿using R2API;
 using RoR2;
 using TeammateRevive.Common;
+using TeammateRevive.Localization;
 using TeammateRevive.Resources;
 using TeammateRevive.Revive.Rules;
 using UnityEngine;
@@ -16,7 +17,6 @@ namespace TeammateRevive.Content
         
         public static string ItemName = "ITEM_DeathCurse";
         public static string BuffName = "BUFF_DeathCurse";
-        public static string NameToken = "Death curse";
         
         public static ItemIndex ItemIndex;
         public static BuffIndex BuffIndex;
@@ -48,9 +48,11 @@ namespace TeammateRevive.Content
 
         static void CreateDeathCurseHiddenItem()
         {
-            ItemAPI.Add(DeprecatedCustomItem.Create(ItemName, NameToken, 
-                "Reduces your max HP/Shield. Removed on next stage.", "Reduces your max HP/Shield. Removed on next stage.",
-                "ITEM_REDUCEHP_PICK", 
+            ItemAPI.Add(DeprecatedCustomItem.Create(ItemName, 
+                LanguageConsts.ITEM_DEATH_CURSE_NAME, 
+                LanguageConsts.ITEM_DEATH_CURSE_DESCRIPTION, 
+                LanguageConsts.ITEM_DEATH_CURSE_LORE,
+                LanguageConsts.ITEM_DEATH_CURSE_PICKUP,
                 CustomResources.DeathCurseBuffIcon,
                 CustomResources.CharonsObolItemPrefab, ItemTier.NoTier, new[]
                 {

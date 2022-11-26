@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using RoR2;
 using TeammateRevive.Content;
+using TeammateRevive.Localization;
 using TeammateRevive.Logging;
 
 namespace TeammateRevive.Integrations
@@ -27,9 +28,9 @@ namespace TeammateRevive.Integrations
         {
             try
             {
-                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(DeathCurse.BuffIndex), "Death Curse", "Reduces your max HP/Shield.");
-                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(ReviveLink.Index), "Revive Link", "Marks that character will receive Death curse when dead character is revived. Removed after some time.");
-                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(ReviveRegen.Index), "Revive Regeneration", "Rapidly regenerates 40% of your HP after revival.");
+                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(DeathCurse.BuffIndex), LanguageConsts.ITEM_DEATH_CURSE_NAME, LanguageConsts.BUFF_DEATH_CURSE_DESCRIPTION);
+                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(ReviveLink.Index), LanguageConsts.BUFF_REVIVE_LINK_NAME, LanguageConsts.BUFF_REVIVE_LINK_DESCRIPTION);
+                BetterUI.Buffs.RegisterBuffInfo(BuffCatalog.GetBuffDef(ReviveRegen.Index), LanguageConsts.BUFF_REVIVE_REGEN_NAME, LanguageConsts.BUFF_REVIVE_REGEN_DESCRIPTION);
                 Log.Info($"Better UI integration: OK!");
             }
             catch (Exception e)

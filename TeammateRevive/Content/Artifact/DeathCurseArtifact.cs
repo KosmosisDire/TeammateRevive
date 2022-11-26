@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using TeammateRevive.Common;
+using TeammateRevive.Localization;
 using TeammateRevive.Logging;
 using TeammateRevive.Resources;
 using TeammateRevive.Revive.Rules;
@@ -8,19 +9,14 @@ using UnityEngine;
 namespace TeammateRevive.Artifact
 {
     public class DeathCurseArtifact : ArtifactBase
-    {        
-        public override string ArtifactName => "Artifact of Death Curse";
+    {
         public override string ArtifactLangTokenName => "DEATH_CURSE";
-
-        public override string ArtifactDescription =>
-            "Adds Death Curse on revive, but also adds Charon's Obol item that will make revive easier.";
 
         public override Sprite ArtifactEnabledIcon => CustomResources.DeathCurseArtifactEnabledIcon;
         public override Sprite ArtifactDisabledIcon => CustomResources.DeathCurseArtifactDisabledIcon;
 
         public override void Init()
         {
-            CreateLang();
             CreateArtifact();
         }
 
@@ -34,7 +30,7 @@ namespace TeammateRevive.Artifact
                 RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactDef, false);
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
-                    baseToken = TextFormatter.Yellow("Artifact of Death Curse is disabled because run started in single player.")
+                    baseToken = TextFormatter.Yellow(Language.GetString(LanguageConsts.ARTIFACT_DEATH_CURSE_DISABLED))
                 });
                 return;
             }
@@ -46,7 +42,7 @@ namespace TeammateRevive.Artifact
                 && !ArtifactEnabled
                 && NetworkHelper.IsServer
             ) {
-                var message = "Artifact of Death Curse is enforced by server.";
+                var message = Language.GetString(LanguageConsts.ARTIFACT_DEATH_CURSE_ENFORCED_BY_SERVER);
                 RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactDef, true);
                 Log.Info(message);
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage

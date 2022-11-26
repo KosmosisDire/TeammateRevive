@@ -1,8 +1,10 @@
 ﻿using R2API;
+using RoR2;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using TeammateRevive.Common;
+using TeammateRevive.Localization;
 using TeammateRevive.Logging;
 using TeammateRevive.Resources;
 
@@ -13,7 +15,8 @@ namespace TeammateRevive.ProgressBar
     /// </summary>
     public class ProgressBarController
     {
-        private const string DefaultName = "Player";
+        private static string DefaultName => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_PLAYER);
+        private static string Reviving => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_PROGRESS_BAR_REVIVING);
         public static float WidthModifier = 1;
         public static ProgressBarController Instance;
 
@@ -36,7 +39,7 @@ namespace TeammateRevive.ProgressBar
             On.RoR2.UI.HUD.Awake += HUDOnAwake;
             Instance = this;
             // NOTE: this string splitting is required so class can internally keep track of individual parts and update them efficiently
-            charArrayBuilder = new CharArrayBuilder("Reviving ", DefaultName, "  -  ", "000.0", "%");
+            charArrayBuilder = new CharArrayBuilder(Reviving, DefaultName, "  -  ", "000.0", "%");
         }
 
         public void UpdateText(string name, float progress = 0)

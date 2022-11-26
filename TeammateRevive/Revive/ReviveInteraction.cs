@@ -5,18 +5,15 @@ using TeammateRevive.Content;
 using TeammateRevive.Logging;
 using TeammateRevive.Players;
 using TeammateRevive.DeathTotem;
+using TeammateRevive.Localization;
 using UnityEngine;
 using UnityEngine.Networking;
-using static TeammateRevive.Common.TextFormatter;
 
 namespace TeammateRevive.Revive
 {
     public class ReviveInteraction : MonoBehaviour, IInteractable, IDisplayNameProvider
     {
-        private static readonly string DisplayString = 
-            $"Use {Green("Charon's Obol")} to revive ({Red("Reduces Max Hp/Shield")})";
-
-        public string GetContextString(Interactor activator) => DisplayString;
+        public string GetContextString(Interactor activator) => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_USE_OBOL);
 
         public Interactability GetInteractability(Interactor activator)
         {
@@ -58,7 +55,7 @@ namespace TeammateRevive.Revive
 
             if (!playerHasRespawnItem)
             {
-                ChatMessage.SendColored("Cannot instantly resurrect without Charon's Obol!", Color.red);
+                ChatMessage.SendColored(Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_NO_OBOL), Color.red);
                 return;
             }
 
@@ -76,8 +73,7 @@ namespace TeammateRevive.Revive
             return false;
         }
 
-        public string GetDisplayName() => DisplayString;
-
+        public string GetDisplayName() => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_USE_OBOL);
 
         public void OnEnable() => InstanceTracker.Add(this);
 

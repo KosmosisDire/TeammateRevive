@@ -8,6 +8,7 @@ using TeammateRevive.Players;
 using TeammateRevive.ProgressBar;
 using TeammateRevive.Revive.Rules;
 using TeammateRevive.DeathTotem;
+using TeammateRevive.Localization;
 using UnityEngine;
 
 namespace TeammateRevive.Revive
@@ -219,7 +220,8 @@ namespace TeammateRevive.Revive
                     player.GiveItem(DeathCurse.ItemIndex);
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {
-                        baseToken = $"<color=\"red\">{player.networkUser.userName} was cursed! (Luck value: {luckTotal})</color>"
+                        baseToken = LanguageConsts.TEAMMATE_REVIVAL_UI_CURSED,
+                        paramTokens = new[] { player.networkUser.userName, $"{luckTotal:F0}" }
                     });
                     return true;
                 }
@@ -227,7 +229,8 @@ namespace TeammateRevive.Revive
                 Log.Info($"Rolled curse for {player.networkUser.userName}: {percentChance:F1}% (luck: {player.master.master.luck:F0}+{extraLuck:F0}). Success: {curseAvoided}");
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
-                    baseToken = $"{player.networkUser.userName} avoided curse! (Luck value: {luckTotal})"
+                    baseToken = LanguageConsts.TEAMMATE_REVIVAL_UI_AVOIDED_CURSE,
+                    paramTokens = new[] { player.networkUser.userName, $"{luckTotal:F0}" }
                 });
                 return false;
             }
