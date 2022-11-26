@@ -102,25 +102,29 @@ namespace TeammateRevive.Debugging
                             }
                             DebugHelper.DamageTargetIndex = idx;
                             AddLog($"Target set to {PlayersTracker.instance.All[DebugHelper.DamageTargetIndex].networkUser.userName}");
-                        }
+                        },
+                        helpText = "Damage player with entered index"
                     }
                 },
                 {
                     "trv_tglbuff", new RoR2.Console.ConCommand()
                     {
-                        action = args => DebugHelper.ToggleRegenBuff()
+                        action = args => DebugHelper.ToggleRegenBuff(),
+                        helpText = "Toggle post-revive regen buff"
                     }
                 },
                 {
                     "trv_give_item", new RoR2.Console.ConCommand()
                     {
-                        action = args => PlayersTracker.instance.All.ForEach(p => p.GiveItem(ItemCatalog.FindItemIndex(args.GetArgString(0)))) 
+                        action = args => PlayersTracker.instance.All.ForEach(p => p.GiveItem(ItemCatalog.FindItemIndex(args.GetArgString(0)))),
+                        helpText = "Give all players item by name" 
                     }
                 },
                 {
                     "trv_remove_item", new RoR2.Console.ConCommand()
                     {
-                        action = args => PlayersTracker.instance.All.ForEach(p => p.master.master.inventory.RemoveItem(ItemCatalog.FindItemIndex(args.GetArgString(0)))) 
+                        action = args => PlayersTracker.instance.All.ForEach(p => p.master.master.inventory.RemoveItem(ItemCatalog.FindItemIndex(args.GetArgString(0)))),
+                        helpText = "Remove item by name from all players" 
                     }
                 }
             };
