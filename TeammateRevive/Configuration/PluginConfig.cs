@@ -220,9 +220,15 @@ namespace TeammateRevive.Configuration
                     defaultValue: values.CutReviveeHp)
                 .Bind(
                     key: "Death Curse chance",
-                    description: "[Only with Death Curse enabled] Chance to receive Death Curse on revival (Range: 0-100%)",
+                    description: "[Only with Death Curse enabled] Chance to receive Death Curse on revival for revivee (Range: 0-100%)",
                     set: v => values.DeathCurseChance = v,
                     defaultValue: values.DeathCurseChance,
+                    metadata: new FloatMetadata(0, 100, 1))
+                .Bind(
+                    key: "Reviver Death Curse chance",
+                    description: "[Only with Death Curse enabled] Chance to receive Death Curse on revival for reviver (Range: 0-100%)",
+                    set: v => values.ReviverDeathCurseChance = v,
+                    defaultValue: values.ReviverDeathCurseChance,
                     metadata: new FloatMetadata(0, 100, 1))
                 .Bind(
                     key: "Post revive regeneration time",

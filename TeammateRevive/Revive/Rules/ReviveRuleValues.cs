@@ -33,6 +33,8 @@
 
         public float DeathCurseChance { get; set; } = 66f;
 
+        public float ReviverDeathCurseChance { get; set; } = 66f;
+
         public ReviveRuleValues Clone()
         {
             return (ReviveRuleValues)MemberwiseClone();
