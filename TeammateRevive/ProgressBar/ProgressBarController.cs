@@ -17,14 +17,12 @@ namespace TeammateRevive.ProgressBar
     {
         private static string DefaultName => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_PLAYER);
         private static string Reviving => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_PROGRESS_BAR_REVIVING);
-        public static float WidthModifier = 1;
         public static ProgressBarController Instance;
 
         private TextMeshProUGUI textComponent;
         private string currentName = DefaultName;
         private readonly CharArrayBuilder charArrayBuilder;
         public bool showing = false;
-        public bool inited = false;
         Slider progressBar;
         public float progress;
         RoR2.UI.HUD hudRef;
@@ -39,7 +37,7 @@ namespace TeammateRevive.ProgressBar
             On.RoR2.UI.HUD.Awake += HUDOnAwake;
             Instance = this;
             // NOTE: this string splitting is required so class can internally keep track of individual parts and update them efficiently
-            charArrayBuilder = new CharArrayBuilder(Reviving, DefaultName, "  -  ", "000.0", "%");
+            charArrayBuilder = new CharArrayBuilder("Reviving ", DefaultName, "  -  ", "000.0", "%");
         }
 
         public void UpdateText(string name, float progress = 0)
@@ -146,6 +144,7 @@ namespace TeammateRevive.ProgressBar
             UpdatePositionAndSize();
             showing = true;
             progressBar.GetComponent<CanvasGroup>().alpha = 1;
+            charArrayBuilder.UpdatePart(0, Reviving);
         }
 
         public void AttachProgressBar(RoR2.UI.HUD hud)
