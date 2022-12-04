@@ -8,6 +8,7 @@ using TeammateRevive.Players;
 using TeammateRevive.ProgressBar;
 using TeammateRevive.Revive.Rules;
 using TeammateRevive.DeathTotem;
+using TeammateRevive.Localization;
 using UnityEngine;
 
 namespace TeammateRevive.Revive
@@ -204,42 +205,47 @@ namespace TeammateRevive.Revive
         private void ApplyDeathCurses(Player dead, Player[] linkedPlayers)
         {
             // invert - from "chance to get curse" to "chance to avoid curse"
-            var percentChance = Mathf.Clamp(100 - rules.Values.DeathCurseChance, 0, 100);
+            var reviveeChance = Mathf.Clamp(100 - rules.Values.DeathCurseChance, 0, 100);
+            var reviverChance = Mathf.Clamp(100 - rules.Values.ReviverDeathCurseChance, 0, 100);
             
-            bool RollCurse(Player player, float extraLuck)
+            bool RollCurse(Player player, float chance, float extraLuck)
             {
                 // negative luck - take largest roll value
                 // if value > chance - roll is failed
                 // therefore positive luck - outcome is more likely
                 // using inverted roll, so clover sound effect will be triggered if clover is present
                 var luckTotal = extraLuck + player.master.master.luck;
-                var curseAvoided = Util.CheckRoll(percentChance, luckTotal, player.master.master.luck > 0 ? player.master.master : null);
+                var curseAvoided = Util.CheckRoll(chance, luckTotal, player.master.master.luck > 0 ? player.master.master : null);
+                
+                Log.Info($"Rolled curse for {player.networkUser.userName}: {chance:F1}% (luck: {player.master.master.luck:F0}+{extraLuck:F0}). Success: {curseAvoided}");
                 if (!curseAvoided)
                 {
                     player.GiveItem(DeathCurse.ItemIndex);
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {
-                        baseToken = $"<color=\"red\">{player.networkUser.userName} was cursed! (Luck value: {luckTotal})</color>"
+                        baseToken = LanguageConsts.TEAMMATE_REVIVAL_UI_CURSED,
+                        paramTokens = new[] { player.networkUser.userName, $"{luckTotal:F0}" }
                     });
                     return true;
                 }
-
-                Log.Info($"Rolled curse for {player.networkUser.userName}: {percentChance:F1}% (luck: {player.master.master.luck:F0}+{extraLuck:F0}). Success: {curseAvoided}");
+                
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
-                    baseToken = $"{player.networkUser.userName} avoided curse! (Luck value: {luckTotal})"
+                    baseToken = LanguageConsts.TEAMMATE_REVIVAL_UI_AVOIDED_CURSE,
+                    paramTokens = new[] { player.networkUser.userName, $"{luckTotal:F0}" }
                 });
                 return false;
             }
             
-            RollCurse(dead, dead.ItemCount(RevivalToken.Index));
+            // roll for revivee
+            RollCurse(dead, reviveeChance, dead.ItemCount(RevivalToken.Index));
             
             // the more time spent reviving this player - the greater chance to receive a curse
             var array = SortByLinkDuration(linkedPlayers, dead).ToArray();
             for (var index = 0; index < array.Length; index++)
             {
                 var player = array[index];
-                if (RollCurse(player, index))
+                if (RollCurse(player, reviverChance, index))
                 {
                     // when at least one player received curse, stop rolling for other members
                     break;

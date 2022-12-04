@@ -1,8 +1,10 @@
 ﻿using R2API;
+using RoR2;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using TeammateRevive.Common;
+using TeammateRevive.Localization;
 using TeammateRevive.Logging;
 using TeammateRevive.Resources;
 
@@ -13,15 +15,14 @@ namespace TeammateRevive.ProgressBar
     /// </summary>
     public class ProgressBarController
     {
-        private const string DefaultName = "Player";
-        public static float WidthModifier = 1;
+        private static string DefaultName => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_PLAYER);
+        private static string Reviving => Language.GetString(LanguageConsts.TEAMMATE_REVIVAL_UI_PROGRESS_BAR_REVIVING);
         public static ProgressBarController Instance;
 
         private TextMeshProUGUI textComponent;
         private string currentName = DefaultName;
         private readonly CharArrayBuilder charArrayBuilder;
         public bool showing = false;
-        public bool inited = false;
         Slider progressBar;
         public float progress;
         RoR2.UI.HUD hudRef;
@@ -143,6 +144,7 @@ namespace TeammateRevive.ProgressBar
             UpdatePositionAndSize();
             showing = true;
             progressBar.GetComponent<CanvasGroup>().alpha = 1;
+            charArrayBuilder.UpdatePart(0, Reviving);
         }
 
         public void AttachProgressBar(RoR2.UI.HUD hud)

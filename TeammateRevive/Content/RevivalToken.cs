@@ -1,5 +1,6 @@
 ﻿using R2API;
 using RoR2;
+using TeammateRevive.Localization;
 using TeammateRevive.Resources;
 using UnityEngine;
 using CharacterBody = On.RoR2.CharacterBody;
@@ -13,9 +14,11 @@ namespace TeammateRevive.Content
 
         public override void Init()
         {
-            var description = "Reduces chance to receive curse";
-            ItemAPI.Add(DeprecatedCustomItem.Create(Name, "Revival Token",
-                description, description, description,
+            ItemAPI.Add(DeprecatedCustomItem.Create(Name, 
+                LanguageConsts.ITEM_REVIVAL_TOKEN_NAME,
+                LanguageConsts.ITEM_REVIVAL_TOKEN_DESCRIPTION, 
+                LanguageConsts.ITEM_REVIVAL_TOKEN_DESCRIPTION, 
+                LanguageConsts.ITEM_REVIVAL_TOKEN_DESCRIPTION,
                 CustomResources.ReviveLinkBuffIcon,
                 CustomResources.CharonsObolItemPrefab, ItemTier.NoTier, new[]
                 {

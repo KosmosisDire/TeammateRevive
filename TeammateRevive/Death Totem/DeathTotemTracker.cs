@@ -129,8 +129,6 @@ namespace TeammateRevive.DeathTotem
             
             meshGo.AddIfMissing<EntityLocator>().entity = gameObject;
             
-            // game object need's collider in order to be interactible
-            // gameObject.AddIfMissing<MeshCollider>().sharedMesh = AddedAssets.CubeMesh;
             Log.DebugMethod("done");
         }
 

@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <BuiltPluginDestPath></BuiltPluginDestPath>
+    <BuiltPluginDestPath>C:\Users\amada\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\Default\BepInEx\plugins\KosmosisDire-TeammateRevival</BuiltPluginDestPath>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -54,13 +54,23 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Localization\Languages\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <Target Name="CopyCustomContent" AfterTargets="Build" Condition="$(BuiltPluginDestPath) != ''">
     <ItemGroup>
-      <_FilesToCopy Include="$(OutputPath)*.*" />
+      <_FilesToCopy Include="$(OutputPath)**/*.*" />
     </ItemGroup>
     <Message Text="Copying plugin files to '$(BuiltPluginDestPath)'" Importance="High" />
-    <Copy SourceFiles="@(_FilesToCopy)" DestinationFolder="$(BuiltPluginDestPath)" />
+    <Copy SourceFiles="@(_FilesToCopy)" DestinationFolder="$(BuiltPluginDestPath)\%(RecursiveDir)" />
+  </Target>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="powershell -File $(ProjectDir)Tools\GenerateLanguageConsts.ps1" />
   </Target>
 
 </Project>

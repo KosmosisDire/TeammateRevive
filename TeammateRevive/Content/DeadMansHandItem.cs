@@ -1,26 +1,23 @@
 ﻿using R2API;
 using RoR2;
+using TeammateRevive.Localization;
 using TeammateRevive.Resources;
-using static TeammateRevive.Common.TextFormatter;
 
 namespace TeammateRevive.Content
 {
     public class DeadMansHandItem : ContentBase
     {
         public static string Name = "ITEM_ReviveEverywhere";
-        public static string NameToken = "Dead Man's Hand";
+        public static string NameToken = LanguageConsts.ITEM_REVIVE_EVERYWHERE_NAME;
         public static ItemIndex Index;
         
         public override void Init()
         {
-            var full =
-                $"- {Yellow("Revive")} dead teammates {Yellow("everywhere")} on map." +
-                $"\n- First item {Red("increases")} {Yellow("revival time")} by x2." +
-                $"\n- Every subsequent item decreases {Yellow("revival time")} when you are reviving";
-            
-            ItemAPI.Add(DeprecatedCustomItem.Create(Name, NameToken, 
-                full, "Revive death teammates everywhere on map.",
-                "Revive death teammates everywhere on map", 
+            ItemAPI.Add(DeprecatedCustomItem.Create(Name, 
+                NameToken, 
+                LanguageConsts.ITEM_REVIVE_EVERYWHERE_DESCRIPTION, 
+                LanguageConsts.ITEM_REVIVE_EVERYWHERE_LORE,
+                LanguageConsts.ITEM_REVIVE_EVERYWHERE_PICKUP, 
                 CustomResources.LunarHandIcon,
                 CustomResources.HandItemPrefab, ItemTier.Lunar, new[]
                 {
