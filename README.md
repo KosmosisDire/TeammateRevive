@@ -60,7 +60,13 @@ Every time you enter a new stage, **1 Curse** will be removed. The number remove
 
 <br>
 
-### 4.1.3 - Latest Update
+### 4.1.4 - Latest Update
+
+* Made mod strings localizable
+* Fixed bug with using "find" console command
+* Added separate chance for reviver to get Death Curse
+
+### 4.1.3
 * Fixed possible incompatibility with mods that modify the HUD
 * Fixed bug where curse mode items always dropped, even in normal mode.
 * Progress bar visual changes, and better alignment with healthbar.
