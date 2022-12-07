@@ -130,7 +130,8 @@ namespace TeammateRevive.Revive
                     var playerBody = reviver.GetBody();
                     var hasReviveEverywhere = playerBody.inventory.GetItemCount(DeadMansHandItem.Index) > 0;
                     var inRange = hasReviveEverywhere || Vector3.Distance(playerBody.transform.position, deathTotem.transform.position) < (actualRange * .5);
-                    if (inRange)
+                    var isHitboxValid = !rules.Values.RequireHitboxesActive || !playerBody.disablingHurtBoxes;//REQUIRES PUBLICIZED ASSEMBLY
+                    if (inRange && isHitboxValid)
                     {
                         playersInRange++;
                         
