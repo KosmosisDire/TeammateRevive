@@ -231,8 +231,14 @@ namespace TeammateRevive.Configuration
                     defaultValue: values.ReviverDeathCurseChance,
                     metadata: new FloatMetadata(0, 100, 1))
                 .Bind(
-                    key: "Post revive regeneration time",
-                    description: "After reviving, 40% of revivee and linked revivers HP is restored. This value specify how long regeneration buff is active in seconds. If set to 0 - revive regen is disabled.",
+                    key: "Post Revive Regeneration Fraction",
+                    description: "After reviving, (PostReviveRegenFraction * 100%) of revivee and linked revivers HP is restored.",
+                    set: v => values.PostReviveRegenFraction = v,
+                    defaultValue: values.PostReviveRegenFraction,
+                    metadata: new FloatMetadata(0, 1, 0.05f))
+                .Bind(
+                    key: "Post Revive Regeneration Time",
+                    description: "After reviving, (PostReviveRegenFraction * 100%) of revivee and linked revivers HP is restored. This value specify how long regeneration buff is active in seconds. If set to 0 - revive regen is disabled.",
                     set: v => values.PostReviveRegenDurationSec = v,
                     defaultValue: values.PostReviveRegenDurationSec,
                     metadata: new FloatMetadata(0, 30, 1)
