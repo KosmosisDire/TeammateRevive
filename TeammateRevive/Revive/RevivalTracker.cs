@@ -195,7 +195,7 @@ namespace TeammateRevive.Revive
                 player.RemoveReviveLink(dead);
             
             // add post-revive regeneration to revivers
-            if (rules.Values.PostReviveRegenDurationSec != 0)
+            if (rules.Values.PostReviveRegenFraction != 0 && rules.Values.PostReviveRegenDurationSec != 0)
             {
                 foreach (var player in linkedPlayers)
                     player.GetBody().AddTimedBuff(ReviveRegen.Index, rules.Values.PostReviveRegenDurationSec);
